@@ -12,7 +12,7 @@ inputs:
     required: false
     default: 'VERSION'
   github-token:
-    description: 'Token used to push tags and create the release. Pass ${{ secrets.GITHUB_TOKEN }}.'
+    description: 'Token used to push tags and create the release. Pass secrets.GITHUB_TOKEN from the calling workflow.'
     required: true
   release-notes:
     description: 'Generate GitHub Release notes automatically'
