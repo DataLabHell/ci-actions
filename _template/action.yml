@@ -1,0 +1,39 @@
+# Template for a new shared action. To use it:
+#   1. Copy this folder to a kebab-case name, e.g. `slack-notify/`.
+#   2. Fill in name/description and replace the inputs/outputs/steps below.
+#   3. Update the copied README.md.
+#   4. Add a row to the top-level README's "Available actions" table.
+# Prefer a composite action (below) — no build step, runs on any runner.
+name: 'TODO: Action Name'
+description: 'TODO: one-line description of what this action does.'
+author: 'DataLabHell'
+
+branding:
+  icon: 'zap' # https://feathericons.com — any single icon name
+  color: 'blue' # white | yellow | blue | green | orange | red | purple | gray-dark
+
+inputs:
+  example:
+    description: 'TODO: what this input controls.'
+    required: false
+    default: ''
+
+outputs:
+  result:
+    description: 'TODO: what this output returns.'
+    value: ${{ steps.main.outputs.result }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Do the thing
+      id: main
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        echo "example input was: '${{ inputs.example }}'"
+
+        # ... action logic here ...
+
+        echo "result=ok" >> "$GITHUB_OUTPUT"

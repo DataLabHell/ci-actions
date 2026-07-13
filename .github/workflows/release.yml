@@ -1,0 +1,30 @@
+name: Release
+
+# Releases this repo's shared actions using our own auto-release action.
+# On every push to main: read VERSION (MAJOR.MINOR), auto-increment the patch,
+# tag vMAJOR.MINOR.PATCH, move the rolling vMAJOR / vMAJOR.MINOR aliases, and
+# publish a GitHub Release. Bump MAJOR/MINOR by editing VERSION.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write                        # create tags and releases
+
+concurrency:
+  group: release                         # never release twice at once
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0                 # full history + tags for version diff
+
+      # Use the action from this repo (local path — no tag bootstrapping needed).
+      - uses: ./auto-release
+        with:
+          version-file: VERSION
+          github-token: ${{ secrets.GITHUB_TOKEN }}
