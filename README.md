@@ -22,13 +22,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: DataLabHell/ci-actions/s3-file-upload@v1
+      - uses: DataLabHell/ci-actions/s3-file-upload@v0.1.1
         with:
-          source: out
-          destination: my-service/${{ github.run_id }}
+          source: images
+          bucket: reports
+          destination: my-service/
+          include: "*.html"
+
 ```
 
-Always pin to a released tag (e.g. `@v1`) rather than `@main`, so downstream
+Always pin to a released tag (e.g. `@v0.1.1`) rather than `@main`, so downstream
 pipelines are not affected by in-progress changes on the default branch.
 
 ## Repository layout
@@ -69,7 +72,7 @@ composite action plus README:
 ## Versioning
 
 Releases are **automatic** and driven by the [`VERSION`](./VERSION) file, which
-holds the `MAJOR.MINOR` (e.g. `1.0`). All actions share the same tags (a tag is a
+holds the `MAJOR.MINOR` (e.g. `0.1`). All actions share the same tags (a tag is a
 snapshot of the whole repo), and consumers reference
 `DataLabHell/ci-actions/<action>@<tag>`.
 
@@ -86,8 +89,13 @@ The [Release workflow](.github/workflows/release.yml) runs on every push to
 
 ### Everyday changes → patch bump
 
-Just merge to `main`. You don't touch `VERSION`. Each push releases the next
-patch automatically: `v1.0.3` → `v1.0.4` → …
+Merge a change to any action (`action.yml`) to `main`. You don't touch
+`VERSION`. Each such push releases the next patch automatically: `v0.1.3` →
+`v0.1.4` → …
+
+Only changes to an `action.yml` or the `VERSION` file cut a release —
+**README/docs-only changes do not** (the workflow's `paths` filter skips them),
+so you don't get empty patch bumps for documentation edits.
 
 ### Bumping major or minor
 
@@ -96,21 +104,24 @@ release starts at patch `0`, and the alias tags follow:
 
 | `VERSION` change | Next release | Aliases moved |
 | ---------------- | ------------ | ------------- |
-| `1.0` → `1.1`    | `v1.1.0`     | `v1`, `v1.1`  |
-| `1.4` → `2.0`    | `v2.0.0`     | `v2`, `v2.0`  |
+| `0.1` → `0.2`    | `v0.2.0`     | `v0`, `v0.2`  |
+| `0.9` → `1.0`    | `v1.0.0`     | `v1`, `v1.0`  |
 
 Follow semver: bump **minor** for new features, **major** for breaking changes
 to an action's inputs or behavior.
 
 ### What consumers pin to
 
-- `@v1` — rolling major alias; auto-updates within the major version.
-  Recommended for most pipelines.
-- `@v1.1` — rolling minor alias.
-- `@v1.1.0` — an exact, immutable release.
+- `@v0` — rolling major alias; moves with every release (during `0.x` this can
+  include breaking changes).
+- `@v0.1` — rolling minor alias; the recommended pin while on `0.x` (patches
+  only).
+- `@v0.1.0` — an exact, immutable release.
 
-Because the major alias moves on each release, a breaking change **must** go out
-as a new major (bump `VERSION` to `2.0`) so `@v1` users are never broken.
+Follow semver: while on `0.x`, breaking changes bump the **minor** (`0.1` →
+`0.2`), so consumers pinned to `@v0.1` stay safe. Once the API is stable, bump
+`VERSION` to `1.0`; after that, breaking changes bump the major and `@v1` users
+are protected.
 
 ## Conventions
 

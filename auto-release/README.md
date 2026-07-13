@@ -10,14 +10,14 @@ on self-hosted runners too.
 
 ## How versioning works
 
-The `VERSION` file holds `MAJOR.MINOR` (e.g. `1.0`). The patch number is derived
+The `VERSION` file holds `MAJOR.MINOR` (e.g. `0.1`). The patch number is derived
 automatically from existing tags:
 
-- **Everyday push** — highest `vMAJOR.MINOR.*` tag + 1 (`v1.0.3` → `v1.0.4`).
+- **Everyday push** — highest `vMAJOR.MINOR.*` tag + 1 (`v0.1.3` → `v0.1.4`).
 - **New series** (you edited `VERSION`) — no tags yet, so it starts at `.0`
-  (`1.0` → `1.1` gives `v1.1.0`; `1.4` → `2.0` gives `v2.0.0`).
+  (`0.1` → `0.2` gives `v0.2.0`; `0.9` → `1.0` gives `v1.0.0`).
 
-Pre-release tags (e.g. `v1.0.2-rc.1`) are ignored when picking the next patch.
+Pre-release tags (e.g. `v0.1.2-rc.1`) are ignored when picking the next patch.
 
 ## Requirements
 
@@ -38,8 +38,8 @@ Pre-release tags (e.g. `v1.0.2-rc.1`) are ignored when picking the next patch.
 
 | Output    | Description                                        |
 | --------- | -------------------------------------------------- |
-| `version` | Full version released, e.g. `1.2.3`.               |
-| `tag`     | Tag created, e.g. `v1.2.3`.                        |
+| `version` | Full version released, e.g. `0.1.3`.               |
+| `tag`     | Tag created, e.g. `v0.1.3`.                        |
 
 ## Usage
 
@@ -64,10 +64,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: DataLabHell/ci-actions/auto-release@v1
+      - uses: DataLabHell/ci-actions/auto-release@v0.1.1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-Add a `VERSION` file containing `1.0` to the repo, and every push to `main`
+Add a `VERSION` file containing `0.1` to the repo, and every push to `main`
 releases the next patch automatically.

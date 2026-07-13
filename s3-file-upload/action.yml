@@ -24,9 +24,9 @@ inputs:
     required: false
     default: ''
   include:
-    description: 'Comma-separated glob pattern(s) of files to include, relative to "source" (e.g. "**/*.html,**/*.css"). Defaults to HTML files only; set to "**/*" to upload everything.'
+    description: 'Comma-separated glob pattern(s) of files to include, relative to "source" (e.g. "*.html,**/*.css"). Defaults to HTML files only; set to "*" to upload everything.'
     required: false
-    default: '**/*.html'
+    default: '*.html'
   exclude:
     description: 'Comma-separated glob pattern(s) of files to exclude (applied after include)'
     required: false

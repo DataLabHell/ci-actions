@@ -7,6 +7,11 @@ name: Release
 on:
   push:
     branches: [main]
+    paths:
+      - '**/action.yml'   # an action definition changed
+      - 'VERSION'         # a major/minor bump
+      - '!_template/**'    # ...but not the scaffold
+      # README/docs-only changes do NOT cut a release.
 
 permissions:
   contents: write                        # create tags and releases
