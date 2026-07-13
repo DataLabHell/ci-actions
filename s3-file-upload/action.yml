@@ -35,10 +35,6 @@ inputs:
     description: 'Delete files in the destination that no longer exist in source (adds --delete)'
     required: false
     default: 'false'
-  extra-args:
-    description: 'Any additional raw flags to append to the aws s3 sync command'
-    required: false
-    default: ''
 
 outputs:
   s3-path:
@@ -48,77 +44,15 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Check AWS CLI is available
-      shell: bash
-      run: |
-        if ! command -v aws &> /dev/null; then
-          echo "::error::aws CLI not found on this runner. Install AWS CLI v2 on the runner (GitHub-hosted runners already include it). See: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html"
-          exit 1
-        fi
-        aws --version
-
     - name: Upload to S3
       id: upload
       shell: bash
-      run: |
-        set -euo pipefail
-
-        PROFILE="${{ inputs.profile }}"
-
-        # All connection settings (endpoint, region, addressing style) and
-        # credentials come from this AWS profile, configured on the runner in
-        # ~/.aws/config and ~/.aws/credentials. The action does not touch the AWS
-        # config, so the profile's settings take effect as-is.
-        if [ -z "$PROFILE" ]; then
-          echo "::error::'profile' is required. Configure an AWS profile on the runner (endpoint, region, addressing style, credentials) and pass its name."
-          exit 1
-        fi
-
-        SOURCE="${{ inputs.source }}"
-        DEST_PREFIX="${{ inputs.destination }}"
-        DEST="s3://${{ inputs.bucket }}"
-        if [ -n "$DEST_PREFIX" ]; then
-          DEST="$DEST/${DEST_PREFIX#/}"
-        fi
-
-        if [ ! -d "$SOURCE" ]; then
-          echo "::error::source folder '$SOURCE' does not exist"
-          exit 1
-        fi
-
-        # Build include/exclude filters. AWS CLI applies filters in order given,
-        # so we exclude everything first, then re-include the requested patterns,
-        # then apply any explicit excludes on top of that.
-        FILTER_ARGS=(--exclude "*")
-        IFS=',' read -ra INCLUDES <<< "${{ inputs.include }}"
-        for pattern in "${INCLUDES[@]}"; do
-          pattern="$(echo "$pattern" | xargs)"
-          [ -n "$pattern" ] && FILTER_ARGS+=(--include "$pattern")
-        done
-        if [ -n "${{ inputs.exclude }}" ]; then
-          IFS=',' read -ra EXCLUDES <<< "${{ inputs.exclude }}"
-          for pattern in "${EXCLUDES[@]}"; do
-            pattern="$(echo "$pattern" | xargs)"
-            [ -n "$pattern" ] && FILTER_ARGS+=(--exclude "$pattern")
-          done
-        fi
-
-        DELETE_ARGS=()
-        if [ "${{ inputs.delete-removed }}" = "true" ]; then
-          # --delete against a bare bucket root would mirror-delete every other
-          # pipeline's files in this (shared) bucket. Require a destination prefix.
-          if [ -z "$DEST_PREFIX" ]; then
-            echo "::error::delete-removed=true requires a non-empty 'destination' prefix; refusing to run --delete against the bucket root '$DEST'"
-            exit 1
-          fi
-          DELETE_ARGS+=(--delete)
-        fi
-
-        echo "Uploading '$SOURCE' -> '$DEST'"
-        aws s3 sync "$SOURCE" "$DEST" \
-          --profile "$PROFILE" \
-          "${FILTER_ARGS[@]}" \
-          "${DELETE_ARGS[@]}" \
-          ${{ inputs.extra-args }}
-
-        echo "s3-path=$DEST" >> "$GITHUB_OUTPUT"
+      run: bash "${{ github.action_path }}/upload.sh"
+      env:
+        INPUT_PROFILE: ${{ inputs.profile }}
+        INPUT_BUCKET: ${{ inputs.bucket }}
+        INPUT_SOURCE: ${{ inputs.source }}
+        INPUT_DESTINATION: ${{ inputs.destination }}
+        INPUT_INCLUDE: ${{ inputs.include }}
+        INPUT_EXCLUDE: ${{ inputs.exclude }}
+        INPUT_DELETE_REMOVED: ${{ inputs.delete-removed }}
