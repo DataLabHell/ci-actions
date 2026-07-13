@@ -1,18 +1,20 @@
 # s3-file-upload
 
-Reusable composite GitHub Action that uploads files/folders from a repo to any
-S3-compatible bucket (RustFS, AWS S3, MinIO, on-prem S3, etc.) using the AWS CLI.
-By default it uses the `dlh` AWS profile on the runner to reach the org store;
-it can also target real AWS S3 with environment credentials.
+Reusable composite GitHub Action that uploads files/folders from a repo to an
+S3-compatible bucket (the org RustFS store) using the AWS CLI. Credentials and
+connection settings come from a named AWS profile configured on the runner, so
+it runs on **self-hosted runners** that have that profile.
 
 No Docker required (composite action, not a container action).
 
 ## Requirements
 
-The **AWS CLI** must be available on the runner. Both GitHub-hosted runners and
-our self-hosted runners already include it, so there's nothing to set up. The
-action does not install anything at CI time — it checks that `aws` is present
-and fails with a clear error if it isn't.
+- **Self-hosted runner** with the `dlh` AWS profile configured (see
+  [Connection & credentials](#connection--credentials)). GitHub-hosted runners
+  won't have the profile.
+- **AWS CLI v2.13+** on the runner (needed for `endpoint_url` in the profile
+  config). Our self-hosted runners already include it; the action installs
+  nothing at CI time — it just checks `aws` is present and fails clearly if not.
 
 ## Using it from another repo
 
@@ -60,43 +62,23 @@ aws_secret_access_key = wJalr...
 ```
 
 Because the endpoint lives in the profile, there is no `endpoint-url` input —
-point at a different store by using a different profile. When a profile is used
-the action does **not** touch the runner's AWS config, so the profile's own
-settings take effect.
-
-### Alternative: credentials from the environment
-
-Set `profile: ''` to fall back to the standard AWS environment variables (the
-AWS CLI reads them natively). With no profile there's no endpoint, so this
-targets **real AWS S3**, and `region` / `path-style` come from the inputs:
-
-```yaml
-- uses: DataLabHell/ci-actions/s3-file-upload@v1
-  env:
-    AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-    AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  with:
-    profile: ''
-    bucket: my-bucket
-    source: outputs
-```
-
-The action fails fast if neither a profile nor the two env vars are set.
+point at a different store by using a different `profile`. The action never
+touches the runner's AWS config, so the profile's own settings take effect, and
+credentials never appear in the workflow. It fails fast if the profile isn't
+set.
 
 ## Inputs
 
 | Input            | Required | Default                            | Description                                                                                                                                                       |
 | ---------------- | -------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `bucket`         | no       | `reports`  | Target bucket name.                                                                                                                                               |
-| `profile`        | no       | `dlh`      | AWS CLI profile configured on the runner; supplies endpoint, region, addressing style and credentials. Set to `''` to use `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` instead. |
-| `region`         | no       | `at-west-1` | S3 region. Only used when `profile` is `''` (otherwise the region comes from the profile).                                                                       |
-| `source`         | no       | `outputs`  | Folder in the repo to upload from (may be a nested subpath).                                                                                                      |
-| `destination`    | no       | `''`       | Prefix/subfolder inside the bucket.                                                                                                                               |
+| `bucket`         | no       | `reports`   | Target bucket name.                                                                                                                                               |
+| `profile`        | yes      | `dlh`       | AWS CLI profile configured on the runner; supplies endpoint, region, addressing style and credentials.                                                           |
+| `source`         | no       | `outputs`   | Folder in the repo to upload from (may be a nested subpath).                                                                                                      |
+| `destination`    | no       | `''`        | Prefix/subfolder inside the bucket.                                                                                                                               |
 | `include`        | no       | `**/*.html` | Comma-separated glob(s) to include, relative to `source`. Defaults to HTML only; use `**/*` for everything.                                                       |
-| `exclude`        | no       | `''`       | Comma-separated glob(s) to exclude (applied after include).                                                                                                       |
-| `path-style`     | no       | `true`     | Path-style addressing. Only used when `profile` is `''` (otherwise it comes from the profile).                                                                    |
-| `delete-removed` | no       | `false`                            | Mirror deletions (adds `--delete`). Scoped to `destination`; **requires a non-empty `destination`** so it can't delete other pipelines' files at the bucket root. |
-| `extra-args`     | no       | `''`                               | Any extra raw `aws s3 sync` flags.                                                                                                                                |
+| `exclude`        | no       | `''`        | Comma-separated glob(s) to exclude (applied after include).                                                                                                       |
+| `delete-removed` | no       | `false`     | Mirror deletions (adds `--delete`). Scoped to `destination`; **requires a non-empty `destination`** so it can't delete other pipelines' files at the bucket root. |
+| `extra-args`     | no       | `''`        | Any extra raw `aws s3 sync` flags.                                                                                                                                |
 
 ## Output
 
@@ -127,14 +109,15 @@ jobs:
           include: "**/*.html,**/*.css,**/*.png"
 ```
 
-## Example 2 — Upload a whole folder to real AWS S3 (no profile)
+## Example 2 — Upload a whole folder and mirror deletions
 
-Set `profile: ''` and pass credentials via the environment:
+Uploads everything under `coverage/html`, into a per-branch prefix, and mirrors
+deletions so the destination matches the source exactly:
 
 ```yaml
 jobs:
   coverage:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
 
@@ -143,14 +126,8 @@ jobs:
 
       - name: Upload coverage report
         uses: DataLabHell/ci-actions/s3-file-upload@v1
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         with:
-          profile: "" # no profile -> env credentials, real AWS S3
-          bucket: my-org-coverage-reports
-          region: eu-central-1
-          path-style: "false"
+          bucket: coverage
           source: coverage/html
           include: "**/*"
           destination: frontend/${{ github.ref_name }}
@@ -166,8 +143,7 @@ jobs:
   only those matching the include/exclude filters. Because the default bucket is
   shared, the action refuses to run `--delete` when `destination` is empty — give
   each pipeline its own prefix (e.g. `my-service/`) before enabling it.
-- Credentials are never inputs (see [Connection & credentials](#connection--credentials)):
-  with a profile they stay in the runner's `~/.aws/credentials`; without one they
-  come from `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` in the environment. They
-  are never echoed, and the only file the action writes is an ephemeral job-scoped
-  AWS config (no-profile mode only), deleted at the end of the step.
+- Credentials are never inputs and never appear in the workflow (see
+  [Connection & credentials](#connection--credentials)): they stay in the
+  runner's `~/.aws/credentials` under the profile. The action doesn't read,
+  echo, or write any credentials or AWS config.

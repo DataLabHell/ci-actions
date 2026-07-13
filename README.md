@@ -6,10 +6,10 @@ each action lives in its own top-level folder with its own `action.yml` and
 
 ## Available actions
 
-| Action | Description |
-|---|---|
+| Action                               | Description                                                                                                            |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
 | [`s3-file-upload`](./s3-file-upload) | Upload files/folders to any S3-compatible bucket (RustFS, AWS S3, MinIO, on-prem) with glob include/exclude filtering. |
-| [`auto-release`](./auto-release) | VERSION-file driven releases: auto-increment patch, tag, move `vX`/`vX.Y` aliases, publish a GitHub Release. |
+| [`auto-release`](./auto-release)     | VERSION-file driven releases: auto-increment patch, tag, move `vX`/`vX.Y` aliases, publish a GitHub Release.           |
 
 ## Using an action
 
@@ -23,9 +23,6 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: DataLabHell/ci-actions/s3-file-upload@v1
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         with:
           source: out
           destination: my-service/${{ github.run_id }}
@@ -97,10 +94,10 @@ patch automatically: `v1.0.3` → `v1.0.4` → …
 Edit `VERSION` and merge it. Because the new series has no tags yet, the next
 release starts at patch `0`, and the alias tags follow:
 
-| `VERSION` change | Next release | Aliases moved     |
-| ---------------- | ------------ | ----------------- |
-| `1.0` → `1.1`    | `v1.1.0`     | `v1`, `v1.1`      |
-| `1.4` → `2.0`    | `v2.0.0`     | `v2`, `v2.0`      |
+| `VERSION` change | Next release | Aliases moved |
+| ---------------- | ------------ | ------------- |
+| `1.0` → `1.1`    | `v1.1.0`     | `v1`, `v1.1`  |
+| `1.4` → `2.0`    | `v2.0.0`     | `v2`, `v2.0`  |
 
 Follow semver: bump **minor** for new features, **major** for breaking changes
 to an action's inputs or behavior.

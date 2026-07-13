@@ -12,13 +12,9 @@ inputs:
     required: false
     default: 'reports'
   profile:
-    description: 'Named AWS CLI profile configured on the runner (e.g. via ~/.aws/config + ~/.aws/credentials). The profile provides the endpoint, region, addressing style and credentials. Set to "" to instead use AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY from the environment.'
-    required: false
+    description: 'Named AWS CLI profile configured on the runner (~/.aws/config + ~/.aws/credentials). The profile provides the endpoint, region, addressing style and credentials.'
+    required: true
     default: 'dlh'
-  region:
-    description: 'S3 region. Only used when no profile is set (with a profile, the region comes from the profile).'
-    required: false
-    default: 'at-west-1'
   source:
     description: 'Folder in the repo to upload from'
     required: false
@@ -35,10 +31,6 @@ inputs:
     description: 'Comma-separated glob pattern(s) of files to exclude (applied after include)'
     required: false
     default: ''
-  path-style:
-    description: 'Use path-style addressing. Only used when no profile is set (with a profile, addressing style comes from the profile).'
-    required: false
-    default: 'true'
   delete-removed:
     description: 'Delete files in the destination that no longer exist in source (adds --delete)'
     required: false
@@ -73,20 +65,12 @@ runs:
 
         PROFILE="${{ inputs.profile }}"
 
-        # Connection settings + credentials:
-        #   - With a profile (default): the endpoint, region, addressing style and
-        #     credentials all come from that profile in the runner's ~/.aws/config
-        #     and ~/.aws/credentials. The action does NOT touch the AWS config, so
-        #     the profile's endpoint_url etc. take effect.
-        #   - Without a profile: credentials come from AWS_ACCESS_KEY_ID /
-        #     AWS_SECRET_ACCESS_KEY in the environment, and a job-scoped config is
-        #     synthesized from the region/path-style inputs (targets real AWS S3).
-        PROFILE_ARGS=()
-        CONFIG_FILE=""
-        if [ -n "$PROFILE" ]; then
-          PROFILE_ARGS+=(--profile "$PROFILE")
-        elif [ -z "${AWS_ACCESS_KEY_ID:-}" ] || [ -z "${AWS_SECRET_ACCESS_KEY:-}" ]; then
-          echo "::error::No S3 credentials. Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY in the environment, or set the 'profile' input to use an AWS profile configured on the runner."
+        # All connection settings (endpoint, region, addressing style) and
+        # credentials come from this AWS profile, configured on the runner in
+        # ~/.aws/config and ~/.aws/credentials. The action does not touch the AWS
+        # config, so the profile's settings take effect as-is.
+        if [ -z "$PROFILE" ]; then
+          echo "::error::'profile' is required. Configure an AWS profile on the runner (endpoint, region, addressing style, credentials) and pass its name."
           exit 1
         fi
 
@@ -100,22 +84,6 @@ runs:
         if [ ! -d "$SOURCE" ]; then
           echo "::error::source folder '$SOURCE' does not exist"
           exit 1
-        fi
-
-        # No profile: synthesize a job-scoped AWS config from the inputs (avoids
-        # mutating any shared config on self-hosted runners). With a profile this
-        # is skipped so the profile's own config is used.
-        if [ -z "$PROFILE" ]; then
-          CONFIG_FILE="$(mktemp)"
-          {
-            echo "[default]"
-            echo "region = ${{ inputs.region }}"
-            if [ "${{ inputs.path-style }}" = "true" ]; then
-              echo "s3 ="
-              echo "  addressing_style = path"
-            fi
-          } > "$CONFIG_FILE"
-          export AWS_CONFIG_FILE="$CONFIG_FILE"
         fi
 
         # Build include/exclude filters. AWS CLI applies filters in order given,
@@ -148,12 +116,9 @@ runs:
 
         echo "Uploading '$SOURCE' -> '$DEST'"
         aws s3 sync "$SOURCE" "$DEST" \
-          "${PROFILE_ARGS[@]}" \
+          --profile "$PROFILE" \
           "${FILTER_ARGS[@]}" \
           "${DELETE_ARGS[@]}" \
           ${{ inputs.extra-args }}
 
         echo "s3-path=$DEST" >> "$GITHUB_OUTPUT"
-        if [ -n "$CONFIG_FILE" ]; then
-          rm -f "$CONFIG_FILE"
-        fi
