@@ -1,8 +1,9 @@
 # Template for a new shared action. To use it:
 #   1. Copy this folder to a kebab-case name, e.g. `slack-notify/`.
-#   2. Fill in name/description and replace the inputs/outputs/steps below.
-#   3. Update the copied README.md.
-#   4. Add a row to the top-level README's "Available actions" table.
+#   2. Fill in name/description and replace the inputs/outputs below.
+#   3. Put the shell logic in main.sh (kept as a script so CI can lint it).
+#   4. Update the copied README.md.
+#   5. Add a row to the top-level README's "Available actions" table.
 # Prefer a composite action (below) — no build step, runs on any runner.
 name: 'TODO: Action Name'
 description: 'TODO: one-line description of what this action does.'
@@ -29,11 +30,6 @@ runs:
     - name: Do the thing
       id: main
       shell: bash
-      run: |
-        set -euo pipefail
-
-        echo "example input was: '${{ inputs.example }}'"
-
-        # ... action logic here ...
-
-        echo "result=ok" >> "$GITHUB_OUTPUT"
+      run: bash "${{ github.action_path }}/main.sh"
+      env:
+        INPUT_EXAMPLE: ${{ inputs.example }}

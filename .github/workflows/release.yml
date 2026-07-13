@@ -9,6 +9,7 @@ on:
     branches: [main]
     paths:
       - '**/action.yml'   # an action definition changed
+      - '**/*.sh'         # an action's script logic changed
       - 'VERSION'         # a major/minor bump
       - '!_template/**'    # ...but not the scaffold
       # README/docs-only changes do NOT cut a release.

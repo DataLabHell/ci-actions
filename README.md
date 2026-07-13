@@ -18,7 +18,7 @@ Reference an action by `<owner>/ci-actions/<action-folder>@<tag>`:
 ```yaml
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted # s3-file-upload needs the dlh AWS profile on the runner
     steps:
       - uses: actions/checkout@v4
 
@@ -28,7 +28,6 @@ jobs:
           bucket: reports
           destination: my-service/
           include: "*.html"
-
 ```
 
 Always pin to a released tag (e.g. `@v0.1`) rather than `@main`, so downstream
@@ -40,9 +39,11 @@ pipelines are not affected by in-progress changes on the default branch.
 ci-actions/
 ├── README.md                 # this file — index of all actions
 ├── VERSION                   # MAJOR.MINOR driving releases
+├── .github/workflows/        # lint (shellcheck) + release
 ├── _template/                # scaffold to copy when adding an action
 ├── s3-file-upload/           # one folder per action
 │   ├── action.yml            # the action definition
+│   ├── upload.sh             # shell logic (kept out of action.yml so it can be linted)
 │   └── README.md             # action-specific docs
 └── <next-action>/
     ├── action.yml
@@ -56,14 +57,17 @@ composite action plus README:
 
 1. Copy `_template/` to a kebab-case folder named after the action, e.g.
    `slack-notify/`.
-2. Fill in `action.yml` — replace the `TODO` name/description and the
-   example inputs/outputs/steps. Prefer a **composite** action (the template's
-   default): no build step, runs on any runner. Use Docker/JavaScript only if
-   you specifically need them.
-3. Fill in `README.md` — inputs table, outputs, and at least one usage example.
+2. Fill in `action.yml` — replace the `TODO` name/description and the example
+   inputs/outputs. Prefer a **composite** action (the template's default): no
+   build step, runs on any runner. Use Docker/JavaScript only if you
+   specifically need them.
+3. Put the shell logic in `main.sh` (the template calls it and passes inputs as
+   `INPUT_*` env vars). Keeping shell in a `.sh` file lets CI lint it with
+   shellcheck + shfmt — inline `run:` shell is not linted.
+4. Fill in `README.md` — inputs table, outputs, and at least one usage example.
    Reference the action as `DataLabHell/ci-actions/<folder>@<tag>`.
-4. Add a row to the [Available actions](#available-actions) table above.
-5. Open a PR. Merging to `main` releases automatically (patch bump). If the new
+5. Add a row to the [Available actions](#available-actions) table above.
+6. Open a PR. Merging to `main` releases automatically (patch bump). If the new
    action warrants a minor bump, also edit [`VERSION`](#versioning) in the PR.
 
 > The `_template/` folder is a scaffold, not a published action — the leading
@@ -89,13 +93,13 @@ The [Release workflow](.github/workflows/release.yml) runs on every push to
 
 ### Everyday changes → patch bump
 
-Merge a change to any action (`action.yml`) to `main`. You don't touch
-`VERSION`. Each such push releases the next patch automatically: `v0.1.3` →
-`v0.1.4` → …
+Merge a change to any action to `main`. You don't touch `VERSION`. Each such
+push releases the next patch automatically: `v0.1.3` → `v0.1.4` → …
 
-Only changes to an `action.yml` or the `VERSION` file cut a release —
-**README/docs-only changes do not** (the workflow's `paths` filter skips them),
-so you don't get empty patch bumps for documentation edits.
+Only changes to action files cut a release — an `action.yml`, an action script
+(`*.sh`), or the `VERSION` file. **README/docs-only changes do not** (the
+workflow's `paths` filter skips them), so you don't get empty patch bumps for
+documentation edits.
 
 ### Bumping major or minor
 
