@@ -22,10 +22,10 @@ This action lives in the shared [`ci-actions`](../README.md) monorepo, so it is
 referenced by its path within the repo plus a tag:
 
 ```yaml
-- uses: DataLabHell/ci-actions/s3-file-upload@v0.1.2
+- uses: DataLabHell/ci-actions/s3-file-upload@v0.1
 ```
 
-Pin to a released tag (e.g. `@v0.1.2`) rather than `@main` so pipelines are not
+Pin to a released tag (e.g. `@v0.1`) rather than `@main` so pipelines are not
 broken by in-progress changes.
 
 ## Connection & credentials
@@ -36,7 +36,7 @@ region, addressing style, and credentials — so a normal upload needs **no
 credentials in the workflow at all**:
 
 ```yaml
-- uses: DataLabHell/ci-actions/s3-file-upload@v0.1.2
+- uses: DataLabHell/ci-actions/s3-file-upload@v0.1
   with:
     source: outputs
     destination: my-service/${{ github.run_id }}
@@ -75,7 +75,7 @@ set.
 | `profile`        | yes      | `dlh`       | AWS CLI profile configured on the runner; supplies endpoint, region, addressing style and credentials.                                                           |
 | `source`         | no       | `outputs`   | Folder in the repo to upload from (may be a nested subpath).                                                                                                      |
 | `destination`    | no       | `''`        | Prefix/subfolder inside the bucket.                                                                                                                               |
-| `include`        | no       | `**/*.html` | Comma-separated glob(s) to include, relative to `source`. Defaults to HTML only; use `**/*` for everything.                                                       |
+| `include`        | no       | `*.html`    | Comma-separated glob(s) to include, relative to `source`. AWS CLI `*` matches across `/`, so `*.html` covers every depth; use `*` for everything.                 |
 | `exclude`        | no       | `''`        | Comma-separated glob(s) to exclude (applied after include).                                                                                                       |
 | `delete-removed` | no       | `false`     | Mirror deletions (adds `--delete`). Scoped to `destination`; **requires a non-empty `destination`** so it can't delete other pipelines' files at the bucket root. |
 | `extra-args`     | no       | `''`        | Any extra raw `aws s3 sync` flags.                                                                                                                                |
@@ -102,11 +102,11 @@ jobs:
         run: pytest --html=report/index.html --self-contained-html
 
       - name: Upload report to S3
-        uses: DataLabHell/ci-actions/s3-file-upload@v0.1.2
+        uses: DataLabHell/ci-actions/s3-file-upload@v0.1
         with:
           source: report
           destination: my-service/${{ github.run_id }}
-          include: "**/*.html,**/*.css,**/*.png"
+          include: "*.html,*.css,*.png"
 ```
 
 ## Example 2 — Upload a whole folder and mirror deletions
@@ -125,20 +125,23 @@ jobs:
         run: npm run coverage:html
 
       - name: Upload coverage report
-        uses: DataLabHell/ci-actions/s3-file-upload@v0.1.2
+        uses: DataLabHell/ci-actions/s3-file-upload@v0.1
         with:
           bucket: coverage
           source: coverage/html
-          include: "**/*"
+          include: "*"
           destination: frontend/${{ github.ref_name }}
           delete-removed: "true"
 ```
 
 ## Notes
 
-- `include`/`exclude` use AWS CLI's `s3 sync` filter syntax (glob-style, e.g.
-  `*`, `**/*.html`). Filters are applied in order: exclude everything, then
-  re-include your patterns, then apply any explicit excludes on top.
+- `include`/`exclude` use AWS CLI's `s3 sync` filter syntax. Note that `*`
+  matches **across `/`** (unlike normal shell globs), so `*.html` matches HTML
+  files at any depth and `*` matches everything. A pattern with a literal slash
+  like `sub/*.html` only matches that subpath. Filters are applied in order:
+  exclude everything, then re-include your patterns, then apply explicit
+  excludes on top.
 - `delete-removed` only affects objects **under the `destination` prefix**, and
   only those matching the include/exclude filters. Because the default bucket is
   shared, the action refuses to run `--delete` when `destination` is empty — give

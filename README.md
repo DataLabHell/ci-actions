@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: DataLabHell/ci-actions/s3-file-upload@v0.1.2
+      - uses: DataLabHell/ci-actions/s3-file-upload@v0.1
         with:
           source: images
           bucket: reports
@@ -31,7 +31,7 @@ jobs:
 
 ```
 
-Always pin to a released tag (e.g. `@v0.1.2`) rather than `@main`, so downstream
+Always pin to a released tag (e.g. `@v0.1`) rather than `@main`, so downstream
 pipelines are not affected by in-progress changes on the default branch.
 
 ## Repository layout

@@ -24,7 +24,7 @@ inputs:
     required: false
     default: ''
   include:
-    description: 'Comma-separated glob pattern(s) of files to include, relative to "source" (e.g. "*.html,**/*.css"). Defaults to HTML files only; set to "*" to upload everything.'
+    description: 'Comma-separated glob pattern(s) of files to include, relative to "source" (e.g. "*.html,*.css"). AWS CLI "*" matches across "/", so "*.html" covers every depth; set to "*" to upload everything. Defaults to HTML files only.'
     required: false
     default: '*.html'
   exclude:
