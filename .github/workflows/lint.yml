@@ -1,8 +1,11 @@
 name: Lint
 
-# Lint the action shell scripts (*.sh) with the ShellCheck action, which
-# auto-discovers shell files in the repo. Runs on PRs, and is also called by the
-# release workflow as a prerequisite (workflow_call).
+# Lint the action shell scripts on a GitHub-hosted runner (nothing is installed
+# on our self-hosted runners). action-sh-checker bundles both tools and fails
+# the job if either finds an issue:
+#   - shellcheck: correctness / bugs
+#   - shfmt:      whitespace / indentation / formatting
+# Runs on PRs and is called by the release workflow as a prerequisite.
 on:
   pull_request:
   workflow_call:
@@ -11,8 +14,10 @@ permissions:
   contents: read
 
 jobs:
-  shellcheck:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ludeeus/action-shellcheck@2.0.0
+      - uses: luizm/action-sh-checker@v0.10.0
+        env:
+          SHFMT_OPTS: -i 2 -ci # 2-space indent, indent case bodies
