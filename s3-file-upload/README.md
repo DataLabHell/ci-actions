@@ -22,10 +22,10 @@ This action lives in the shared [`ci-actions`](../README.md) monorepo, so it is
 referenced by its path within the repo plus a tag:
 
 ```yaml
-- uses: DataLabHell/ci-actions/s3-file-upload@v0.1.1
+- uses: DataLabHell/ci-actions/s3-file-upload@v0.1.2
 ```
 
-Pin to a released tag (e.g. `@v0.1.1`) rather than `@main` so pipelines are not
+Pin to a released tag (e.g. `@v0.1.2`) rather than `@main` so pipelines are not
 broken by in-progress changes.
 
 ## Connection & credentials
@@ -36,7 +36,7 @@ region, addressing style, and credentials — so a normal upload needs **no
 credentials in the workflow at all**:
 
 ```yaml
-- uses: DataLabHell/ci-actions/s3-file-upload@v0.1.1
+- uses: DataLabHell/ci-actions/s3-file-upload@v0.1.2
   with:
     source: outputs
     destination: my-service/${{ github.run_id }}
@@ -102,7 +102,7 @@ jobs:
         run: pytest --html=report/index.html --self-contained-html
 
       - name: Upload report to S3
-        uses: DataLabHell/ci-actions/s3-file-upload@v0.1.1
+        uses: DataLabHell/ci-actions/s3-file-upload@v0.1.2
         with:
           source: report
           destination: my-service/${{ github.run_id }}
@@ -125,7 +125,7 @@ jobs:
         run: npm run coverage:html
 
       - name: Upload coverage report
-        uses: DataLabHell/ci-actions/s3-file-upload@v0.1.1
+        uses: DataLabHell/ci-actions/s3-file-upload@v0.1.2
         with:
           bucket: coverage
           source: coverage/html

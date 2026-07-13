@@ -64,7 +64,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: DataLabHell/ci-actions/auto-release@v0.1.1
+      - uses: DataLabHell/ci-actions/auto-release@v0.1.2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
