@@ -17,11 +17,11 @@ if ! command -v aws &>/dev/null; then
 fi
 aws --version
 
-# All connection settings (endpoint, region, addressing style) and credentials
-# come from this AWS profile, configured on the runner in ~/.aws/config and
-# ~/.aws/credentials. We don't touch the AWS config, so its settings apply as-is.
+# All connection settings (endpoint, region) and credentials come from this AWS
+# profile, configured on the runner in ~/.aws/config and ~/.aws/credentials. We
+# don't touch the AWS config, so its settings apply as-is.
 if [ -z "$PROFILE" ]; then
-  echo "::error::'profile' is required. Configure an AWS profile on the runner (endpoint, region, addressing style, credentials) and pass its name."
+  echo "::error::'profile' is required. Configure an AWS profile on the runner (endpoint, region, credentials) and pass its name."
   exit 1
 fi
 

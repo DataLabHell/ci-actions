@@ -12,7 +12,7 @@ inputs:
     required: false
     default: 'reports'
   profile:
-    description: 'Named AWS CLI profile configured on the runner (~/.aws/config + ~/.aws/credentials). The profile provides the endpoint, region, addressing style and credentials.'
+    description: 'Named AWS CLI profile configured on the runner (~/.aws/config + ~/.aws/credentials). The profile provides the endpoint, region and credentials.'
     required: true
     default: 'dlh'
   source:

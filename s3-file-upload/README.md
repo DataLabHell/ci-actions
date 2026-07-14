@@ -32,14 +32,14 @@ broken by in-progress changes.
 
 By default the action uses the **`dlh` AWS profile configured on the runner**.
 That profile supplies everything needed to reach the org store — endpoint,
-region, addressing style, and credentials — so a normal upload needs **no
-credentials in the workflow at all**:
+region, and credentials — so a normal upload needs **no credentials in the
+workflow at all**:
 
 ```yaml
 - uses: DataLabHell/ci-actions/s3-file-upload@v0.1
   with:
     source: outputs
-    destination: my-service/${{ github.run_id }}
+    destination: my-service
 ```
 
 The `dlh` profile is configured once per runner (as the user the runner service
@@ -48,10 +48,9 @@ runs as), in `~/.aws/config` and `~/.aws/credentials`:
 ```ini
 # ~/.aws/config
 [profile dlh]
-endpoint_url = https://truenas.dlh-k8s.com:9000
 region = at-west-1
-s3 =
-    addressing_style = path
+output = json
+endpoint_url = https://truenas.dlh-k8s.com:9000
 ```
 
 ```ini
@@ -67,12 +66,19 @@ touches the runner's AWS config, so the profile's own settings take effect, and
 credentials never appear in the workflow. It fails fast if the profile isn't
 set.
 
+> **Why the profile lives on the runner (not GitHub secrets):** the free GitHub
+> plan doesn't offer **organization-wide** secrets/variables for private repos,
+> so sharing credentials that way would mean re-adding them as secrets in every
+> repo. Configuring the `dlh` profile once per self-hosted runner keeps the
+> credentials in one place and every repo on that runner uses them with no
+> per-repo setup.
+
 ## Inputs
 
 | Input            | Required | Default                            | Description                                                                                                                                                       |
 | ---------------- | -------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `bucket`         | no       | `reports`   | Target bucket name.                                                                                                                                               |
-| `profile`        | yes      | `dlh`       | AWS CLI profile configured on the runner; supplies endpoint, region, addressing style and credentials.                                                           |
+| `profile`        | yes      | `dlh`       | AWS CLI profile configured on the runner; supplies endpoint, region and credentials.                                                                            |
 | `source`         | no       | `outputs`   | Folder in the repo to upload from (may be a nested subpath).                                                                                                      |
 | `destination`    | no       | `''`        | Prefix/subfolder inside the bucket.                                                                                                                               |
 | `include`        | no       | `*.html`    | Comma-separated glob(s) to include, relative to `source`. AWS CLI `*` matches across `/`, so `*.html` covers every depth; use `*` for everything.                 |
@@ -85,33 +91,24 @@ set.
 | --------- | ---------------------------------------------------- |
 | `s3-path` | The resulting `s3://bucket/prefix` path uploaded to. |
 
-## Example 1 — Upload a pytest HTML report to the org S3
+## Example 1 — Just the step
 
-Uses the default `dlh` profile on the self-hosted runner — no credentials in the
-workflow:
+Add the step to any job running on a self-hosted runner. With the default `dlh`
+profile, no credentials are needed in the workflow:
 
 ```yaml
-jobs:
-  test:
-    runs-on: self-hosted
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Run tests
-        run: pytest --html=report/index.html --self-contained-html
-
-      - name: Upload report to S3
-        uses: DataLabHell/ci-actions/s3-file-upload@v0.1
-        with:
-          source: report
-          destination: my-service/${{ github.run_id }}
-          include: "*.html,*.css,*.png"
+- name: Upload report to S3
+  uses: DataLabHell/ci-actions/s3-file-upload@v0.1
+  with:
+    source: report
+    destination: my-service
+    include: "*.html,*.css,*.png"
 ```
 
 ## Example 2 — Upload a whole folder and mirror deletions
 
-Uploads everything under `coverage/html`, into a per-branch prefix, and mirrors
-deletions so the destination matches the source exactly:
+Uploads everything under `coverage/html` and mirrors deletions so the
+destination matches the source exactly:
 
 ```yaml
 jobs:
@@ -129,7 +126,7 @@ jobs:
           bucket: coverage
           source: coverage/html
           include: "*"
-          destination: frontend/${{ github.ref_name }}
+          destination: frontend
           delete-removed: "true"
 ```
 
@@ -141,6 +138,11 @@ jobs:
   like `sub/*.html` only matches that subpath. Filters are applied in order:
   exclude everything, then re-include your patterns, then apply explicit
   excludes on top.
+- `destination` is a plain prefix — the examples use a fixed service name
+  (`my-service`), which overwrites the same location each run. If you'd rather
+  keep uploads separate per run/branch/commit, put a GitHub context expression in
+  it, e.g. `my-service/${{ github.run_id }}`, `my-service/${{ github.ref_name }}`,
+  or `my-service/${{ github.sha }}`.
 - `delete-removed` only affects objects **under the `destination` prefix**, and
   only those matching the include/exclude filters. Because the default bucket is
   shared, the action refuses to run `--delete` when `destination` is empty — give
