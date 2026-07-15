@@ -18,11 +18,11 @@ No Docker required (composite action, not a container action).
 
 ## Using it from another repo
 
-This action lives in the shared [`ci-actions`](../README.md) monorepo, so it is
+This action lives in the shared [`ci-actions`](../../README.md) monorepo, so it is
 referenced by its path within the repo plus a tag:
 
 ```yaml
-- uses: DataLabHell/ci-actions/s3-file-upload@v0.1
+- uses: DataLabHell/ci-actions/actions/s3-file-upload@v0.1
 ```
 
 Pin to a released tag (e.g. `@v0.1`) rather than `@main` so pipelines are not
@@ -36,7 +36,7 @@ region, and credentials — so a normal upload needs **no credentials in the
 workflow at all**:
 
 ```yaml
-- uses: DataLabHell/ci-actions/s3-file-upload@v0.1
+- uses: DataLabHell/ci-actions/actions/s3-file-upload@v0.1
   with:
     source: outputs
     destination: my-service
@@ -98,7 +98,7 @@ profile, no credentials are needed in the workflow:
 
 ```yaml
 - name: Upload report to S3
-  uses: DataLabHell/ci-actions/s3-file-upload@v0.1
+  uses: DataLabHell/ci-actions/actions/s3-file-upload@v0.1
   with:
     source: report
     destination: my-service
@@ -121,7 +121,7 @@ jobs:
         run: npm run coverage:html
 
       - name: Upload coverage report
-        uses: DataLabHell/ci-actions/s3-file-upload@v0.1
+        uses: DataLabHell/ci-actions/actions/s3-file-upload@v0.1
         with:
           bucket: coverage
           source: coverage/html

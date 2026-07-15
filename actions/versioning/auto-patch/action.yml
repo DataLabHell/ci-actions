@@ -1,0 +1,36 @@
+name: 'Version (auto patch)'
+description: 'Read MAJOR.MINOR from a version file and auto-increment the patch from existing tags; output the next vX.Y.Z tag.'
+author: 'DataLabHell'
+
+branding:
+  icon: 'hash'
+  color: 'blue'
+
+inputs:
+  file:
+    description: 'Path to the file holding MAJOR.MINOR (e.g. "0.1")'
+    required: false
+    default: 'VERSION'
+  prefix:
+    description: 'Prefix prepended to the version to form the tag'
+    required: false
+    default: 'v'
+
+outputs:
+  version:
+    description: 'The full version, e.g. 0.1.3'
+    value: ${{ steps.read.outputs.version }}
+  tag:
+    description: 'The next tag, e.g. v0.1.3'
+    value: ${{ steps.read.outputs.tag }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Compute next version
+      id: read
+      shell: bash
+      run: bash "${{ github.action_path }}/version.sh"
+      env:
+        INPUT_FILE: ${{ inputs.file }}
+        INPUT_PREFIX: ${{ inputs.prefix }}

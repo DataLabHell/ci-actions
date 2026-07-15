@@ -1,0 +1,26 @@
+name: 'Tag and move aliases'
+description: 'Create a vMAJOR.MINOR.PATCH tag and force-move the rolling vX / vX.Y alias tags to it. No GitHub Release.'
+author: 'DataLabHell'
+
+branding:
+  icon: 'tag'
+  color: 'blue'
+
+inputs:
+  tag:
+    description: 'Tag to create, vMAJOR.MINOR.PATCH (produce it with a version resolver, e.g. versioning/auto-patch).'
+    required: true
+
+outputs:
+  tag:
+    description: 'The tag created.'
+    value: ${{ inputs.tag }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Tag and move aliases
+      shell: bash
+      run: bash "${{ github.action_path }}/tag.sh"
+      env:
+        TAG: ${{ inputs.tag }}
