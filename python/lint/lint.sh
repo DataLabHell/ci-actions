@@ -26,28 +26,28 @@ uvx ruff format --check $PATHS
 echo "::endgroup::"
 
 case "$TYPE_CHECK" in
-off)
-  echo "Type check disabled (type-check: off)."
-  ;;
-warn | error)
-  # ty resolves imports against the project environment, so sync it first.
-  echo "::group::uv sync (for ty)"
-  # shellcheck disable=SC2086
-  uv sync $SYNC_ARGS
-  echo "::endgroup::"
+  off)
+    echo "Type check disabled (type-check: off)."
+    ;;
+  warn | error)
+    # ty resolves imports against the project environment, so sync it first.
+    echo "::group::uv sync (for ty)"
+    # shellcheck disable=SC2086
+    uv sync $SYNC_ARGS
+    echo "::endgroup::"
 
-  echo "::group::ty check"
-  if [ "$TYPE_CHECK" = "error" ]; then
-    # shellcheck disable=SC2086
-    uvx ty check $TYPE_CHECK_PATHS
-  else
-    # shellcheck disable=SC2086
-    uvx ty check $TYPE_CHECK_PATHS || echo "::warning::ty reported type issues (non-blocking; set type-check: error to fail the job)"
-  fi
-  echo "::endgroup::"
-  ;;
-*)
-  echo "::error::type-check must be one of: warn, error, off (got '$TYPE_CHECK')"
-  exit 1
-  ;;
+    echo "::group::ty check"
+    if [ "$TYPE_CHECK" = "error" ]; then
+      # shellcheck disable=SC2086
+      uvx ty check $TYPE_CHECK_PATHS
+    else
+      # shellcheck disable=SC2086
+      uvx ty check $TYPE_CHECK_PATHS || echo "::warning::ty reported type issues (non-blocking; set type-check: error to fail the job)"
+    fi
+    echo "::endgroup::"
+    ;;
+  *)
+    echo "::error::type-check must be one of: warn, error, off (got '$TYPE_CHECK')"
+    exit 1
+    ;;
 esac
