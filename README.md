@@ -17,6 +17,8 @@ actions, since they vary too much between repos to bundle cleanly.
 | [`release/github-release`](./release/github-release) | Publish a GitHub Release for an existing tag, with notes and optional assets. |
 | [`versioning/auto-patch`](./versioning/auto-patch) | Resolver: `MAJOR.MINOR` from a file + auto-incremented patch → next `vX.Y.Z` tag (feed into the release actions). |
 | [`versioning/from-pyproject`](./versioning/from-pyproject) | Resolver: `[project].version` from a `pyproject.toml` (uv / PEP 621) → `vX.Y.Z` tag (feed into the release actions). |
+| [`python/lint`](./python/lint) | Lint + type-check a Python project with ruff (`check` + `format`) and ty, via `uv`. |
+| [`python/test`](./python/test) | Install with `uv` and run pytest, optionally pinned to a Python version. |
 
 ## Using an action
 
@@ -111,6 +113,35 @@ jobs:
             latest
 ```
 
+### Python CI (lint + test matrix)
+
+Lint and type-check once, then run pytest across Python versions. The matrix
+lives in the caller because a composite action can't fan one out.
+
+```yaml
+jobs:
+  lint:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DataLabHell/ci-actions/python/lint@v0.2
+        with:
+          paths: datalabhell scripts tests
+          type-check-paths: datalabhell   # ruff over everything, ty only on the package
+
+  test:
+    runs-on: self-hosted
+    strategy:
+      fail-fast: true
+      matrix:
+        python-version: ["3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DataLabHell/ci-actions/python/test@v0.2
+        with:
+          python-version: ${{ matrix.python-version }}
+```
+
 ## Repository layout
 
 ```
@@ -127,9 +158,12 @@ ci-actions/
 ├── versioning/               #   resolvers: produce the next bare version X.Y.Z
 │   ├── auto-patch/           #     MAJOR.MINOR file + auto patch
 │   └── from-pyproject/       #     version from pyproject.toml
-└── release/                  #   consume a tag
-    ├── tag-and-alias/        #     create tag + move vX / vX.Y aliases
-    └── github-release/       #     publish a GitHub Release
+├── release/                  #   consume a tag
+│   ├── tag-and-alias/        #     create tag + move vX / vX.Y aliases
+│   └── github-release/       #     publish a GitHub Release
+└── python/                   #   Python CI (uv-based)
+    ├── lint/                 #     ruff check + format + ty
+    └── test/                 #     uv sync + pytest
 ```
 
 Multi-step flows (release, image build) are shown as

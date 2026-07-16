@@ -1,0 +1,38 @@
+name: 'Python lint'
+description: 'Lint and type-check a Python project with ruff (check + format) and ty, via uv.'
+author: 'DataLabHell'
+
+branding:
+  icon: 'check-circle'
+  color: 'blue'
+
+# Runs on any runner that has uv installed (ruff and ty are fetched on demand by
+# uvx). The caller owns the job (runner, checkout).
+inputs:
+  paths:
+    description: 'Space-separated paths for ruff check + format'
+    required: false
+    default: '.'
+  type-check:
+    description: 'ty type check: warn (soft-fail with a warning), error (hard fail), or off'
+    required: false
+    default: 'warn'
+  type-check-paths:
+    description: 'Space-separated paths for ty (used only when type-check is not off)'
+    required: false
+    default: '.'
+  sync-args:
+    description: 'Args for "uv sync" run before ty, which resolves against the project env'
+    required: false
+    default: '--all-groups'
+
+runs:
+  using: 'composite'
+  steps:
+    - shell: bash
+      run: bash "${{ github.action_path }}/lint.sh"
+      env:
+        INPUT_PATHS: ${{ inputs.paths }}
+        INPUT_TYPE_CHECK: ${{ inputs.type-check }}
+        INPUT_TYPE_CHECK_PATHS: ${{ inputs.type-check-paths }}
+        INPUT_SYNC_ARGS: ${{ inputs.sync-args }}
