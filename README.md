@@ -1,10 +1,11 @@
 # ci-actions
 
 Shared, reusable GitHub Actions for the organization. This is a **monorepo**:
-each single action (the building blocks) lives in its own folder at the repo
-root, and ready-made combinations that chain them live under
-[`pipelines/`](./pipelines). Each has its own `action.yml` and `README.md`, and
-all are versioned together with a single set of tags.
+each action (the building blocks) lives in its own folder at the repo root, with
+its own `action.yml` and `README.md`, and all are versioned together with a
+single set of tags. Common multi-step flows (releasing, building an image) are
+shown as copy-paste [examples](#common-workflows) rather than shipped as extra
+actions, since they vary too much between repos to bundle cleanly.
 
 ## Available actions
 
@@ -37,18 +38,19 @@ jobs:
 ```
 
 Always pin to a released tag (e.g. `@v0.2`) rather than `@main`, so downstream
-pipelines are not affected by in-progress changes on the default branch.
+workflows are not affected by in-progress changes on the default branch.
 
-## Premade pipelines
+## Common workflows
 
-For the common cases, use a ready-made pipeline instead of wiring the steps
-yourself. These are **composite actions that chain the smaller ones** (referenced
-with `uses:` like any action — they just bundle several):
+The building blocks compose into a few recurring flows. These are **examples to
+copy and adapt**, not separate actions, because the wiring varies per repo
+(matrix builds, different version sources, and so on). Each caller owns the job:
+runner, permissions, and checkout.
 
-| Pipeline | Purpose |
-|---|---|
-| [`pipelines/release-from-version`](./pipelines/release-from-version) | Resolve the next version from a `VERSION` file, tag it, move `vX`/`vX.Y` aliases, and publish a GitHub Release — in one step. |
-| [`pipelines/image-from-version`](./pipelines/image-from-version) | Resolve the next version from a `VERSION` file, tag it, and build & push a container image tagged with the same rolling set — in one step (single image). |
+### Release from a VERSION file
+
+Resolve the next version, create the tag and move the rolling `vX` / `vX.Y`
+aliases, then publish a GitHub Release. Drop the last step if you only need tags.
 
 ```yaml
 jobs:
@@ -60,14 +62,54 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: DataLabHell/ci-actions/pipelines/release-from-version@v0.2
+      - id: ver
+        uses: DataLabHell/ci-actions/versioning/auto-patch@v0.2
+      - id: rel
+        uses: DataLabHell/ci-actions/release/tag-and-alias@v0.2
         with:
+          tag: ${{ steps.ver.outputs.version }}
+      - uses: DataLabHell/ci-actions/release/github-release@v0.2
+        with:
+          tag: ${{ steps.rel.outputs.tag }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-A pipeline is still an action (a *step*), so the caller owns the job — runner,
-`permissions: contents: write`, and checkout. For anything beyond the common
-case, compose the individual actions yourself (below).
+Swap [`versioning/auto-patch`](./versioning/auto-patch) for
+[`versioning/from-pyproject`](./versioning/from-pyproject) to read the version
+from `pyproject.toml` instead of a `VERSION` file.
+
+### Build and push a versioned image
+
+Same version resolution, but tag a container image with the rolling set instead
+of publishing a Release. This is the single-image shape; for several images in
+one repo, see the matrix pattern in
+[`docker/build-push`](./docker/build-push/README.md#matrix--release-two-jobs).
+
+```yaml
+jobs:
+  publish:
+    runs-on: self-hosted
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: ver
+        uses: DataLabHell/ci-actions/versioning/auto-patch@v0.2
+      - id: rel
+        uses: DataLabHell/ci-actions/release/tag-and-alias@v0.2
+        with:
+          tag: ${{ steps.ver.outputs.version }}
+      - uses: DataLabHell/ci-actions/docker/build-push@v0.2
+        with:
+          image: api
+          registry: truenas
+          cache: registry
+          tags: |
+            ${{ steps.rel.outputs.versions }}
+            latest
+```
 
 ## Repository layout
 
@@ -85,13 +127,13 @@ ci-actions/
 ├── versioning/               #   resolvers: produce the next bare version X.Y.Z
 │   ├── auto-patch/           #     MAJOR.MINOR file + auto patch
 │   └── from-pyproject/       #     version from pyproject.toml
-├── release/                  #   consume a tag
-│   ├── tag-and-alias/        #     create tag + move vX / vX.Y aliases
-│   └── github-release/       #     publish a GitHub Release
-└── pipelines/                # chained combos of the above
-    ├── release-from-version/ #   resolve + tag + GitHub Release, in one step
-    └── image-from-version/   #   resolve + tag + build & push image, in one step
+└── release/                  #   consume a tag
+    ├── tag-and-alias/        #     create tag + move vX / vX.Y aliases
+    └── github-release/       #     publish a GitHub Release
 ```
+
+Multi-step flows (release, image build) are shown as
+[copy-paste examples](#common-workflows), not as separate action folders.
 
 ## Adding a new action
 

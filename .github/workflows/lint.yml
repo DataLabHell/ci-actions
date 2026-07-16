@@ -1,11 +1,13 @@
 name: Lint
 
-# Lint the action shell scripts on a GitHub-hosted runner (nothing is installed
-# on our self-hosted runners). action-sh-checker bundles both tools and fails
-# the job if either finds an issue:
+# Lint the action shell scripts. action-sh-checker is a Docker action that
+# bundles both tools inside its container, so the runner only needs Docker (our
+# self-hosted runners have it); nothing else is installed. It fails the job if
+# either tool finds an issue:
 #   - shellcheck: correctness / bugs
 #   - shfmt:      whitespace / indentation / formatting
-# Runs on PRs and is called by the release workflow as a prerequisite.
+# Runs on feature-branch pushes and PRs, and is called by the release workflow
+# as a prerequisite.
 on:
   push:
     branches-ignore: [main] # main is linted via the release workflow's gate
@@ -14,6 +16,15 @@ on:
 
 permissions:
   contents: read
+
+# A push to a branch that also has an open PR fires both `push` and
+# `pull_request`. github.head_ref is set only for pull_request (the source
+# branch); for push it's empty and we fall back to the branch name. Both events
+# on the same branch therefore share a group, and cancel-in-progress keeps just
+# one lint run instead of two.
+concurrency:
+  group: lint-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
   lint:

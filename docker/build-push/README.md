@@ -189,9 +189,9 @@ jobs:
 ```
 
 The multiline `tags` output survives the job boundary, so it drops straight into
-each matrix cell's `tags`. For a **single** image, the
-[`image-from-version`](../../pipelines/image-from-version) pipeline bundles
-this into one step.
+each matrix cell's `tags`. For a **single** image you can do this in one job; see
+the [build-and-push-a-versioned-image example](../../README.md#build-and-push-a-versioned-image)
+in the top README.
 
 ## Notes
 
