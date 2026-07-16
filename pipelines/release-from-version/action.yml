@@ -3,7 +3,7 @@ description: 'One-step release: resolve the next version from a MAJOR.MINOR file
 author: 'DataLabHell'
 
 branding:
-  icon: 'rocket'
+  icon: 'upload-cloud'
   color: 'blue'
 
 # A "pipeline" action: it just chains this repo's smaller actions (by full ref,
@@ -26,22 +26,25 @@ inputs:
 outputs:
   tag:
     description: 'The tag released, e.g. v0.1.3'
-    value: ${{ steps.ver.outputs.tag }}
+    value: ${{ steps.tag.outputs.tag }}
 
 runs:
   using: 'composite'
   steps:
     - id: ver
-      uses: DataLabHell/ci-actions/actions/versioning/auto-patch@v0
+      uses: DataLabHell/ci-actions/actions/versioning/auto-patch@v0.2
       with:
         file: ${{ inputs.version-file }}
 
-    - uses: DataLabHell/ci-actions/actions/release/tag-and-alias@v0
+    # tag-and-alias takes the bare version and owns the tag format, then outputs
+    # the canonical v-prefixed tag for the release step to reuse.
+    - id: tag
+      uses: DataLabHell/ci-actions/actions/release/tag-and-alias@v0.2
       with:
-        tag: ${{ steps.ver.outputs.tag }}
+        tag: ${{ steps.ver.outputs.version }}
 
     - if: ${{ inputs.create-release == 'true' }}
-      uses: DataLabHell/ci-actions/actions/release/github-release@v0
+      uses: DataLabHell/ci-actions/actions/release/github-release@v0.2
       with:
-        tag: ${{ steps.ver.outputs.tag }}
+        tag: ${{ steps.tag.outputs.tag }}
         github-token: ${{ inputs.github-token }}

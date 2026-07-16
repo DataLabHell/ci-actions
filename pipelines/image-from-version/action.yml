@@ -1,0 +1,85 @@
+name: 'Container image from VERSION file'
+description: 'One-step versioned image: resolve the next version from a MAJOR.MINOR file (auto patch), tag it + move vX / vX.Y aliases, and build & push a container image tagged with the same rolling set.'
+author: 'DataLabHell'
+
+branding:
+  icon: 'package'
+  color: 'blue'
+
+# A "pipeline" action: it chains this repo's smaller actions (auto-patch +
+# tag-and-alias + docker/build-push) by full ref. The caller owns the job —
+# provide a runner, checkout (fetch-depth: 0), and permissions:
+#   contents: write   (tag-and-alias pushes git tags)
+#   packages: write   (only when pushing to GHCR)
+# Auth is by registry: GHCR uses the workflow's GITHUB_TOKEN; the local registry
+# uses the runner's configured credentials (run it on a self-hosted runner).
+#
+# Single image per call. For several images (a matrix build), don't use this
+# pipeline — see the two-job pattern in actions/docker/build-push/README.md.
+inputs:
+  image:
+    description: 'Final path segment of the image, e.g. "api" -> <registry>/<namespace>/api'
+    required: true
+  version-file:
+    description: 'Path to the MAJOR.MINOR version file'
+    required: false
+    default: 'VERSION'
+  registry:
+    description: 'Target registry (allowlisted): ghcr.io (alias ghcr) or truenas.dlh-k8s.com:5000 (alias truenas)'
+    required: false
+    default: 'ghcr.io'
+  namespace:
+    description: 'Path between registry and image. Defaults to this repo (owner/name).'
+    required: false
+    default: '${{ github.repository }}'
+  context:
+    description: 'Build context directory'
+    required: false
+    default: '.'
+  dockerfile:
+    description: 'Path to the Dockerfile (empty = the default Dockerfile in the context)'
+    required: false
+    default: ''
+  cache:
+    description: 'Layer cache backend: gha, registry, or none'
+    required: false
+    default: 'gha'
+  latest:
+    description: 'Also tag the image :latest'
+    required: false
+    default: 'true'
+
+outputs:
+  tag:
+    description: 'The git tag released, e.g. v0.1.3'
+    value: ${{ steps.tag.outputs.tag }}
+  ref:
+    description: 'The image ref pushed (without tag), e.g. ghcr.io/org/repo/api'
+    value: ${{ steps.build.outputs.ref }}
+
+runs:
+  using: 'composite'
+  steps:
+    - id: ver
+      uses: DataLabHell/ci-actions/actions/versioning/auto-patch@v0.2
+      with:
+        file: ${{ inputs.version-file }}
+
+    # Create the git tag + rolling aliases; reuse the bare set as image tags.
+    - id: tag
+      uses: DataLabHell/ci-actions/actions/release/tag-and-alias@v0.2
+      with:
+        tag: ${{ steps.ver.outputs.version }}
+
+    - id: build
+      uses: DataLabHell/ci-actions/actions/docker/build-push@v0.2
+      with:
+        image: ${{ inputs.image }}
+        registry: ${{ inputs.registry }}
+        namespace: ${{ inputs.namespace }}
+        context: ${{ inputs.context }}
+        dockerfile: ${{ inputs.dockerfile }}
+        cache: ${{ inputs.cache }}
+        tags: |
+          ${{ steps.tag.outputs.versions }}
+          ${{ inputs.latest == 'true' && 'latest' || '' }}

@@ -30,8 +30,9 @@ while read -r t; do
 done < <(git tag -l "${PREFIX}${MM}.*")
 
 PATCH=$((HIGHEST + 1))
-NEW="${PREFIX}${MM}.${PATCH}"
 
+# Emit the bare version only; the release step (tag-and-alias) owns the tag
+# format (the v prefix). The prefix above is used solely to find this series'
+# existing tags in the repo.
 echo "version=${MM}.${PATCH}" >>"$GITHUB_OUTPUT"
-echo "tag=$NEW" >>"$GITHUB_OUTPUT"
-echo "Next version: $NEW"
+echo "Next version: ${MM}.${PATCH}"

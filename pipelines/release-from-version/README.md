@@ -42,7 +42,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: DataLabHell/ci-actions/pipelines/release-from-version@v0
+      - uses: DataLabHell/ci-actions/pipelines/release-from-version@v0.2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```

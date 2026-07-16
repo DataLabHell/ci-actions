@@ -1,10 +1,12 @@
 # versioning/from-pyproject
 
 Reads the static `[project].version` from a `pyproject.toml` (uv / PEP 621) and
-outputs it as a `version` and a prefixed `tag` (e.g. `v1.2.3`). Pair it with
-the release actions ([`release/tag-and-alias`](../../release/tag-and-alias) +
+outputs it as a **bare** `version` (e.g. `1.2.3`). Pair it with the release
+actions ([`release/tag-and-alias`](../../release/tag-and-alias) +
 [`release/github-release`](../../release/github-release)) to release the version
 declared in your project config instead of a separate `VERSION` file.
+[`release/tag-and-alias`](../../release/tag-and-alias) owns the tag format (the
+`v` prefix), so this resolver stays purely about *reading* the version.
 
 ## Requirements
 
@@ -13,17 +15,15 @@ declared in your project config instead of a separate `VERSION` file.
 
 ## Inputs
 
-| Input    | Required | Default          | Description                                    |
-| -------- | -------- | ---------------- | ---------------------------------------------- |
-| `file`   | no       | `pyproject.toml` | Path to the `pyproject.toml` to read.          |
-| `prefix` | no       | `v`              | Prefix prepended to the version to form `tag`. |
+| Input  | Required | Default          | Description                           |
+| ------ | -------- | ---------------- | ------------------------------------- |
+| `file` | no       | `pyproject.toml` | Path to the `pyproject.toml` to read. |
 
 ## Outputs
 
-| Output    | Description                    |
-| --------- | ------------------------------ |
-| `version` | Version string, e.g. `1.2.3`.  |
-| `tag`     | Prefixed tag, e.g. `v1.2.3`.   |
+| Output    | Description                        |
+| --------- | ---------------------------------- |
+| `version` | Bare version string, e.g. `1.2.3`. |
 
 ## Usage
 
@@ -39,15 +39,16 @@ jobs:
           fetch-depth: 0
 
       - id: ver
-        uses: DataLabHell/ci-actions/actions/versioning/from-pyproject@v0.1
+        uses: DataLabHell/ci-actions/actions/versioning/from-pyproject@v0.2
 
-      - uses: DataLabHell/ci-actions/actions/release/tag-and-alias@v0.1
+      - id: rel
+        uses: DataLabHell/ci-actions/actions/release/tag-and-alias@v0.2
         with:
-          tag: ${{ steps.ver.outputs.tag }}
+          tag: ${{ steps.ver.outputs.version }}   # bare; tag-and-alias adds the v
 
-      - uses: DataLabHell/ci-actions/actions/release/github-release@v0.1
+      - uses: DataLabHell/ci-actions/actions/release/github-release@v0.2
         with:
-          tag: ${{ steps.ver.outputs.tag }}
+          tag: ${{ steps.rel.outputs.tag }}       # canonical v1.2.3 from tag-and-alias
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 

@@ -25,6 +25,15 @@ if [ -z "$PROFILE" ]; then
   exit 1
 fi
 
+# The profile must actually exist on this runner. If it doesn't, this is almost
+# always a job running on a GitHub-hosted runner (e.g. ubuntu-latest) instead of
+# a self-hosted one where ~/.aws is set up. Fail fast with a clear cause rather
+# than a confusing credentials error deep inside 'aws s3 sync'.
+if ! aws configure list-profiles 2>/dev/null | grep -qx "$PROFILE"; then
+  echo "::error::AWS profile '$PROFILE' not found on this runner. s3-file-upload must run on a self-hosted runner where the profile is configured in ~/.aws (config + credentials)."
+  exit 1
+fi
+
 DEST="s3://${BUCKET}"
 if [ -n "$DEST_PREFIX" ]; then
   DEST="$DEST/${DEST_PREFIX#/}"

@@ -1,5 +1,5 @@
 name: 'Version from pyproject.toml'
-description: 'Read [project].version from a pyproject.toml (uv / PEP 621) and output it as a version and a vX.Y.Z tag.'
+description: 'Read [project].version from a pyproject.toml (uv / PEP 621) and output it as a bare version X.Y.Z.'
 author: 'DataLabHell'
 
 branding:
@@ -11,18 +11,11 @@ inputs:
     description: 'Path to the pyproject.toml to read'
     required: false
     default: 'pyproject.toml'
-  prefix:
-    description: 'Prefix prepended to the version to form the tag'
-    required: false
-    default: 'v'
 
 outputs:
   version:
-    description: 'The version string, e.g. 1.2.3'
+    description: 'The bare version string, e.g. 1.2.3 (feed into release/tag-and-alias)'
     value: ${{ steps.read.outputs.version }}
-  tag:
-    description: 'The prefixed tag, e.g. v1.2.3'
-    value: ${{ steps.read.outputs.tag }}
 
 runs:
   using: 'composite'
@@ -33,4 +26,3 @@ runs:
       run: bash "${{ github.action_path }}/version.sh"
       env:
         INPUT_FILE: ${{ inputs.file }}
-        INPUT_PREFIX: ${{ inputs.prefix }}

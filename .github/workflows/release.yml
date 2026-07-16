@@ -40,11 +40,12 @@ jobs:
       - id: ver
         uses: ./actions/versioning/auto-patch
 
-      - uses: ./actions/release/tag-and-alias
+      - id: rel
+        uses: ./actions/release/tag-and-alias
         with:
-          tag: ${{ steps.ver.outputs.tag }}
+          tag: ${{ steps.ver.outputs.version }}
 
       - uses: ./actions/release/github-release
         with:
-          tag: ${{ steps.ver.outputs.tag }}
+          tag: ${{ steps.rel.outputs.tag }}
           github-token: ${{ secrets.GITHUB_TOKEN }}

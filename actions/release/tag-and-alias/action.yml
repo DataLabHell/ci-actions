@@ -13,13 +13,29 @@ inputs:
 
 outputs:
   tag:
-    description: 'The tag created.'
-    value: ${{ inputs.tag }}
+    description: 'The full tag created, e.g. v0.1.3.'
+    value: ${{ steps.tag.outputs.tag }}
+  version:
+    description: 'The bare version without the v prefix, e.g. 0.1.3.'
+    value: ${{ steps.tag.outputs.version }}
+  major:
+    description: 'Rolling major alias, e.g. v0.'
+    value: ${{ steps.tag.outputs.major }}
+  minor:
+    description: 'Rolling minor alias, e.g. v0.1.'
+    value: ${{ steps.tag.outputs.minor }}
+  tags:
+    description: 'Newline-separated tag + rolling aliases, v-prefixed (git-ref form): v0.1.3, v0.1, v0.'
+    value: ${{ steps.tag.outputs.tags }}
+  versions:
+    description: 'Newline-separated tag + rolling aliases, bare (no v): 0.1.3, 0.1, 0. Handy as image tags.'
+    value: ${{ steps.tag.outputs.versions }}
 
 runs:
   using: 'composite'
   steps:
-    - name: Tag and move aliases
+    - id: tag
+      name: Tag and move aliases
       shell: bash
       run: bash "${{ github.action_path }}/tag.sh"
       env:

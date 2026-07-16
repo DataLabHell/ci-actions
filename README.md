@@ -11,6 +11,7 @@ all are versioned together with a single set of tags.
 | Action                               | Description                                                                                                            |
 | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
 | [`s3-file-upload`](./actions/s3-file-upload) | Upload files/folders to any S3-compatible bucket (RustFS, AWS S3, MinIO, on-prem) with glob include/exclude filtering. |
+| [`docker/build-push`](./actions/docker/build-push) | Build a container image with Buildx and push it to a registry (GHCR or local/on-prem) with sha/latest/version tags and layer caching. |
 | [`release/tag-and-alias`](./actions/release/tag-and-alias) | Create a `vX.Y.Z` tag and move the rolling `vX`/`vX.Y` aliases to it (no GitHub Release). |
 | [`release/github-release`](./actions/release/github-release) | Publish a GitHub Release for an existing tag, with notes and optional assets. |
 | [`versioning/auto-patch`](./actions/versioning/auto-patch) | Resolver: `MAJOR.MINOR` from a file + auto-incremented patch → next `vX.Y.Z` tag (feed into the release actions). |
@@ -27,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: DataLabHell/ci-actions/actions/s3-file-upload@v0.1
+      - uses: DataLabHell/ci-actions/actions/s3-file-upload@v0.2
         with:
           source: images
           bucket: reports
@@ -35,7 +36,7 @@ jobs:
           include: "*.html"
 ```
 
-Always pin to a released tag (e.g. `@v0.1`) rather than `@main`, so downstream
+Always pin to a released tag (e.g. `@v0.2`) rather than `@main`, so downstream
 pipelines are not affected by in-progress changes on the default branch.
 
 ## Premade pipelines
@@ -47,6 +48,7 @@ with `uses:` like any action — they just bundle several):
 | Pipeline | Purpose |
 |---|---|
 | [`pipelines/release-from-version`](./pipelines/release-from-version) | Resolve the next version from a `VERSION` file, tag it, move `vX`/`vX.Y` aliases, and publish a GitHub Release — in one step. |
+| [`pipelines/image-from-version`](./pipelines/image-from-version) | Resolve the next version from a `VERSION` file, tag it, and build & push a container image tagged with the same rolling set — in one step (single image). |
 
 ```yaml
 jobs:
@@ -58,7 +60,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: DataLabHell/ci-actions/pipelines/release-from-version@v0
+      - uses: DataLabHell/ci-actions/pipelines/release-from-version@v0.2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
@@ -77,14 +79,17 @@ ci-actions/
 ├── _template/                # scaffold to copy when adding an action
 ├── actions/                  # single actions (building blocks)
 │   ├── s3-file-upload/       #   action.yml + upload.sh + README
-│   ├── versioning/           #   resolvers: produce the next vX.Y.Z tag
+│   ├── docker/              #   container image actions
+│   │   └── build-push/       #     build + push an image (Buildx)
+│   ├── versioning/           #   resolvers: produce the next bare version X.Y.Z
 │   │   ├── auto-patch/       #     MAJOR.MINOR file + auto patch
 │   │   └── from-pyproject/   #     version from pyproject.toml
 │   └── release/              #   consume a tag
 │       ├── tag-and-alias/    #     create tag + move vX / vX.Y aliases
 │       └── github-release/   #     publish a GitHub Release
 └── pipelines/                # chained combos of the above
-    └── release-from-version/ #   resolve + tag + release, in one step
+    ├── release-from-version/ #   resolve + tag + GitHub Release, in one step
+    └── image-from-version/   #   resolve + tag + build & push image, in one step
 ```
 
 ## Adding a new action
@@ -119,26 +124,27 @@ snapshot of the whole repo), and consumers reference
 
 The [Release workflow](.github/workflows/release.yml) runs on every push to
 `main` and chains this repo's own actions (dogfooding): a **resolver** produces
-the next tag, then the **release** actions tag it and publish it.
+the next bare version, then the **release** actions tag it and publish it.
 
 1. [`versioning/auto-patch`](./actions/versioning/auto-patch) reads `MAJOR.MINOR` from
    `VERSION`, finds the highest existing `vMAJOR.MINOR.*` tag, and
    **auto-increments the patch** (starting at `.0` if the series is new) →
-   outputs the next `vMAJOR.MINOR.PATCH` tag.
-2. [`release/tag-and-alias`](./actions/release/tag-and-alias) creates that tag and moves
-   the rolling `vMAJOR` / `vMAJOR.MINOR` aliases to it.
+   outputs the next **bare** version `MAJOR.MINOR.PATCH`.
+2. [`release/tag-and-alias`](./actions/release/tag-and-alias) takes that version, owns
+   the tag format (adds the `v`), creates the `vMAJOR.MINOR.PATCH` tag, and moves
+   the rolling `vMAJOR` / `vMAJOR.MINOR` aliases to it — outputting the canonical tag.
 3. [`release/github-release`](./actions/release/github-release) publishes a GitHub
-   Release for the tag.
+   Release for the tag from step 2.
 
 Both halves are pluggable: swap step 1 for
 [`versioning/from-pyproject`](./actions/versioning/from-pyproject) (or any step that
-outputs a `vX.Y.Z` tag) to change the version source, and drop step 3 when you
-only need tags (e.g. a container build) — the pieces compose.
+outputs a bare `X.Y.Z` version) to change the version source, and drop step 3 when
+you only need tags (e.g. a container build) — the pieces compose.
 
 ### Everyday changes → patch bump
 
 Merge a change to any action to `main`. You don't touch `VERSION`. Each such
-push releases the next patch automatically: `v0.1.3` → `v0.1.4` → …
+push releases the next patch automatically: `v0.2.0` → `v0.2.1` → …
 
 Only changes to action files cut a release — an `action.yml`, an action script
 (`*.sh`), or the `VERSION` file. **README/docs-only changes do not** (the
@@ -160,16 +166,19 @@ to an action's inputs or behavior.
 
 ### What consumers pin to
 
-- `@v0` — rolling major alias; moves with every release (during `0.x` this can
-  include breaking changes).
-- `@v0.1` — rolling minor alias; the recommended pin while on `0.x` (patches
-  only).
-- `@v0.1.0` — an exact, immutable release.
+Using the current `0.2` series as the example:
 
-Follow semver: while on `0.x`, breaking changes bump the **minor** (`0.1` →
-`0.2`), so consumers pinned to `@v0.1` stay safe. Once the API is stable, bump
-`VERSION` to `1.0`; after that, breaking changes bump the major and `@v1` users
-are protected.
+- `@v0.2` — rolling minor alias; **the recommended pin** while on `0.x` (moves on
+  patches only, never breaking).
+- `@v0.2.0` — an exact, immutable release.
+- `@v0` — rolling major alias; **not recommended during `0.x`**, because it moves
+  with every release including the next minor (`0.2` → `0.3`), which may be breaking.
+
+Follow semver: while on `0.x`, breaking changes bump the **minor** (`0.2` →
+`0.3`), so consumers pinned to `@v0.2` stay safe — the break lands on `0.3`, which
+`@v0.2` never follows. You don't need a `1.0` for this; stay on `0.x` as long as
+you like. Once the API is stable, bump `VERSION` to `1.0`; after that, breaking
+changes bump the major and `@v1` users are protected, and `@v1` becomes a safe pin.
 
 ## Conventions
 

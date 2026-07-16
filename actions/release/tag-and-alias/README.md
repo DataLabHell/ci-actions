@@ -16,15 +16,25 @@ Uses only `git` — no `gh` CLI — so it runs on self-hosted runners.
 
 ## Inputs
 
-| Input | Required | Default | Description                                              |
-| ----- | -------- | ------- | -------------------------------------------------------- |
-| `tag` | yes      | —       | Tag to create, `vMAJOR.MINOR.PATCH` (from a resolver step). |
+| Input | Required | Default | Description                                                                       |
+| ----- | -------- | ------- | --------------------------------------------------------------------------------- |
+| `tag` | yes      | —       | Version to tag, `MAJOR.MINOR.PATCH` with an optional leading `v` (resolvers emit the bare form). This action normalizes it and always creates a `v`-prefixed git tag. |
 
 ## Outputs
 
-| Output | Description       |
-| ------ | ----------------- |
-| `tag`  | The tag created.  |
+The tag and its rolling aliases are exposed so a later step can reuse the exact
+same set — e.g. tagging a container image to mirror the git refs. Naming follows
+one rule: **`tag`/`tags` carry the `v`** (git-ref form), **`version`/`versions`
+are bare** (no `v`).
+
+| Output      | Example                | Description                                   |
+| ----------- | ---------------------- | --------------------------------------------- |
+| `tag`       | `v0.1.3`               | The full tag created (`v`-prefixed).          |
+| `version`   | `0.1.3`                | Bare version (no `v`).                         |
+| `major`     | `v0`                   | Rolling major alias.                          |
+| `minor`     | `v0.1`                 | Rolling minor alias.                          |
+| `tags`      | `v0.1.3` `v0.1` `v0`   | Newline-separated tag + aliases, `v`-prefixed. |
+| `versions`  | `0.1.3` `0.1` `0`      | Newline-separated tag + aliases, bare. Handy as image tags. |
 
 ## Usage
 
@@ -40,16 +50,24 @@ jobs:
           fetch-depth: 0
 
       - id: ver
-        uses: DataLabHell/ci-actions/actions/versioning/auto-patch@v0.1
+        uses: DataLabHell/ci-actions/actions/versioning/auto-patch@v0.2
 
-      - uses: DataLabHell/ci-actions/actions/release/tag-and-alias@v0.1
+      - id: rel
+        uses: DataLabHell/ci-actions/actions/release/tag-and-alias@v0.2
         with:
-          tag: ${{ steps.ver.outputs.tag }}
+          tag: ${{ steps.ver.outputs.version }}   # bare; this action adds the v
 
-      # ... build & push your container image tagged ${{ steps.ver.outputs.tag }} ...
+      # Tag the image with the same rolling set as the git refs (bare form):
+      - uses: DataLabHell/ci-actions/actions/docker/build-push@v0.2
+        with:
+          image: api
+          tags: |
+            ${{ steps.rel.outputs.versions }}   # 0.1.3 + 0.1 + 0
+            latest
 ```
 
 ## Notes
 
-- The `tag` must be `vMAJOR.MINOR.PATCH`; the `vX` / `vX.Y` aliases are derived
-  from it and force-moved, so consumers pinned to `@vX` / `@vX.Y` follow along.
+- The `tag` input is `MAJOR.MINOR.PATCH` (an optional leading `v` is accepted and
+  normalized). The `vX` / `vX.Y` aliases are derived from it and force-moved, so
+  consumers pinned to `@vX` / `@vX.Y` follow along.

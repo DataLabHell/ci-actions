@@ -4,7 +4,6 @@ set -euo pipefail
 # Reads [project].version from a pyproject.toml (uv / PEP 621) and emits it as
 # version + a prefixed tag. Inputs come in as INPUT_* env vars from action.yml.
 FILE="${INPUT_FILE:-pyproject.toml}"
-PREFIX="${INPUT_PREFIX:-v}"
 
 if [ ! -f "$FILE" ]; then
   echo "::error::pyproject file '$FILE' not found"
@@ -32,6 +31,7 @@ if [ -z "$version" ]; then
   exit 1
 fi
 
+# Emit the bare version only; the release step (tag-and-alias) owns the tag
+# format (the v prefix).
 echo "version=$version" >>"$GITHUB_OUTPUT"
-echo "tag=${PREFIX}${version}" >>"$GITHUB_OUTPUT"
-echo "Resolved version: ${PREFIX}${version}"
+echo "Resolved version: $version"

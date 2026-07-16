@@ -2,10 +2,14 @@
 
 Reads `MAJOR.MINOR` from a version file (default `VERSION`) and **auto-increments
 the patch** based on the existing `vMAJOR.MINOR.*` tags, outputting the next
-`vX.Y.Z` tag. Feed it into the release actions
+**bare** version `X.Y.Z`. Feed it into the release actions
 ([`release/tag-and-alias`](../../release/tag-and-alias) +
 [`release/github-release`](../../release/github-release)) — this is the default
 versioning strategy: you set `MAJOR.MINOR`, the patch takes care of itself.
+
+The resolver emits only the bare version; [`release/tag-and-alias`](../../release/tag-and-alias)
+owns the tag format (the `v` prefix). The `prefix` input here is used *only* to
+find this series' existing tags in the repo.
 
 ## Requirements
 
@@ -14,17 +18,16 @@ versioning strategy: you set `MAJOR.MINOR`, the patch takes care of itself.
 
 ## Inputs
 
-| Input    | Required | Default   | Description                                        |
-| -------- | -------- | --------- | -------------------------------------------------- |
-| `file`   | no       | `VERSION` | Path to the file holding `MAJOR.MINOR`.            |
-| `prefix` | no       | `v`       | Prefix prepended to the version to form the tag.   |
+| Input    | Required | Default   | Description                                                       |
+| -------- | -------- | --------- | ----------------------------------------------------------------- |
+| `file`   | no       | `VERSION` | Path to the file holding `MAJOR.MINOR`.                           |
+| `prefix` | no       | `v`       | Prefix on existing git tags, used only to find this series (`v0.1.*`). |
 
 ## Outputs
 
-| Output    | Description                   |
-| --------- | ----------------------------- |
-| `version` | Full version, e.g. `0.1.3`.   |
-| `tag`     | Next tag, e.g. `v0.1.3`.      |
+| Output    | Description                        |
+| --------- | ---------------------------------- |
+| `version` | Next bare version, e.g. `0.1.3`.   |
 
 ## Usage
 
@@ -38,15 +41,16 @@ jobs:
           fetch-depth: 0
 
       - id: ver
-        uses: DataLabHell/ci-actions/actions/versioning/auto-patch@v0.1
+        uses: DataLabHell/ci-actions/actions/versioning/auto-patch@v0.2
 
-      - uses: DataLabHell/ci-actions/actions/release/tag-and-alias@v0.1
+      - id: rel
+        uses: DataLabHell/ci-actions/actions/release/tag-and-alias@v0.2
         with:
-          tag: ${{ steps.ver.outputs.tag }}
+          tag: ${{ steps.ver.outputs.version }}   # bare; tag-and-alias adds the v
 
-      - uses: DataLabHell/ci-actions/actions/release/github-release@v0.1
+      - uses: DataLabHell/ci-actions/actions/release/github-release@v0.2
         with:
-          tag: ${{ steps.ver.outputs.tag }}
+          tag: ${{ steps.rel.outputs.tag }}       # canonical v0.1.3 from tag-and-alias
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
