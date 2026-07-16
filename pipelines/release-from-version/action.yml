@@ -7,7 +7,7 @@ branding:
   color: 'blue'
 
 # A "pipeline" action: it just chains this repo's smaller actions (by full ref,
-# like github-release wraps softprops). The caller still owns the job — provide
+# like github-release wraps softprops). The caller still owns the job: provide
 # a runner, `permissions: contents: write`, and check out with fetch-depth: 0.
 inputs:
   version-file:
@@ -32,19 +32,19 @@ runs:
   using: 'composite'
   steps:
     - id: ver
-      uses: DataLabHell/ci-actions/actions/versioning/auto-patch@v0.2
+      uses: DataLabHell/ci-actions/versioning/auto-patch@v0.2
       with:
         file: ${{ inputs.version-file }}
 
     # tag-and-alias takes the bare version and owns the tag format, then outputs
     # the canonical v-prefixed tag for the release step to reuse.
     - id: tag
-      uses: DataLabHell/ci-actions/actions/release/tag-and-alias@v0.2
+      uses: DataLabHell/ci-actions/release/tag-and-alias@v0.2
       with:
         tag: ${{ steps.ver.outputs.version }}
 
     - if: ${{ inputs.create-release == 'true' }}
-      uses: DataLabHell/ci-actions/actions/release/github-release@v0.2
+      uses: DataLabHell/ci-actions/release/github-release@v0.2
       with:
         tag: ${{ steps.tag.outputs.tag }}
         github-token: ${{ inputs.github-token }}

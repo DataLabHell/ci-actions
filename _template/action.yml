@@ -4,13 +4,13 @@
 #   3. Put the shell logic in main.sh (kept as a script so CI can lint it).
 #   4. Update the copied README.md.
 #   5. Add a row to the top-level README's "Available actions" table.
-# Prefer a composite action (below) — no build step, runs on any runner.
+# Prefer a composite action (below): no build step, runs on any runner.
 name: 'TODO: Action Name'
 description: 'TODO: one-line description of what this action does.'
 author: 'DataLabHell'
 
 branding:
-  icon: 'zap' # https://feathericons.com — any single icon name
+  icon: 'zap' # any single icon name from https://feathericons.com
   color: 'blue' # white | yellow | blue | green | orange | red | purple | gray-dark
 
 inputs:

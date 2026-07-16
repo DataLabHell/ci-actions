@@ -7,7 +7,7 @@ branding:
   color: 'blue'
 
 # A "pipeline" action: it chains this repo's smaller actions (auto-patch +
-# tag-and-alias + docker/build-push) by full ref. The caller owns the job —
+# tag-and-alias + docker/build-push) by full ref. The caller owns the job:
 # provide a runner, checkout (fetch-depth: 0), and permissions:
 #   contents: write   (tag-and-alias pushes git tags)
 #   packages: write   (only when pushing to GHCR)
@@ -15,7 +15,7 @@ branding:
 # uses the runner's configured credentials (run it on a self-hosted runner).
 #
 # Single image per call. For several images (a matrix build), don't use this
-# pipeline — see the two-job pattern in actions/docker/build-push/README.md.
+# pipeline; see the two-job pattern in docker/build-push/README.md.
 inputs:
   image:
     description: 'Final path segment of the image, e.g. "api" -> <registry>/<namespace>/api'
@@ -61,18 +61,18 @@ runs:
   using: 'composite'
   steps:
     - id: ver
-      uses: DataLabHell/ci-actions/actions/versioning/auto-patch@v0.2
+      uses: DataLabHell/ci-actions/versioning/auto-patch@v0.2
       with:
         file: ${{ inputs.version-file }}
 
     # Create the git tag + rolling aliases; reuse the bare set as image tags.
     - id: tag
-      uses: DataLabHell/ci-actions/actions/release/tag-and-alias@v0.2
+      uses: DataLabHell/ci-actions/release/tag-and-alias@v0.2
       with:
         tag: ${{ steps.ver.outputs.version }}
 
     - id: build
-      uses: DataLabHell/ci-actions/actions/docker/build-push@v0.2
+      uses: DataLabHell/ci-actions/docker/build-push@v0.2
       with:
         image: ${{ inputs.image }}
         registry: ${{ inputs.registry }}

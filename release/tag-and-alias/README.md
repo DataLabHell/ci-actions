@@ -41,7 +41,7 @@ are bare** (no `v`).
 ```yaml
 jobs:
   tag:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       contents: write
     steps:
@@ -50,15 +50,15 @@ jobs:
           fetch-depth: 0
 
       - id: ver
-        uses: DataLabHell/ci-actions/actions/versioning/auto-patch@v0.2
+        uses: DataLabHell/ci-actions/versioning/auto-patch@v0.2
 
       - id: rel
-        uses: DataLabHell/ci-actions/actions/release/tag-and-alias@v0.2
+        uses: DataLabHell/ci-actions/release/tag-and-alias@v0.2
         with:
           tag: ${{ steps.ver.outputs.version }}   # bare; this action adds the v
 
       # Tag the image with the same rolling set as the git refs (bare form):
-      - uses: DataLabHell/ci-actions/actions/docker/build-push@v0.2
+      - uses: DataLabHell/ci-actions/docker/build-push@v0.2
         with:
           image: api
           tags: |

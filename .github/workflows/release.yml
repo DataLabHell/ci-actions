@@ -35,17 +35,17 @@ jobs:
           fetch-depth: 0                 # full history + tags for version diff
 
       # Resolve the next tag from the VERSION file, tag it, then publish a
-      # Release. All actions come from this repo (local paths — no tag
+      # Release. All actions come from this repo (local paths, no tag
       # bootstrapping needed).
       - id: ver
-        uses: ./actions/versioning/auto-patch
+        uses: ./versioning/auto-patch
 
       - id: rel
-        uses: ./actions/release/tag-and-alias
+        uses: ./release/tag-and-alias
         with:
           tag: ${{ steps.ver.outputs.version }}
 
-      - uses: ./actions/release/github-release
+      - uses: ./release/github-release
         with:
           tag: ${{ steps.rel.outputs.tag }}
           github-token: ${{ secrets.GITHUB_TOKEN }}

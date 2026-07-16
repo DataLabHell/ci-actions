@@ -17,16 +17,16 @@ still provides the job (runner, permissions, checkout).
 
 ## Inputs
 
-| Input            | Required | Default   | Description                                                       |
-| ---------------- | -------- | --------- | ----------------------------------------------------------------- |
-| `version-file`   | no       | `VERSION` | Path to the `MAJOR.MINOR` file.                                   |
+| Input            | Required | Default   | Description                                                                                               |
+| ---------------- | -------- | --------- | --------------------------------------------------------------------------------------------------------- |
+| `version-file`   | no       | `VERSION` | Path to the `MAJOR.MINOR` file.                                                                           |
 | `github-token`   | no       | `''`      | Token for the GitHub Release. Required when `create-release` is true. Pass `${{ secrets.GITHUB_TOKEN }}`. |
-| `create-release` | no       | `true`    | Publish a GitHub Release; set `"false"` to only create the tag (e.g. a container build). |
+| `create-release` | no       | `true`    | Publish a GitHub Release; set `"false"` to only create the tag (e.g. a container build).                  |
 
 ## Outputs
 
-| Output | Description                    |
-| ------ | ------------------------------ |
+| Output | Description                      |
+| ------ | -------------------------------- |
 | `tag`  | The tag released, e.g. `v0.1.3`. |
 
 ## Usage
@@ -34,7 +34,7 @@ still provides the job (runner, permissions, checkout).
 ```yaml
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       contents: write
     steps:
@@ -48,6 +48,6 @@ jobs:
 ```
 
 Need a different version source or finer control? Skip this and compose the
-underlying actions yourself: a [`versioning/*`](../../actions/versioning) resolver →
-[`release/tag-and-alias`](../../actions/release/tag-and-alias) →
-[`release/github-release`](../../actions/release/github-release).
+underlying actions yourself: a [`versioning/*`](../../versioning) resolver →
+[`release/tag-and-alias`](../../release/tag-and-alias) →
+[`release/github-release`](../../release/github-release).

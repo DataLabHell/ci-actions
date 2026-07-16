@@ -26,7 +26,7 @@ if [ -z "$PROFILE" ]; then
 fi
 
 # The profile must actually exist on this runner. If it doesn't, this is almost
-# always a job running on a GitHub-hosted runner (e.g. ubuntu-latest) instead of
+# always a job running on a GitHub-hosted runner (e.g. self-hosted) instead of
 # a self-hosted one where ~/.aws is set up. Fail fast with a clear cause rather
 # than a confusing credentials error deep inside 'aws s3 sync'.
 if ! aws configure list-profiles 2>/dev/null | grep -qx "$PROFILE"; then

@@ -8,7 +8,7 @@ the patch** based on the existing `vMAJOR.MINOR.*` tags, outputting the next
 versioning strategy: you set `MAJOR.MINOR`, the patch takes care of itself.
 
 The resolver emits only the bare version; [`release/tag-and-alias`](../../release/tag-and-alias)
-owns the tag format (the `v` prefix). The `prefix` input here is used *only* to
+owns the tag format (the `v` prefix). The `prefix` input here is used _only_ to
 find this series' existing tags in the repo.
 
 ## Requirements
@@ -18,39 +18,39 @@ find this series' existing tags in the repo.
 
 ## Inputs
 
-| Input    | Required | Default   | Description                                                       |
-| -------- | -------- | --------- | ----------------------------------------------------------------- |
-| `file`   | no       | `VERSION` | Path to the file holding `MAJOR.MINOR`.                           |
+| Input    | Required | Default   | Description                                                            |
+| -------- | -------- | --------- | ---------------------------------------------------------------------- |
+| `file`   | no       | `VERSION` | Path to the file holding `MAJOR.MINOR`.                                |
 | `prefix` | no       | `v`       | Prefix on existing git tags, used only to find this series (`v0.1.*`). |
 
 ## Outputs
 
-| Output    | Description                        |
-| --------- | ---------------------------------- |
-| `version` | Next bare version, e.g. `0.1.3`.   |
+| Output    | Description                      |
+| --------- | -------------------------------- |
+| `version` | Next bare version, e.g. `0.1.3`. |
 
 ## Usage
 
 ```yaml
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - id: ver
-        uses: DataLabHell/ci-actions/actions/versioning/auto-patch@v0.2
+        uses: DataLabHell/ci-actions/versioning/auto-patch@v0.2
 
       - id: rel
-        uses: DataLabHell/ci-actions/actions/release/tag-and-alias@v0.2
+        uses: DataLabHell/ci-actions/release/tag-and-alias@v0.2
         with:
-          tag: ${{ steps.ver.outputs.version }}   # bare; tag-and-alias adds the v
+          tag: ${{ steps.ver.outputs.version }} # bare; tag-and-alias adds the v
 
-      - uses: DataLabHell/ci-actions/actions/release/github-release@v0.2
+      - uses: DataLabHell/ci-actions/release/github-release@v0.2
         with:
-          tag: ${{ steps.rel.outputs.tag }}       # canonical v0.1.3 from tag-and-alias
+          tag: ${{ steps.rel.outputs.tag }} # canonical v0.1.3 from tag-and-alias
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 

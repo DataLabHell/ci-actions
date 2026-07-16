@@ -6,7 +6,7 @@ actions ([`release/tag-and-alias`](../../release/tag-and-alias) +
 [`release/github-release`](../../release/github-release)) to release the version
 declared in your project config instead of a separate `VERSION` file.
 [`release/tag-and-alias`](../../release/tag-and-alias) owns the tag format (the
-`v` prefix), so this resolver stays purely about *reading* the version.
+`v` prefix), so this resolver stays purely about _reading_ the version.
 
 ## Requirements
 
@@ -32,23 +32,23 @@ Release the version from `pyproject.toml`:
 ```yaml
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - id: ver
-        uses: DataLabHell/ci-actions/actions/versioning/from-pyproject@v0.2
+        uses: DataLabHell/ci-actions/versioning/from-pyproject@v0.2
 
       - id: rel
-        uses: DataLabHell/ci-actions/actions/release/tag-and-alias@v0.2
+        uses: DataLabHell/ci-actions/release/tag-and-alias@v0.2
         with:
-          tag: ${{ steps.ver.outputs.version }}   # bare; tag-and-alias adds the v
+          tag: ${{ steps.ver.outputs.version }} # bare; tag-and-alias adds the v
 
-      - uses: DataLabHell/ci-actions/actions/release/github-release@v0.2
+      - uses: DataLabHell/ci-actions/release/github-release@v0.2
         with:
-          tag: ${{ steps.rel.outputs.tag }}       # canonical v1.2.3 from tag-and-alias
+          tag: ${{ steps.rel.outputs.tag }} # canonical v1.2.3 from tag-and-alias
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 

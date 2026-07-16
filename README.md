@@ -1,8 +1,8 @@
 # ci-actions
 
 Shared, reusable GitHub Actions for the organization. This is a **monorepo**:
-single actions (the building blocks) live under [`actions/`](./actions), and
-ready-made combinations that chain them live under
+each single action (the building blocks) lives in its own folder at the repo
+root, and ready-made combinations that chain them live under
 [`pipelines/`](./pipelines). Each has its own `action.yml` and `README.md`, and
 all are versioned together with a single set of tags.
 
@@ -10,12 +10,12 @@ all are versioned together with a single set of tags.
 
 | Action                               | Description                                                                                                            |
 | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| [`s3-file-upload`](./actions/s3-file-upload) | Upload files/folders to any S3-compatible bucket (RustFS, AWS S3, MinIO, on-prem) with glob include/exclude filtering. |
-| [`docker/build-push`](./actions/docker/build-push) | Build a container image with Buildx and push it to a registry (GHCR or local/on-prem) with sha/latest/version tags and layer caching. |
-| [`release/tag-and-alias`](./actions/release/tag-and-alias) | Create a `vX.Y.Z` tag and move the rolling `vX`/`vX.Y` aliases to it (no GitHub Release). |
-| [`release/github-release`](./actions/release/github-release) | Publish a GitHub Release for an existing tag, with notes and optional assets. |
-| [`versioning/auto-patch`](./actions/versioning/auto-patch) | Resolver: `MAJOR.MINOR` from a file + auto-incremented patch → next `vX.Y.Z` tag (feed into the release actions). |
-| [`versioning/from-pyproject`](./actions/versioning/from-pyproject) | Resolver: `[project].version` from a `pyproject.toml` (uv / PEP 621) → `vX.Y.Z` tag (feed into the release actions). |
+| [`s3-file-upload`](./s3-file-upload) | Upload files/folders to any S3-compatible bucket (RustFS, AWS S3, MinIO, on-prem) with glob include/exclude filtering. |
+| [`docker/build-push`](./docker/build-push) | Build a container image with Buildx and push it to a registry (GHCR or local/on-prem) with sha/latest/version tags and layer caching. |
+| [`release/tag-and-alias`](./release/tag-and-alias) | Create a `vX.Y.Z` tag and move the rolling `vX`/`vX.Y` aliases to it (no GitHub Release). |
+| [`release/github-release`](./release/github-release) | Publish a GitHub Release for an existing tag, with notes and optional assets. |
+| [`versioning/auto-patch`](./versioning/auto-patch) | Resolver: `MAJOR.MINOR` from a file + auto-incremented patch → next `vX.Y.Z` tag (feed into the release actions). |
+| [`versioning/from-pyproject`](./versioning/from-pyproject) | Resolver: `[project].version` from a `pyproject.toml` (uv / PEP 621) → `vX.Y.Z` tag (feed into the release actions). |
 
 ## Using an action
 
@@ -28,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: DataLabHell/ci-actions/actions/s3-file-upload@v0.2
+      - uses: DataLabHell/ci-actions/s3-file-upload@v0.2
         with:
           source: images
           bucket: reports
@@ -53,7 +53,7 @@ with `uses:` like any action — they just bundle several):
 ```yaml
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       contents: write
     steps:
@@ -77,16 +77,17 @@ ci-actions/
 ├── VERSION                   # MAJOR.MINOR driving releases
 ├── .github/workflows/        # lint (shellcheck) + release
 ├── _template/                # scaffold to copy when adding an action
-├── actions/                  # single actions (building blocks)
-│   ├── s3-file-upload/       #   action.yml + upload.sh + README
-│   ├── docker/              #   container image actions
-│   │   └── build-push/       #     build + push an image (Buildx)
-│   ├── versioning/           #   resolvers: produce the next bare version X.Y.Z
-│   │   ├── auto-patch/       #     MAJOR.MINOR file + auto patch
-│   │   └── from-pyproject/   #     version from pyproject.toml
-│   └── release/              #   consume a tag
-│       ├── tag-and-alias/    #     create tag + move vX / vX.Y aliases
-│       └── github-release/   #     publish a GitHub Release
+│
+│   # single actions (building blocks) — each in its own root folder:
+├── s3-file-upload/           #   action.yml + upload.sh + README
+├── docker/                   #   container image actions
+│   └── build-push/           #     build + push an image (Buildx)
+├── versioning/               #   resolvers: produce the next bare version X.Y.Z
+│   ├── auto-patch/           #     MAJOR.MINOR file + auto patch
+│   └── from-pyproject/       #     version from pyproject.toml
+├── release/                  #   consume a tag
+│   ├── tag-and-alias/        #     create tag + move vX / vX.Y aliases
+│   └── github-release/       #     publish a GitHub Release
 └── pipelines/                # chained combos of the above
     ├── release-from-version/ #   resolve + tag + GitHub Release, in one step
     └── image-from-version/   #   resolve + tag + build & push image, in one step
@@ -97,8 +98,9 @@ ci-actions/
 Start from the [`_template/`](./_template) scaffold — it's a ready-to-fill
 composite action plus README:
 
-1. Copy `_template/` to `actions/<name>/` (kebab-case), e.g.
-   `actions/slack-notify/`.
+1. Copy `_template/` to `<name>/` at the repo root (kebab-case), e.g.
+   `slack-notify/`. Group related actions in a subfolder if it helps (e.g.
+   `docker/build-push/`).
 2. Fill in `action.yml` — replace the `TODO` name/description and the example
    inputs/outputs. Prefer a **composite** action (the template's default): no
    build step, runs on any runner. Use Docker/JavaScript only if you
@@ -126,18 +128,18 @@ The [Release workflow](.github/workflows/release.yml) runs on every push to
 `main` and chains this repo's own actions (dogfooding): a **resolver** produces
 the next bare version, then the **release** actions tag it and publish it.
 
-1. [`versioning/auto-patch`](./actions/versioning/auto-patch) reads `MAJOR.MINOR` from
+1. [`versioning/auto-patch`](./versioning/auto-patch) reads `MAJOR.MINOR` from
    `VERSION`, finds the highest existing `vMAJOR.MINOR.*` tag, and
    **auto-increments the patch** (starting at `.0` if the series is new) →
    outputs the next **bare** version `MAJOR.MINOR.PATCH`.
-2. [`release/tag-and-alias`](./actions/release/tag-and-alias) takes that version, owns
+2. [`release/tag-and-alias`](./release/tag-and-alias) takes that version, owns
    the tag format (adds the `v`), creates the `vMAJOR.MINOR.PATCH` tag, and moves
    the rolling `vMAJOR` / `vMAJOR.MINOR` aliases to it — outputting the canonical tag.
-3. [`release/github-release`](./actions/release/github-release) publishes a GitHub
+3. [`release/github-release`](./release/github-release) publishes a GitHub
    Release for the tag from step 2.
 
 Both halves are pluggable: swap step 1 for
-[`versioning/from-pyproject`](./actions/versioning/from-pyproject) (or any step that
+[`versioning/from-pyproject`](./versioning/from-pyproject) (or any step that
 outputs a bare `X.Y.Z` version) to change the version source, and drop step 3 when
 you only need tags (e.g. a container build) — the pieces compose.
 

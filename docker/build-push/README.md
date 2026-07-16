@@ -30,8 +30,8 @@ The **caller owns the job**. A composite action can't set `runs-on`, `matrix`,
   - `ghcr.io` → logs in with the workflow's `GITHUB_TOKEN` (needs
     `permissions: packages: write`).
   - `truenas` (local) → no login step; the push uses the credentials configured
-    on the runner (`~/.docker/config.json`). Run on a `self-hosted` runner and
-    `docker login` once as the runner's user (see
+    on the runner (`~/.docker/config.json`), which are **provisioned by Ansible**
+    when the runner is set up. Just run on a `self-hosted` runner (see
     [Local registry](#example-3--local-registry)). The action **fails fast** if
     it detects a GitHub-hosted runner here, since it won't have those credentials.
 
@@ -67,7 +67,7 @@ The **caller owns the job**. A composite action can't set `runs-on`, `matrix`,
 ```yaml
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       contents: read
       packages: write
@@ -76,7 +76,7 @@ jobs:
         service: [api, mcp]
     steps:
       - uses: actions/checkout@v4
-      - uses: DataLabHell/ci-actions/actions/docker/build-push@v0.2
+      - uses: DataLabHell/ci-actions/docker/build-push@v0.2
         with:
           image: ${{ matrix.service }}
           dockerfile: Dockerfile.${{ matrix.service }}
@@ -97,11 +97,11 @@ steps:
   - uses: actions/checkout@v4
 
   - id: ver
-    uses: DataLabHell/ci-actions/actions/versioning/from-pyproject@v0.2
+    uses: DataLabHell/ci-actions/versioning/from-pyproject@v0.2
     with:
       file: api/pyproject.toml
 
-  - uses: DataLabHell/ci-actions/actions/docker/build-push@v0.2
+  - uses: DataLabHell/ci-actions/docker/build-push@v0.2
     with:
       image: api
       context: ./api
@@ -123,7 +123,7 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
-      - uses: DataLabHell/ci-actions/actions/docker/build-push@v0.2
+      - uses: DataLabHell/ci-actions/docker/build-push@v0.2
         with:
           image: my-service
           registry: truenas             # alias -> truenas.dlh-k8s.com:5000
@@ -134,12 +134,10 @@ jobs:
             ${{ github.sha }}
 ```
 
-Configure the credentials once on the runner, as the user the runner service
-runs as:
-
-```bash
-docker login truenas.dlh-k8s.com:5000 -u <user> -p <pass>
-```
+The registry credentials are **provisioned by Ansible** as part of runner setup
+— it runs `docker login` for the user the runner service runs as, so the
+credential is already in `~/.docker/config.json` on the node. Nothing to do in
+the workflow or per repo.
 
 > Same trade-off as the S3 action's runner profile: the credential lives once on
 > the runner instead of as a per-repo secret — convenient, but any job on that
@@ -156,7 +154,7 @@ build job as a job output.
 ```yaml
 jobs:
   release:                       # runs once
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       contents: write
     outputs:
@@ -166,9 +164,9 @@ jobs:
         with:
           fetch-depth: 0
       - id: ver
-        uses: DataLabHell/ci-actions/actions/versioning/auto-patch@v0.2
+        uses: DataLabHell/ci-actions/versioning/auto-patch@v0.2
       - id: rel
-        uses: DataLabHell/ci-actions/actions/release/tag-and-alias@v0.2
+        uses: DataLabHell/ci-actions/release/tag-and-alias@v0.2
         with:
           tag: ${{ steps.ver.outputs.version }}
 
@@ -180,7 +178,7 @@ jobs:
         service: [api, mcp, worker]
     steps:
       - uses: actions/checkout@v4
-      - uses: DataLabHell/ci-actions/actions/docker/build-push@v0.2
+      - uses: DataLabHell/ci-actions/docker/build-push@v0.2
         with:
           image: ${{ matrix.service }}
           registry: truenas
@@ -192,7 +190,7 @@ jobs:
 
 The multiline `tags` output survives the job boundary, so it drops straight into
 each matrix cell's `tags`. For a **single** image, the
-[`image-from-version`](../../../pipelines/image-from-version) pipeline bundles
+[`image-from-version`](../../pipelines/image-from-version) pipeline bundles
 this into one step.
 
 ## Notes
