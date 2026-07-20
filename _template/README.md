@@ -16,14 +16,14 @@ TODO: anything that must exist on the runner (a CLI, a tool, credentials).
 
 ## Inputs
 
-| Input     | Required | Default | Description                    |
-| --------- | -------- | ------- | ------------------------------ |
+| Input     | Required | Default | Description                     |
+| --------- | -------- | ------- | ------------------------------- |
 | `example` | no       | `''`    | TODO: what this input controls. |
 
 ## Outputs
 
-| Output   | Description                   |
-| -------- | ----------------------------- |
+| Output   | Description                     |
+| -------- | ------------------------------- |
 | `result` | TODO: what this output returns. |
 
 ## Usage
@@ -31,12 +31,12 @@ TODO: anything that must exist on the runner (a CLI, a tool, credentials).
 ```yaml
 jobs:
   example:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
 
       - name: TODO
-        uses: DataLabHell/ci-actions/TODO-action-name@v0.1
+        uses: DataLabHell/ci-actions/TODO-action-name@v0.2
         with:
           example: value
 ```

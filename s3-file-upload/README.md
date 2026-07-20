@@ -22,10 +22,10 @@ This action lives in the shared [`ci-actions`](../README.md) monorepo, so it is
 referenced by its path within the repo plus a tag:
 
 ```yaml
-- uses: DataLabHell/ci-actions/s3-file-upload@v0.1
+- uses: DataLabHell/ci-actions/s3-file-upload@v0.2
 ```
 
-Pin to a released tag (e.g. `@v0.1`) rather than `@main` so pipelines are not
+Pin to a released tag (e.g. `@v0.2`) rather than `@main` so pipelines are not
 broken by in-progress changes.
 
 ## Connection & credentials
@@ -36,7 +36,7 @@ region, and credentials — so a normal upload needs **no credentials in the
 workflow at all**:
 
 ```yaml
-- uses: DataLabHell/ci-actions/s3-file-upload@v0.1
+- uses: DataLabHell/ci-actions/s3-file-upload@v0.2
   with:
     source: outputs
     destination: my-service
@@ -98,7 +98,7 @@ profile, no credentials are needed in the workflow:
 
 ```yaml
 - name: Upload report to S3
-  uses: DataLabHell/ci-actions/s3-file-upload@v0.1
+  uses: DataLabHell/ci-actions/s3-file-upload@v0.2
   with:
     source: report
     destination: my-service
@@ -121,7 +121,7 @@ jobs:
         run: npm run coverage:html
 
       - name: Upload coverage report
-        uses: DataLabHell/ci-actions/s3-file-upload@v0.1
+        uses: DataLabHell/ci-actions/s3-file-upload@v0.2
         with:
           bucket: coverage
           source: coverage/html
@@ -129,6 +129,43 @@ jobs:
           destination: frontend
           delete-removed: "true"
 ```
+
+## Example 3 — Upload several sources
+
+The action uploads **one source folder per invocation** — there is no
+multi-source input. To upload from more than one folder, just add the step
+multiple times in the same job. Each step is independent, so give each its own
+`source` (and usually its own `destination` prefix):
+
+```yaml
+jobs:
+  publish:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Upload docs
+        uses: DataLabHell/ci-actions/s3-file-upload@v0.2
+        with:
+          source: docs
+          destination: my-service/docs
+          include: "*"
+
+      - name: Upload HTML reports
+        uses: DataLabHell/ci-actions/s3-file-upload@v0.2
+        with:
+          source: htmls
+          destination: my-service/htmls
+          include: "*.html"
+```
+
+If instead you want several folders **merged under one prefix**, point `source`
+at their common parent and select them with `include` (comma-separated globs),
+e.g. `source: .` with `include: "docs/*, htmls/*"` — a single step. Don't enable
+`delete-removed` on this form: with a broad `source` (like the repo root) the
+mirror-delete is compared against the whole source tree, not just your included
+folders. If you need `delete-removed`, use the repeat-the-step form above, where
+each step's `source`/`destination` is tightly scoped.
 
 ## Notes
 
@@ -151,3 +188,6 @@ jobs:
   [Connection & credentials](#connection--credentials)): they stay in the
   runner's `~/.aws/credentials` under the profile. The action doesn't read,
   echo, or write any credentials or AWS config.
+- One `source` per step. To upload from multiple folders, repeat the step (see
+  [Example 3](#example-3--upload-several-sources)); the action is a composite
+  action, so calling it several times in one job is expected usage.

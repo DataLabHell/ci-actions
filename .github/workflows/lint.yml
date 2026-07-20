@@ -1,11 +1,14 @@
 name: Lint
 
-# Lint the action shell scripts on a GitHub-hosted runner (nothing is installed
-# on our self-hosted runners). action-sh-checker bundles both tools and fails
-# the job if either finds an issue:
+# Lint the action shell scripts. action-sh-checker is a Docker action that
+# bundles both tools inside its container, so the runner only needs Docker (our
+# self-hosted runners have it); nothing else is installed. It fails the job if
+# either tool finds an issue:
 #   - shellcheck: correctness / bugs
 #   - shfmt:      whitespace / indentation / formatting
-# Runs on PRs and is called by the release workflow as a prerequisite.
+# Runs on pull requests (which covers feature branches via the PR's head branch)
+# and is called by the release workflow as a prerequisite for main. There's no
+# push trigger, so a PR never fires lint twice and no run gets cancelled.
 on:
   pull_request:
   workflow_call:
@@ -15,7 +18,7 @@ permissions:
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
       - uses: luizm/action-sh-checker@v0.10.0
