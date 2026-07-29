@@ -1,29 +1,29 @@
-name: 'GitHub Release'
-description: 'Publish a GitHub Release for an existing tag, with auto-generated notes and optional attached assets.'
-author: 'DataLabHell'
+name: "GitHub Release"
+description: "Publish a GitHub Release for an existing tag, with auto-generated notes and optional attached assets."
+author: "DataLabHell"
 
 branding:
-  icon: 'package'
-  color: 'blue'
+  icon: "package"
+  color: "blue"
 
 inputs:
   tag:
-    description: 'Existing tag to publish a Release for, e.g. v1.2.3.'
+    description: "Existing tag to publish a Release for, e.g. v1.2.3."
     required: true
   github-token:
-    description: 'Token used to create the release. Pass secrets.GITHUB_TOKEN from the calling workflow.'
+    description: "Token used to create the release. Pass secrets.GITHUB_TOKEN from the calling workflow."
     required: true
   release-notes:
-    description: 'Auto-generate release notes'
+    description: "Auto-generate release notes"
     required: false
-    default: 'true'
+    default: "true"
   files:
-    description: 'Optional newline- or comma-separated glob(s) of assets to attach to the release'
+    description: "Optional newline- or comma-separated glob(s) of assets to attach to the release"
     required: false
-    default: ''
+    default: ""
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - uses: softprops/action-gh-release@v2
       with:

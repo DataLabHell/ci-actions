@@ -5,27 +5,27 @@
 #   4. Update the copied README.md.
 #   5. Add a row to the top-level README's "Available actions" table.
 # Prefer a composite action (below): no build step, runs on any runner.
-name: 'TODO: Action Name'
-description: 'TODO: one-line description of what this action does.'
-author: 'DataLabHell'
+name: "TODO: Action Name"
+description: "TODO: one-line description of what this action does."
+author: "DataLabHell"
 
 branding:
-  icon: 'zap' # any single icon name from https://feathericons.com
-  color: 'blue' # white | yellow | blue | green | orange | red | purple | gray-dark
+  icon: "zap" # any single icon name from https://feathericons.com
+  color: "blue" # white | yellow | blue | green | orange | red | purple | gray-dark
 
 inputs:
   example:
-    description: 'TODO: what this input controls.'
+    description: "TODO: what this input controls."
     required: false
-    default: ''
+    default: ""
 
 outputs:
   result:
-    description: 'TODO: what this output returns.'
+    description: "TODO: what this output returns."
     value: ${{ steps.main.outputs.result }}
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Do the thing
       id: main

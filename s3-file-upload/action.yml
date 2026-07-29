@@ -1,48 +1,48 @@
-name: 'S3 File Upload'
-description: 'Upload files/folders from a repo to any S3-compatible bucket (RustFS, AWS S3, MinIO, on-prem, etc.), with glob include/exclude filtering.'
-author: 'DataLabHell'
+name: "S3 File Upload"
+description: "Upload files/folders from a repo to any S3-compatible bucket (RustFS, AWS S3, MinIO, on-prem, etc.), with glob include/exclude filtering."
+author: "DataLabHell"
 
 branding:
-  icon: 'upload-cloud'
-  color: 'blue'
+  icon: "upload-cloud"
+  color: "blue"
 
 inputs:
   bucket:
-    description: 'Target S3 bucket name'
+    description: "Target S3 bucket name"
     required: false
-    default: 'reports'
+    default: "reports"
   profile:
-    description: 'Named AWS CLI profile configured on the runner (~/.aws/config + ~/.aws/credentials). The profile provides the endpoint, region and credentials.'
+    description: "Named AWS CLI profile configured on the runner (~/.aws/config + ~/.aws/credentials). The profile provides the endpoint, region and credentials."
     required: true
-    default: 'dlh'
+    default: "dlh"
   source:
-    description: 'Folder in the repo to upload from'
+    description: "Folder in the repo to upload from"
     required: false
-    default: 'outputs'
+    default: "outputs"
   destination:
-    description: 'Destination prefix/subfolder inside the bucket'
+    description: "Destination prefix/subfolder inside the bucket"
     required: false
-    default: ''
+    default: ""
   include:
     description: 'Comma-separated glob pattern(s) of files to include, relative to "source" (e.g. "*.html,*.css"). AWS CLI "*" matches across "/", so "*.html" covers every depth; set to "*" to upload everything. Defaults to HTML files only.'
     required: false
-    default: '*.html'
+    default: "*.html"
   exclude:
-    description: 'Comma-separated glob pattern(s) of files to exclude (applied after include)'
+    description: "Comma-separated glob pattern(s) of files to exclude (applied after include)"
     required: false
-    default: ''
+    default: ""
   delete-removed:
-    description: 'Delete files in the destination that no longer exist in source (adds --delete)'
+    description: "Delete files in the destination that no longer exist in source (adds --delete)"
     required: false
-    default: 'false'
+    default: "false"
 
 outputs:
   s3-path:
-    description: 'The resulting s3:// path files were uploaded to'
+    description: "The resulting s3:// path files were uploaded to"
     value: ${{ steps.upload.outputs.s3-path }}
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Upload to S3
       id: upload
