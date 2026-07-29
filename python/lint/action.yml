@@ -34,13 +34,13 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: ruff check
+    - name: check
       uses: astral-sh/ruff-action@v3 # Renovate digest-pins this
       with:
         args: check
         src: ${{ inputs.paths }}
 
-    - name: ruff format --check
+    - name: format
       uses: astral-sh/ruff-action@v3 # Renovate digest-pins this
       with:
         args: format --check
