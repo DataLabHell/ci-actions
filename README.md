@@ -19,7 +19,7 @@ actions, since they vary too much between repos to bundle cleanly.
 | [`versioning/from-pyproject`](./versioning/from-pyproject) | Resolver: `[project].version` from a `pyproject.toml` (uv / PEP 621) → `vX.Y.Z` tag (feed into the release actions). |
 | [`python/lint`](./python/lint) | Lint + type-check a Python project with ruff (`check` + `format`) and ty, via `uv`. |
 | [`python/test`](./python/test) | Install with `uv` and run pytest, optionally pinned to a Python version. |
-| [`mise-setup`](./mise-setup) | Provision a repo's tools with mise (cached installs, prune of unreferenced versions), so later steps can call them. |
+| [`mise-setup`](./mise-setup) | Provision a repo's tools with mise into a per-repository dir (cached installs, prune of unreferenced versions), so later steps can call them. |
 
 ## Using an action
 
