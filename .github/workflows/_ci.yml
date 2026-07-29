@@ -1,11 +1,14 @@
 name: CI
 
-# Quality gate for this repo's own sources. The tools (shellcheck, shfmt, taplo)
+# Internal quality gate for this repo's own sources - the leading underscore
+# marks it as not published, unlike the reusable workflows beside it. The tools
 # and what they check live in mise.toml, so `mise run check` is the same command
 # here and on a laptop. It fails the job if any of them finds an issue:
-#   - shellcheck: shell correctness / bugs
-#   - shfmt:      shell whitespace / indentation / formatting
-#   - taplo:      TOML lint + formatting
+#   - shellcheck:  shell correctness / bugs
+#   - shfmt:       shell whitespace / indentation / formatting
+#   - prettier:    YAML / Markdown / JSON formatting
+#   - taplo:       TOML lint + formatting
+#   - actionlint:  workflow syntax, expressions, action input names
 # Tool provisioning goes through this repo's own mise-setup action (local path,
 # so a PR is gated by the version of the action it contains).
 # Runs on pull requests (which covers feature branches via the PR's head branch)

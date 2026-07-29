@@ -1,25 +1,35 @@
 # ci-actions
 
-Shared, reusable GitHub Actions for the organization. This is a **monorepo**:
-each action (the building blocks) lives in its own folder at the repo root, with
-its own `action.yml` and `README.md`, and all are versioned together with a
-single set of tags. Common multi-step flows (releasing, building an image) are
-shown as copy-paste [examples](#common-workflows) rather than shipped as extra
-actions, since they vary too much between repos to bundle cleanly.
+Shared GitHub Actions and workflows for the organization. This is a
+**monorepo**: each action (the building blocks) lives in its own folder at the
+repo root, with its own `action.yml` and `README.md`, and everything is versioned
+together with a single set of tags.
+
+Two kinds of things ship from here:
+
+- **[Actions](#available-actions)** — one step you drop into a job you own.
+- **[Reusable workflows](#available-workflows)** — a whole job, triggers
+  excepted, for flows where the job body itself is the value (Renovate is the
+  first). They live flat in `.github/workflows/`, because GitHub does not resolve
+  a workflow `uses:` reference in a subfolder.
+
+Multi-step flows that vary too much between repos to bundle cleanly (releasing,
+building an image) are neither: they stay copy-paste
+[composition examples](#composition-examples).
 
 ## Available actions
 
-| Action                               | Description                                                                                                            |
-| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| [`s3-file-upload`](./s3-file-upload) | Upload files/folders to any S3-compatible bucket (RustFS, AWS S3, MinIO, on-prem) with glob include/exclude filtering. |
-| [`docker/build-push`](./docker/build-push) | Build a container image with Buildx and push it to a registry (GHCR or local/on-prem) with sha/latest/version tags and layer caching. |
-| [`release/tag-and-alias`](./release/tag-and-alias) | Create a `vX.Y.Z` tag and move the rolling `vX`/`vX.Y` aliases to it (no GitHub Release). |
-| [`release/github-release`](./release/github-release) | Publish a GitHub Release for an existing tag, with notes and optional assets. |
-| [`versioning/auto-patch`](./versioning/auto-patch) | Resolver: `MAJOR.MINOR` from a file + auto-incremented patch → next `vX.Y.Z` tag (feed into the release actions). |
-| [`versioning/from-pyproject`](./versioning/from-pyproject) | Resolver: `[project].version` from a `pyproject.toml` (uv / PEP 621) → `vX.Y.Z` tag (feed into the release actions). |
-| [`python/lint`](./python/lint) | Lint + type-check a Python project with ruff (`check` + `format`) and ty, via `uv`. |
-| [`python/test`](./python/test) | Install with `uv` and run pytest, optionally pinned to a Python version. |
-| [`mise-setup`](./mise-setup) | Provision a repo's tools with mise into a per-repository dir (cached installs, prune of unreferenced versions), so later steps can call them. |
+| Action                                                     | Description                                                                                                                                   |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`s3-file-upload`](./s3-file-upload)                       | Upload files/folders to any S3-compatible bucket (RustFS, AWS S3, MinIO, on-prem) with glob include/exclude filtering.                        |
+| [`docker/build-push`](./docker/build-push)                 | Build a container image with Buildx and push it to a registry (GHCR or local/on-prem) with sha/latest/version tags and layer caching.         |
+| [`release/tag-and-alias`](./release/tag-and-alias)         | Create a `vX.Y.Z` tag and move the rolling `vX`/`vX.Y` aliases to it (no GitHub Release).                                                     |
+| [`release/github-release`](./release/github-release)       | Publish a GitHub Release for an existing tag, with notes and optional assets.                                                                 |
+| [`versioning/auto-patch`](./versioning/auto-patch)         | Resolver: `MAJOR.MINOR` from a file + auto-incremented patch → next `vX.Y.Z` tag (feed into the release actions).                             |
+| [`versioning/from-pyproject`](./versioning/from-pyproject) | Resolver: `[project].version` from a `pyproject.toml` (uv / PEP 621) → `vX.Y.Z` tag (feed into the release actions).                          |
+| [`python/lint`](./python/lint)                             | Lint + type-check a Python project with ruff (`check` + `format`) and ty, via `uv`.                                                           |
+| [`python/test`](./python/test)                             | Install with `uv` and run pytest, optionally pinned to a Python version.                                                                      |
+| [`mise-setup`](./mise-setup)                               | Provision a repo's tools with mise into a per-repository dir (cached installs, prune of unreferenced versions), so later steps can call them. |
 
 ## Using an action
 
@@ -32,7 +42,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: DataLabHell/ci-actions/s3-file-upload@v0.2
+      - uses: DataLabHell/ci-actions/s3-file-upload@vX.Y
         with:
           source: images
           bucket: reports
@@ -40,10 +50,51 @@ jobs:
           include: "*.html"
 ```
 
-Always pin to a released tag (e.g. `@v0.2`) rather than `@main`, so downstream
-workflows are not affected by in-progress changes on the default branch.
+`@vX.Y` throughout these docs is a placeholder, not a tag: substitute the current
+minor alias, which is the `MAJOR.MINOR` in [`VERSION`](./VERSION) and the newest
+entry under
+[releases](https://github.com/DataLabHell/ci-actions/releases). Always pin to a
+released tag rather than `@main`, so downstream workflows are not affected by
+in-progress changes on the default branch.
 
-## Common workflows
+## Available workflows
+
+| Workflow                                           | Description                                                                                                                      |
+| -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| [`renovate.yml`](./.github/workflows/renovate.yml) | Run Renovate against the calling repo, with ghcr credentials wired up. Inputs: `runs-on`, `log-level`. Secret: `RENOVATE_TOKEN`. |
+
+## Using a workflow
+
+Reference a workflow by
+`<owner>/ci-actions/.github/workflows/<file>.yml@<tag>` — the full path,
+including `.github/workflows/`, because that is the only place GitHub resolves
+one from. It replaces the whole job, so the caller supplies just the triggers and
+the secrets:
+
+```yaml
+name: Renovate
+
+on:
+  schedule:
+    - cron: "0 */6 * * *" # every 6 hours
+  workflow_dispatch: # allow manual triggering
+
+jobs:
+  renovate:
+    uses: DataLabHell/ci-actions/.github/workflows/renovate.yml@vX.Y
+    secrets:
+      RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN }}
+```
+
+Two things a shared workflow cannot do for you:
+
+- **Triggers.** A called workflow's own `on:` block is ignored, so the `cron` and
+  `workflow_dispatch` above have to live in your repo. Note that `schedule` only
+  fires on the default branch, so the stub has to be merged before it runs.
+- **Tool config.** Renovate's rules stay in your repo's `renovate.json`. This
+  workflow runs the bot; it does not decide what the bot does.
+
+## Composition examples
 
 The building blocks compose into a few recurring flows. These are **examples to
 copy and adapt**, not separate actions, because the wiring varies per repo
@@ -66,12 +117,12 @@ jobs:
         with:
           fetch-depth: 0
       - id: ver
-        uses: DataLabHell/ci-actions/versioning/auto-patch@v0.2
+        uses: DataLabHell/ci-actions/versioning/auto-patch@vX.Y
       - id: rel
-        uses: DataLabHell/ci-actions/release/tag-and-alias@v0.2
+        uses: DataLabHell/ci-actions/release/tag-and-alias@vX.Y
         with:
           tag: ${{ steps.ver.outputs.version }}
-      - uses: DataLabHell/ci-actions/release/github-release@v0.2
+      - uses: DataLabHell/ci-actions/release/github-release@vX.Y
         with:
           tag: ${{ steps.rel.outputs.tag }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -99,12 +150,12 @@ jobs:
         with:
           fetch-depth: 0
       - id: ver
-        uses: DataLabHell/ci-actions/versioning/auto-patch@v0.2
+        uses: DataLabHell/ci-actions/versioning/auto-patch@vX.Y
       - id: rel
-        uses: DataLabHell/ci-actions/release/tag-and-alias@v0.2
+        uses: DataLabHell/ci-actions/release/tag-and-alias@vX.Y
         with:
           tag: ${{ steps.ver.outputs.version }}
-      - uses: DataLabHell/ci-actions/docker/build-push@v0.2
+      - uses: DataLabHell/ci-actions/docker/build-push@vX.Y
         with:
           image: api
           registry: truenas
@@ -125,10 +176,10 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
-      - uses: DataLabHell/ci-actions/python/lint@v0.2
+      - uses: DataLabHell/ci-actions/python/lint@vX.Y
         with:
           paths: datalabhell scripts tests
-          type-check-paths: datalabhell   # ruff over everything, ty only on the package
+          type-check-paths: datalabhell # ruff over everything, ty only on the package
 
   test:
     runs-on: self-hosted
@@ -138,7 +189,7 @@ jobs:
         python-version: ["3.12", "3.13", "3.14"]
     steps:
       - uses: actions/checkout@v4
-      - uses: DataLabHell/ci-actions/python/test@v0.2
+      - uses: DataLabHell/ci-actions/python/test@vX.Y
         with:
           python-version: ${{ matrix.python-version }}
 ```
@@ -150,7 +201,10 @@ ci-actions/
 ├── README.md                 # this file — index of all actions
 ├── VERSION                   # MAJOR.MINOR driving releases
 ├── mise.toml                 # dev tools + `mise run check` quality gate
-├── .github/workflows/        # ci (mise quality gate) + release
+├── .github/workflows/        # a leading _ marks this repo's own CI; the rest are published
+│   ├── _ci.yml               #   internal: the mise quality gate
+│   ├── _release.yml          #   internal: tag + GitHub Release
+│   └── renovate.yml          #   PUBLISHED reusable workflow
 ├── _template/                # scaffold to copy when adding an action
 │
 │   # single actions (building blocks) — each in its own root folder:
@@ -170,7 +224,7 @@ ci-actions/
 ```
 
 Multi-step flows (release, image build) are shown as
-[copy-paste examples](#common-workflows), not as separate action folders.
+[copy-paste examples](#composition-examples), not as separate action folders.
 
 ## Adding a new action
 
@@ -196,6 +250,29 @@ composite action plus README:
 > The `_template/` folder is a scaffold, not a published action — the leading
 > underscore keeps it sorted first and signals it isn't meant to be referenced.
 
+## Adding a new workflow
+
+Reach for a reusable workflow instead of an action when the value is the job
+body — the runner, permissions, concurrency and pinned third-party SHAs — and
+only the triggers differ per repo. There is no scaffold; copy
+[`renovate.yml`](./.github/workflows/renovate.yml).
+
+1. Add `<name>.yml` **flat** in `.github/workflows/`, with no leading underscore.
+   Subfolders do not work: GitHub only resolves a workflow reference at
+   `.github/workflows/<file>.yml`. The underscore is reserved for this repo's own
+   CI, the same signal `_template/` uses.
+2. Use `on: workflow_call` only. Declare every knob as a typed `input` with a
+   `description` and a default, and every credential under `secrets`. Input names
+   are kebab-case as elsewhere in this repo; secret names cannot contain hyphens,
+   so those are `UPPER_SNAKE`.
+3. Set `permissions` and `concurrency` in the workflow itself rather than leaving
+   them to the caller — capping its own token is the point of shipping the job.
+4. Add a row to the [Available workflows](#available-workflows) table, and a stub
+   the caller can paste (triggers + secrets) if the trigger is not obvious.
+5. Open a PR. Merging to `main` releases automatically, same as an action: the
+   release trigger covers `.github/workflows/*.yml` but skips the `_`-prefixed
+   files.
+
 ## Local development
 
 Tooling is managed by [mise](https://mise.jdx.dev). [`mise.toml`](./mise.toml)
@@ -203,24 +280,31 @@ pins the linters and defines the tasks, so the same commands run locally and in
 CI:
 
 ```bash
-mise install        # get shellcheck, shfmt and taplo
+mise install        # get shellcheck, shfmt, taplo, actionlint and prettier
 mise run check      # the full gate: format check + lint (what CI runs)
-mise run format     # apply shfmt + taplo formatting
+mise run format     # apply shfmt, prettier and taplo formatting
 mise tasks          # list everything, including the per-language tasks
 ```
 
-CI runs `mise run check` through this repo's own
-[`mise-setup`](./mise-setup) action by local path, so a pull request is gated by
-the version of that action it contains.
+What the gate covers: shellcheck and shfmt on `*.sh`, prettier on YAML, Markdown
+and JSON, taplo on TOML, and actionlint on `.github/workflows/`. Mind
+actionlint's boundary — it lints the workflow files, and where one references a
+local action it checks the inputs against that `action.yml`, but it does not lint
+an action's own steps or shell. That is what keeping the logic in a `.sh` file
+buys: shellcheck and shfmt reach it.
+
+CI runs `mise run check` through this repo's own [`mise-setup`](./mise-setup)
+action by local path, so a pull request is gated by the version of that action it
+contains.
 
 ## Versioning
 
 Releases are **automatic** and driven by the [`VERSION`](./VERSION) file, which
-holds the `MAJOR.MINOR` (e.g. `0.1`). All actions share the same tags (a tag is a
-snapshot of the whole repo), and consumers reference
+holds the `MAJOR.MINOR` (e.g. `0.1`). Actions and reusable workflows share the same
+tags (a tag is a snapshot of the whole repo), and consumers reference
 `DataLabHell/ci-actions/<action>@<tag>`.
 
-The [Release workflow](.github/workflows/release.yml) runs on every push to
+The [Release workflow](./.github/workflows/_release.yml) runs on every push to
 `main` and chains this repo's own actions (dogfooding): a **resolver** produces
 the next bare version, then the **release** actions tag it and publish it.
 
@@ -264,19 +348,19 @@ to an action's inputs or behavior.
 
 ### What consumers pin to
 
-Using the current `0.2` series as the example:
+Three pins are available, in decreasing order of movement:
 
-- `@v0.2` — rolling minor alias; **the recommended pin** while on `0.x` (moves on
+- `@vX.Y` — rolling minor alias; **the recommended pin** while on `0.x` (moves on
   patches only, never breaking).
-- `@v0.2.0` — an exact, immutable release.
-- `@v0` — rolling major alias; **not recommended during `0.x`**, because it moves
-  with every release including the next minor (`0.2` → `0.3`), which may be breaking.
+- `@vX.Y.Z` — an exact, immutable release.
+- `@vX` — rolling major alias; **not recommended during `0.x`**, because it moves
+  with every release including the next minor, which may be breaking.
 
-Follow semver: while on `0.x`, breaking changes bump the **minor** (`0.2` →
-`0.3`), so consumers pinned to `@v0.2` stay safe — the break lands on `0.3`, which
-`@v0.2` never follows. You don't need a `1.0` for this; stay on `0.x` as long as
-you like. Once the API is stable, bump `VERSION` to `1.0`; after that, breaking
-changes bump the major and `@v1` users are protected, and `@v1` becomes a safe pin.
+Follow semver: while on `0.x`, breaking changes bump the **minor**, so a consumer
+pinned to `@v0.3` stays safe — the break lands on `0.4`, which `@v0.3` never
+follows. You don't need a `1.0` for this; stay on `0.x` as long as you like. Once
+the API is stable, bump `VERSION` to `1.0`; after that, breaking changes bump the
+major, `@v1` users are protected, and `@v1` becomes a safe pin.
 
 ## Conventions
 

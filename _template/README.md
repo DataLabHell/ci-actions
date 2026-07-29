@@ -36,7 +36,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: TODO
-        uses: DataLabHell/ci-actions/TODO-action-name@v0.2
+        uses: DataLabHell/ci-actions/TODO-action-name@vX.Y
         with:
           example: value
 ```

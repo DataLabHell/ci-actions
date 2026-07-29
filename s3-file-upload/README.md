@@ -22,11 +22,12 @@ This action lives in the shared [`ci-actions`](../README.md) monorepo, so it is
 referenced by its path within the repo plus a tag:
 
 ```yaml
-- uses: DataLabHell/ci-actions/s3-file-upload@v0.2
+- uses: DataLabHell/ci-actions/s3-file-upload@vX.Y
 ```
 
-Pin to a released tag (e.g. `@v0.2`) rather than `@main` so pipelines are not
-broken by in-progress changes.
+`@vX.Y` is a placeholder for the current minor alias (see
+[VERSION](../VERSION)). Pin to a released tag rather than `@main` so pipelines are
+not broken by in-progress changes.
 
 ## Connection & credentials
 
@@ -36,7 +37,7 @@ region, and credentials — so a normal upload needs **no credentials in the
 workflow at all**:
 
 ```yaml
-- uses: DataLabHell/ci-actions/s3-file-upload@v0.2
+- uses: DataLabHell/ci-actions/s3-file-upload@vX.Y
   with:
     source: outputs
     destination: my-service
@@ -75,15 +76,15 @@ set.
 
 ## Inputs
 
-| Input            | Required | Default                            | Description                                                                                                                                                       |
-| ---------------- | -------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `bucket`         | no       | `reports`   | Target bucket name.                                                                                                                                               |
-| `profile`        | yes      | `dlh`       | AWS CLI profile configured on the runner; supplies endpoint, region and credentials.                                                                            |
-| `source`         | no       | `outputs`   | Folder in the repo to upload from (may be a nested subpath).                                                                                                      |
-| `destination`    | no       | `''`        | Prefix/subfolder inside the bucket.                                                                                                                               |
-| `include`        | no       | `*.html`    | Comma-separated glob(s) to include, relative to `source`. AWS CLI `*` matches across `/`, so `*.html` covers every depth; use `*` for everything.                 |
-| `exclude`        | no       | `''`        | Comma-separated glob(s) to exclude (applied after include).                                                                                                       |
-| `delete-removed` | no       | `false`     | Mirror deletions (adds `--delete`). Scoped to `destination`; **requires a non-empty `destination`** so it can't delete other pipelines' files at the bucket root. |
+| Input            | Required | Default   | Description                                                                                                                                                       |
+| ---------------- | -------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bucket`         | no       | `reports` | Target bucket name.                                                                                                                                               |
+| `profile`        | yes      | `dlh`     | AWS CLI profile configured on the runner; supplies endpoint, region and credentials.                                                                              |
+| `source`         | no       | `outputs` | Folder in the repo to upload from (may be a nested subpath).                                                                                                      |
+| `destination`    | no       | `''`      | Prefix/subfolder inside the bucket.                                                                                                                               |
+| `include`        | no       | `*.html`  | Comma-separated glob(s) to include, relative to `source`. AWS CLI `*` matches across `/`, so `*.html` covers every depth; use `*` for everything.                 |
+| `exclude`        | no       | `''`      | Comma-separated glob(s) to exclude (applied after include).                                                                                                       |
+| `delete-removed` | no       | `false`   | Mirror deletions (adds `--delete`). Scoped to `destination`; **requires a non-empty `destination`** so it can't delete other pipelines' files at the bucket root. |
 
 ## Output
 
@@ -98,7 +99,7 @@ profile, no credentials are needed in the workflow:
 
 ```yaml
 - name: Upload report to S3
-  uses: DataLabHell/ci-actions/s3-file-upload@v0.2
+  uses: DataLabHell/ci-actions/s3-file-upload@vX.Y
   with:
     source: report
     destination: my-service
@@ -121,7 +122,7 @@ jobs:
         run: npm run coverage:html
 
       - name: Upload coverage report
-        uses: DataLabHell/ci-actions/s3-file-upload@v0.2
+        uses: DataLabHell/ci-actions/s3-file-upload@vX.Y
         with:
           bucket: coverage
           source: coverage/html
@@ -145,14 +146,14 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Upload docs
-        uses: DataLabHell/ci-actions/s3-file-upload@v0.2
+        uses: DataLabHell/ci-actions/s3-file-upload@vX.Y
         with:
           source: docs
           destination: my-service/docs
           include: "*"
 
       - name: Upload HTML reports
-        uses: DataLabHell/ci-actions/s3-file-upload@v0.2
+        uses: DataLabHell/ci-actions/s3-file-upload@vX.Y
         with:
           source: htmls
           destination: my-service/htmls

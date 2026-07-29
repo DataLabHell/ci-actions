@@ -16,8 +16,8 @@ Uses only `git` — no `gh` CLI — so it runs on self-hosted runners.
 
 ## Inputs
 
-| Input | Required | Default | Description                                                                       |
-| ----- | -------- | ------- | --------------------------------------------------------------------------------- |
+| Input | Required | Default | Description                                                                                                                                                           |
+| ----- | -------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `tag` | yes      | —       | Version to tag, `MAJOR.MINOR.PATCH` with an optional leading `v` (resolvers emit the bare form). This action normalizes it and always creates a `v`-prefixed git tag. |
 
 ## Outputs
@@ -27,14 +27,14 @@ same set — e.g. tagging a container image to mirror the git refs. Naming follo
 one rule: **`tag`/`tags` carry the `v`** (git-ref form), **`version`/`versions`
 are bare** (no `v`).
 
-| Output      | Example                | Description                                   |
-| ----------- | ---------------------- | --------------------------------------------- |
-| `tag`       | `v0.1.3`               | The full tag created (`v`-prefixed).          |
-| `version`   | `0.1.3`                | Bare version (no `v`).                         |
-| `major`     | `v0`                   | Rolling major alias.                          |
-| `minor`     | `v0.1`                 | Rolling minor alias.                          |
-| `tags`      | `v0.1.3` `v0.1` `v0`   | Newline-separated tag + aliases, `v`-prefixed. |
-| `versions`  | `0.1.3` `0.1` `0`      | Newline-separated tag + aliases, bare. Handy as image tags. |
+| Output     | Example              | Description                                                 |
+| ---------- | -------------------- | ----------------------------------------------------------- |
+| `tag`      | `v0.1.3`             | The full tag created (`v`-prefixed).                        |
+| `version`  | `0.1.3`              | Bare version (no `v`).                                      |
+| `major`    | `v0`                 | Rolling major alias.                                        |
+| `minor`    | `v0.1`               | Rolling minor alias.                                        |
+| `tags`     | `v0.1.3` `v0.1` `v0` | Newline-separated tag + aliases, `v`-prefixed.              |
+| `versions` | `0.1.3` `0.1` `0`    | Newline-separated tag + aliases, bare. Handy as image tags. |
 
 ## Usage
 
@@ -50,15 +50,15 @@ jobs:
           fetch-depth: 0
 
       - id: ver
-        uses: DataLabHell/ci-actions/versioning/auto-patch@v0.2
+        uses: DataLabHell/ci-actions/versioning/auto-patch@vX.Y
 
       - id: rel
-        uses: DataLabHell/ci-actions/release/tag-and-alias@v0.2
+        uses: DataLabHell/ci-actions/release/tag-and-alias@vX.Y
         with:
-          tag: ${{ steps.ver.outputs.version }}   # bare; this action adds the v
+          tag: ${{ steps.ver.outputs.version }} # bare; this action adds the v
 
       # Tag the image with the same rolling set as the git refs (bare form):
-      - uses: DataLabHell/ci-actions/docker/build-push@v0.2
+      - uses: DataLabHell/ci-actions/docker/build-push@vX.Y
         with:
           image: api
           tags: |
