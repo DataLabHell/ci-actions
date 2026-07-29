@@ -1,0 +1,33 @@
+name: 'mise setup'
+description: 'Provision a project''s tools with mise, with a cache over the install dirs and a prune of unreferenced versions.'
+author: 'DataLabHell'
+
+branding:
+  icon: 'download-cloud'
+  color: 'blue'
+
+# Composite wrapper around jdx/mise-action. The caller owns the job (runner,
+# checkout). Third-party actions are pinned to a commit SHA, not a tag.
+runs:
+  using: 'composite'
+  steps:
+    # mise-action's built-in caching is turned off below and replaced by this
+    # step, which caches the install dirs directly.
+    # See https://github.com/jdx/mise-action/issues/537
+    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      with:
+        path: |
+          ~/.local/share/mise/installs
+          ~/.local/share/mise/plugins
+          ~/.cache/mise
+        key: mise-${{ github.event.repository.name }}-${{ runner.os }}
+
+    - uses: jdx/mise-action@9e7f7633ff6f6d6048a9418a68d48f288f50eb14 # v4.2.3
+      with:
+        experimental: true
+        cache: false
+
+    # Housekeeping: drop installed versions that mise.toml no longer references,
+    # so the cached install dirs don't grow across runs.
+    - shell: bash
+      run: mise prune -y

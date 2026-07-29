@@ -19,6 +19,7 @@ actions, since they vary too much between repos to bundle cleanly.
 | [`versioning/from-pyproject`](./versioning/from-pyproject) | Resolver: `[project].version` from a `pyproject.toml` (uv / PEP 621) → `vX.Y.Z` tag (feed into the release actions). |
 | [`python/lint`](./python/lint) | Lint + type-check a Python project with ruff (`check` + `format`) and ty, via `uv`. |
 | [`python/test`](./python/test) | Install with `uv` and run pytest, optionally pinned to a Python version. |
+| [`mise-setup`](./mise-setup) | Provision a repo's tools with mise (cached installs, prune of unreferenced versions), so later steps can call them. |
 
 ## Using an action
 
@@ -153,6 +154,7 @@ ci-actions/
 │
 │   # single actions (building blocks) — each in its own root folder:
 ├── s3-file-upload/           #   action.yml + upload.sh + README
+├── mise-setup/               #   provision project tools with mise
 ├── docker/                   #   container image actions
 │   └── build-push/           #     build + push an image (Buildx)
 ├── versioning/               #   resolvers: produce the next bare version X.Y.Z
