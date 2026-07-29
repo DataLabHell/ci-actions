@@ -22,12 +22,12 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Lint must pass before anything is tagged/released.
-  lint:
-    uses: ./.github/workflows/lint.yml
+  # The quality gate must pass before anything is tagged/released.
+  check:
+    uses: ./.github/workflows/ci.yml
 
   release:
-    needs: lint
+    needs: check
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4

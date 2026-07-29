@@ -149,7 +149,8 @@ jobs:
 ci-actions/
 ├── README.md                 # this file — index of all actions
 ├── VERSION                   # MAJOR.MINOR driving releases
-├── .github/workflows/        # lint (shellcheck) + release
+├── mise.toml                 # dev tools + `mise run check` quality gate
+├── .github/workflows/        # ci (mise quality gate) + release
 ├── _template/                # scaffold to copy when adding an action
 │
 │   # single actions (building blocks) — each in its own root folder:
@@ -194,6 +195,23 @@ composite action plus README:
 
 > The `_template/` folder is a scaffold, not a published action — the leading
 > underscore keeps it sorted first and signals it isn't meant to be referenced.
+
+## Local development
+
+Tooling is managed by [mise](https://mise.jdx.dev). [`mise.toml`](./mise.toml)
+pins the linters and defines the tasks, so the same commands run locally and in
+CI:
+
+```bash
+mise install        # get shellcheck, shfmt and taplo
+mise run check      # the full gate: format check + lint (what CI runs)
+mise run format     # apply shfmt + taplo formatting
+mise tasks          # list everything, including the per-language tasks
+```
+
+CI runs `mise run check` through this repo's own
+[`mise-setup`](./mise-setup) action by local path, so a pull request is gated by
+the version of that action it contains.
 
 ## Versioning
 
