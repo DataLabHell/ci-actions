@@ -2,15 +2,17 @@
 
 Lint and type-check a Python project with [ruff](https://docs.astral.sh/ruff/)
 (`ruff check` + `ruff format --check`) and
-[ty](https://github.com/astral-sh/ty), all run through `uv`. ruff issues fail
-the job; ty is soft by default (reports a warning) so you can adopt typing
-gradually.
+[ty](https://github.com/astral-sh/ty). ruff runs via the official
+[`astral-sh/ruff-action`](https://github.com/astral-sh/ruff-action); ty (which
+has no official action) runs via `uv`. ruff issues fail the job; ty is soft by
+default (reports a warning) so you can adopt typing gradually.
 
 ## Requirements
 
-- `uv` on the runner (self-hosted). ruff and ty are fetched on demand by `uvx`,
-  so they don't need to be preinstalled — only `uv` does. The action fails fast
-  if `uv` is missing.
+- Nothing preinstalled — `ruff-action` brings its own ruff, and the action
+  installs `uv` (via
+  [`astral-sh/setup-uv`](https://github.com/astral-sh/setup-uv)) for the ty
+  step.
 - `actions/checkout@v4` before this step.
 
 ## Inputs
@@ -46,8 +48,9 @@ Make typing block the build once it's clean:
 
 ## Notes
 
-- ruff `check` and `format --check` are hard failures. `ty` follows
-  `type-check`: `warn` prints a `::warning` and continues, `error` fails the
-  job, `off` skips it (and skips the `uv sync` that ty needs).
+- ruff `check` and `format --check` (two `ruff-action` steps) are hard failures.
+  `ty` follows `type-check`: `warn` prints a `::warning` and continues, `error`
+  fails the job, `off` skips the ty step entirely (no `uv` install, no
+  `uv sync`).
 - `type-check-paths` is separate from `paths` because you often want ruff to
   cover tests and scripts while ty checks only the package.

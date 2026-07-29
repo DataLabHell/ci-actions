@@ -8,11 +8,6 @@ PYTHON_VERSION="${INPUT_PYTHON_VERSION:-}"
 SYNC_ARGS="${INPUT_SYNC_ARGS:-}"
 PYTEST_ARGS="${INPUT_PYTEST_ARGS:-}"
 
-if ! command -v uv &>/dev/null; then
-  echo "::error::uv not found on the runner. Install uv (https://docs.astral.sh/uv/), e.g. via the runner's Ansible setup."
-  exit 1
-fi
-
 # Pin the Python version for both sync and run when one is given.
 PY_FLAG=()
 if [ -n "$PYTHON_VERSION" ]; then

@@ -6,7 +6,8 @@ versions in a **matrix** in the caller (see below).
 
 ## Requirements
 
-- `uv` on the runner (self-hosted). The action fails fast if `uv` is missing.
+- Nothing preinstalled — the action installs `uv` itself via
+  [`astral-sh/setup-uv`](https://github.com/astral-sh/setup-uv).
 - `actions/checkout@v4` before this step.
 
 ## Inputs

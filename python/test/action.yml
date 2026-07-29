@@ -8,9 +8,9 @@ branding:
   icon: "check-square"
   color: "blue"
 
-# Runs on any runner that has uv installed. One Python version per invocation;
-# the caller owns the matrix (see the README). The caller owns the job too
-# (runner, checkout).
+# Installs uv (via setup-uv), then runs pytest — nothing needs to be
+# preinstalled on the runner. One Python version per invocation; the caller owns
+# the matrix (see the README) and the job (runner, checkout).
 inputs:
   python-version:
     description:
@@ -30,6 +30,9 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Install uv
+      uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+
     - shell: bash
       run: bash "${{ github.action_path }}/test.sh"
       env:
