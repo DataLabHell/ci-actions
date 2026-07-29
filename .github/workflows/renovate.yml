@@ -10,6 +10,11 @@ name: Renovate
 #
 # Renovate's own rules (which deps, which schedule, grouping) stay in each
 # repo's renovate.json - this workflow only runs the bot.
+#
+# On credentials: the free plan has no org-wide secrets for private repos, so a
+# PAT would have to be re-added to every calling repo. RENOVATE_TOKEN is
+# therefore optional - without it the job falls back to its own GITHUB_TOKEN, at
+# the cost of Renovate's pull requests not triggering the consumer's CI.
 on:
   workflow_call:
     inputs:
@@ -26,12 +31,13 @@ on:
         default: "info"
     secrets:
       RENOVATE_TOKEN:
-        # Underscored, unlike every kebab-case input in this repo: GitHub secret
-        # names cannot contain hyphens.
+        # Underscored, not kebab-case like the inputs above: a hyphen in a secret
+        # name would read as an operator in `${{ secrets.x-y }}`.
         description:
-          "PAT with contents + pull-request write. GITHUB_TOKEN will not do:
-          pull requests it opens do not trigger the consumer's CI."
-        required: true
+          "PAT with contents + pull-request write, defined in the calling repo.
+          Optional: without it the job falls back to GITHUB_TOKEN, which works
+          but opens pull requests that do not trigger the consumer's CI."
+        required: false
 
 permissions:
   contents: read
@@ -55,7 +61,9 @@ jobs:
       - name: Run Renovate
         uses: renovatebot/github-action@1a96852b0384df1837619d04c60b2d10d1f9ff08 # v46.1.21
         with:
-          token: ${{ secrets.RENOVATE_TOKEN }}
+          # Falls back to the job's own GITHUB_TOKEN when the caller has no PAT,
+          # so a repo can adopt this with no secret to set up at all.
+          token: ${{ secrets.RENOVATE_TOKEN || github.token }}
         env:
           # Scope the run to the calling repo, so one config serves every consumer.
           RENOVATE_REPOSITORIES: ${{ github.repository }}

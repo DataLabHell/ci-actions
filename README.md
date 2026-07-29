@@ -7,8 +7,8 @@ versioned together with a single set of tags.
 
 Two kinds of things ship from here:
 
-- **[Actions](#available-actions)** — one step you drop into a job you own.
-- **[Reusable workflows](#available-workflows)** — a whole job, triggers
+- **[Actions](#available-actions)**: one step you drop into a job you own.
+- **[Reusable workflows](#available-workflows)**: a whole job, triggers
   excepted, for flows where the job body itself is the value (Renovate is the
   first). They live flat in `.github/workflows/`, because GitHub does not
   resolve a workflow `uses:` reference in a subfolder.
@@ -59,14 +59,14 @@ in-progress changes on the default branch.
 
 ## Available workflows
 
-| Workflow                                           | Description                                                                                                                      |
-| -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| [`renovate.yml`](./.github/workflows/renovate.yml) | Run Renovate against the calling repo, with ghcr credentials wired up. Inputs: `runs-on`, `log-level`. Secret: `RENOVATE_TOKEN`. |
+| Workflow                                           | Description                                                                                                                   |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| [`renovate.yml`](./.github/workflows/renovate.yml) | Run Renovate against the calling repo, with ghcr credentials wired up. [Inputs and secrets](#renovateyml-inputs-and-secrets). |
 
 ## Using a workflow
 
-Reference a workflow by `<owner>/ci-actions/.github/workflows/<file>.yml@<tag>`
-— the full path, including `.github/workflows/`, because that is the only place
+Reference a workflow by `<owner>/ci-actions/.github/workflows/<file>.yml@<tag>`,
+the full path, including `.github/workflows/`, because that is the only place
 GitHub resolves one from. It replaces the whole job, so the caller supplies just
 the triggers and the secrets:
 
@@ -92,6 +92,29 @@ Two things a shared workflow cannot do for you:
   only fires on the default branch, so the stub has to be merged before it runs.
 - **Tool config.** Renovate's rules stay in your repo's `renovate.json`. This
   workflow runs the bot; it does not decide what the bot does.
+
+### `renovate.yml` inputs and secrets
+
+| Input       | Required | Default       | Description                                                                           |
+| ----------- | -------- | ------------- | ------------------------------------------------------------------------------------- |
+| `runs-on`   | no       | `self-hosted` | Runner label for the job. Pass `ubuntu-latest` on a repo without self-hosted runners. |
+| `log-level` | no       | `info`        | Renovate `LOG_LEVEL`. Set to `debug` to trace a run that finds nothing.               |
+
+| Secret           | Required | Description                                                                       |
+| ---------------- | -------- | --------------------------------------------------------------------------------- |
+| `RENOVATE_TOKEN` | no       | PAT with contents + pull-request write. Falls back to `GITHUB_TOKEN` when absent. |
+
+Secret names stay `UPPER_SNAKE` while inputs are kebab-case, because a hyphen in
+`${{ secrets.x-y }}` reads as an operator.
+
+The secret is optional on purpose. The free plan has no organization-wide
+secrets for private repos, so requiring a PAT would mean re-adding it to every
+calling repo, the same constraint that keeps the
+[`s3-file-upload` credentials on the runner](./s3-file-upload/README.md#connection--credentials).
+Omit it and the job uses its own `GITHUB_TOKEN`, which needs no setup and can
+open pull requests; the catch is that those pull requests do not trigger your
+CI. GitHub blocks that, and Renovate cannot work around it. Add the PAT to the
+repos where you want Renovate's pull requests to run the pipeline.
 
 ## Composition examples
 
@@ -228,33 +251,33 @@ Multi-step flows (release, image build) are shown as
 
 ## Adding a new action
 
-Start from the [`_template/`](./_template) scaffold — it's a ready-to-fill
-composite action plus README:
+Start from the [`_template/`](./_template) scaffold, a ready-to-fill composite
+action plus README:
 
 1. Copy `_template/` to `<name>/` at the repo root (kebab-case), e.g.
    `slack-notify/`. Group related actions in a subfolder if it helps (e.g.
    `docker/build-push/`).
-2. Fill in `action.yml` — replace the `TODO` name/description and the example
+2. Fill in `action.yml`: replace the `TODO` name/description and the example
    inputs/outputs. Prefer a **composite** action (the template's default): no
    build step, runs on any runner. Use Docker/JavaScript only if you
    specifically need them.
 3. Put the shell logic in `main.sh` (the template calls it and passes inputs as
    `INPUT_*` env vars). Keeping shell in a `.sh` file lets CI lint it with
-   shellcheck + shfmt — inline `run:` shell is not linted.
-4. Fill in `README.md` — inputs table, outputs, and at least one usage example.
+   shellcheck + shfmt. Inline `run:` shell is not linted.
+4. Fill in `README.md`: inputs table, outputs, and at least one usage example.
    Reference the action as `DataLabHell/ci-actions/<folder>@<tag>`.
 5. Add a row to the [Available actions](#available-actions) table above.
 6. Open a PR. Merging to `main` releases automatically (patch bump). If the new
    action warrants a minor bump, also edit [`VERSION`](#versioning) in the PR.
 
-> The `_template/` folder is a scaffold, not a published action — the leading
+> The `_template/` folder is a scaffold, not a published action. The leading
 > underscore keeps it sorted first and signals it isn't meant to be referenced.
 
 ## Adding a new workflow
 
 Reach for a reusable workflow instead of an action when the value is the job
-body — the runner, permissions, concurrency and pinned third-party SHAs — and
-only the triggers differ per repo. There is no scaffold; copy
+body (the runner, permissions, concurrency and pinned third-party SHAs) and only
+the triggers differ per repo. There is no scaffold; copy
 [`renovate.yml`](./.github/workflows/renovate.yml).
 
 1. Add `<name>.yml` **flat** in `.github/workflows/`, with no leading
@@ -266,7 +289,7 @@ only the triggers differ per repo. There is no scaffold; copy
    names are kebab-case as elsewhere in this repo; secret names cannot contain
    hyphens, so those are `UPPER_SNAKE`.
 3. Set `permissions` and `concurrency` in the workflow itself rather than
-   leaving them to the caller — capping its own token is the point of shipping
+   leaving them to the caller. Capping its own token is the point of shipping
    the job.
 4. Add a row to the [Available workflows](#available-workflows) table, and a
    stub the caller can paste (triggers + secrets) if the trigger is not obvious.
@@ -289,7 +312,7 @@ mise tasks          # list everything, including the per-language tasks
 
 What the gate covers: shellcheck and shfmt on `*.sh`, prettier on YAML, Markdown
 and JSON, taplo on TOML, and actionlint on `.github/workflows/`. Mind
-actionlint's boundary — it lints the workflow files, and where one references a
+actionlint's boundary: it lints the workflow files, and where one references a
 local action it checks the inputs against that `action.yml`, but it does not
 lint an action's own steps or shell. That is what keeping the logic in a `.sh`
 file buys: shellcheck and shfmt reach it.
@@ -315,7 +338,7 @@ the next bare version, then the **release** actions tag it and publish it.
    outputs the next **bare** version `MAJOR.MINOR.PATCH`.
 2. [`release/tag-and-alias`](./release/tag-and-alias) takes that version, owns
    the tag format (adds the `v`), creates the `vMAJOR.MINOR.PATCH` tag, and
-   moves the rolling `vMAJOR` / `vMAJOR.MINOR` aliases to it — outputting the
+   moves the rolling `vMAJOR` / `vMAJOR.MINOR` aliases to it, outputting the
    canonical tag.
 3. [`release/github-release`](./release/github-release) publishes a GitHub
    Release for the tag from step 2.
@@ -323,14 +346,14 @@ the next bare version, then the **release** actions tag it and publish it.
 Both halves are pluggable: swap step 1 for
 [`versioning/from-pyproject`](./versioning/from-pyproject) (or any step that
 outputs a bare `X.Y.Z` version) to change the version source, and drop step 3
-when you only need tags (e.g. a container build) — the pieces compose.
+when you only need tags (e.g. a container build). The pieces compose.
 
 ### Everyday changes → patch bump
 
 Merge a change to any action to `main`. You don't touch `VERSION`. Each such
 push releases the next patch automatically: `v0.2.0` → `v0.2.1` → …
 
-Only changes to action files cut a release — an `action.yml`, an action script
+Only changes to action files cut a release: an `action.yml`, an action script
 (`*.sh`), or the `VERSION` file. **README/docs-only changes do not** (the
 workflow's `paths` filter skips them), so you don't get empty patch bumps for
 documentation edits.
@@ -352,14 +375,14 @@ to an action's inputs or behavior.
 
 Three pins are available, in decreasing order of movement:
 
-- `@vX.Y` — rolling minor alias; **the recommended pin** while on `0.x` (moves
-  on patches only, never breaking).
-- `@vX.Y.Z` — an exact, immutable release.
-- `@vX` — rolling major alias; **not recommended during `0.x`**, because it
-  moves with every release including the next minor, which may be breaking.
+- `@vX.Y`: rolling minor alias; **the recommended pin** while on `0.x` (moves on
+  patches only, never breaking).
+- `@vX.Y.Z`: an exact, immutable release.
+- `@vX`: rolling major alias; **not recommended during `0.x`**, because it moves
+  with every release including the next minor, which may be breaking.
 
 Follow semver: while on `0.x`, breaking changes bump the **minor**, so a
-consumer pinned to `@v0.3` stays safe — the break lands on `0.4`, which `@v0.3`
+consumer pinned to `@v0.3` stays safe. The break lands on `0.4`, which `@v0.3`
 never follows. You don't need a `1.0` for this; stay on `0.x` as long as you
 like. Once the API is stable, bump `VERSION` to `1.0`; after that, breaking
 changes bump the major, `@v1` users are protected, and `@v1` becomes a safe pin.
