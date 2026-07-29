@@ -1,26 +1,47 @@
-name: 'mise setup'
-description: 'Provision a project''s tools with mise, with a cache over the install dirs and a prune of unreferenced versions.'
-author: 'DataLabHell'
+name: "mise setup"
+description: "Provision a project's tools with mise into a per-repository dir, with a cache over the install dirs and a prune of unreferenced versions."
+author: "DataLabHell"
 
 branding:
-  icon: 'download-cloud'
-  color: 'blue'
+  icon: "download-cloud"
+  color: "blue"
+
+inputs:
+  global:
+    description: "Install into the runner-wide mise dirs (~/.local/share/mise, ~/.cache/mise) instead of a per-repository dir. Set this only where sharing one set of tool versions across every repo on the runner is what you want."
+    required: false
+    default: "false"
 
 # Composite wrapper around jdx/mise-action. The caller owns the job (runner,
 # checkout). Third-party actions are pinned to a commit SHA, not a tag.
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
+    # Point mise at a per-repository dir before anything installs, so tool
+    # versions don't pile up in one runner-wide directory across projects.
+    - id: dirs
+      shell: bash
+      run: bash "${{ github.action_path }}/dirs.sh"
+      env:
+        INPUT_GLOBAL: ${{ inputs.global }}
+
     # mise-action's built-in caching is turned off below and replaced by this
     # step, which caches the install dirs directly.
     # See https://github.com/jdx/mise-action/issues/537
+    #
+    # The key ends in a hash of the mise config, so editing the config produces a
+    # new key and the updated tool set gets written back. restore-keys then seeds
+    # that fresh key from the previous entry, leaving only the changed tools to
+    # install rather than the whole set.
     - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
       with:
         path: |
-          ~/.local/share/mise/installs
-          ~/.local/share/mise/plugins
-          ~/.cache/mise
-        key: mise-${{ github.event.repository.name }}-${{ runner.os }}
+          ${{ steps.dirs.outputs.data-dir }}/installs
+          ${{ steps.dirs.outputs.data-dir }}/plugins
+          ${{ steps.dirs.outputs.cache-dir }}
+        key: mise-${{ github.event.repository.name }}-${{ runner.os }}-${{ hashFiles('**/mise.lock', '**/mise*.toml', '**/.mise*.toml', '**/.tool-versions') }}
+        restore-keys: |
+          mise-${{ github.event.repository.name }}-${{ runner.os }}-
 
     - uses: jdx/mise-action@9e7f7633ff6f6d6048a9418a68d48f288f50eb14 # v4.2.3
       with:
