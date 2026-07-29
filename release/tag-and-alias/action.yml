@@ -1,5 +1,7 @@
 name: "Tag and move aliases"
-description: "Create a vMAJOR.MINOR.PATCH tag and force-move the rolling vX / vX.Y alias tags to it. No GitHub Release."
+description:
+  "Create a vMAJOR.MINOR.PATCH tag and force-move the rolling vX / vX.Y alias
+  tags to it. No GitHub Release."
 author: "DataLabHell"
 
 branding:
@@ -8,7 +10,9 @@ branding:
 
 inputs:
   tag:
-    description: "Tag to create, vMAJOR.MINOR.PATCH (produce it with a version resolver, e.g. versioning/auto-patch)."
+    description:
+      "Tag to create, vMAJOR.MINOR.PATCH (produce it with a version resolver,
+      e.g. versioning/auto-patch)."
     required: true
 
 outputs:
@@ -25,10 +29,14 @@ outputs:
     description: "Rolling minor alias, e.g. v0.1."
     value: ${{ steps.tag.outputs.minor }}
   tags:
-    description: "Newline-separated tag + rolling aliases, v-prefixed (git-ref form): v0.1.3, v0.1, v0."
+    description:
+      "Newline-separated tag + rolling aliases, v-prefixed (git-ref form):
+      v0.1.3, v0.1, v0."
     value: ${{ steps.tag.outputs.tags }}
   versions:
-    description: "Newline-separated tag + rolling aliases, bare (no v): 0.1.3, 0.1, 0. Handy as image tags."
+    description:
+      "Newline-separated tag + rolling aliases, bare (no v): 0.1.3, 0.1, 0.
+      Handy as image tags."
     value: ${{ steps.tag.outputs.versions }}
 
 runs:

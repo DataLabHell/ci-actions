@@ -1,5 +1,7 @@
 name: "Python lint"
-description: "Lint and type-check a Python project with ruff (check + format) and ty, via uv."
+description:
+  "Lint and type-check a Python project with ruff (check + format) and ty, via
+  uv."
 author: "DataLabHell"
 
 branding:
@@ -14,15 +16,18 @@ inputs:
     required: false
     default: "."
   type-check:
-    description: "ty type check: warn (soft-fail with a warning), error (hard fail), or off"
+    description:
+      "ty type check: warn (soft-fail with a warning), error (hard fail), or off"
     required: false
     default: "warn"
   type-check-paths:
-    description: "Space-separated paths for ty (used only when type-check is not off)"
+    description:
+      "Space-separated paths for ty (used only when type-check is not off)"
     required: false
     default: "."
   sync-args:
-    description: 'Args for "uv sync" run before ty, which resolves against the project env'
+    description:
+      'Args for "uv sync" run before ty, which resolves against the project env'
     required: false
     default: "--all-groups"
 

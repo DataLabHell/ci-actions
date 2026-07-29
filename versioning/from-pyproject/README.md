@@ -60,6 +60,7 @@ the release is cut for that version.
 - Only **static** versions are read. If your project uses
   `[project] dynamic = ["version"]`, the version isn't in the file and the
   action fails with a clear error — resolve it a different way in that case.
-- The version must be `MAJOR.MINOR.PATCH` for `release/tag-and-alias` to accept the tag.
+- The version must be `MAJOR.MINOR.PATCH` for `release/tag-and-alias` to accept
+  the tag.
 - Add `pyproject.toml` to the release workflow's `paths` filter so a version
   bump there triggers the release.

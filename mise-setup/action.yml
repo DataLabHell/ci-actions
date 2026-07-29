@@ -1,5 +1,7 @@
 name: "mise setup"
-description: "Provision a project's tools with mise into a per-repository dir, with a cache over the install dirs and a prune of unreferenced versions."
+description:
+  "Provision a project's tools with mise into a per-repository dir, with a cache
+  over the install dirs and a prune of unreferenced versions."
 author: "DataLabHell"
 
 branding:
@@ -8,7 +10,11 @@ branding:
 
 inputs:
   global:
-    description: "Install into the runner-wide mise dirs (~/.local/share/mise, ~/.cache/mise) instead of a per-repository dir. Set this only where sharing one set of tool versions across every repo on the runner is what you want."
+    description:
+      "Install into the runner-wide mise dirs (~/.local/share/mise,
+      ~/.cache/mise) instead of a per-repository dir. Set this only where
+      sharing one set of tool versions across every repo on the runner is what
+      you want."
     required: false
     default: "false"
 
@@ -39,7 +45,10 @@ runs:
           ${{ steps.dirs.outputs.data-dir }}/installs
           ${{ steps.dirs.outputs.data-dir }}/plugins
           ${{ steps.dirs.outputs.cache-dir }}
-        key: mise-${{ github.event.repository.name }}-${{ runner.os }}-${{ hashFiles('**/mise.lock', '**/mise*.toml', '**/.mise*.toml', '**/.tool-versions') }}
+        key:
+          mise-${{ github.event.repository.name }}-${{ runner.os }}-${{
+          hashFiles('**/mise.lock', '**/mise*.toml', '**/.mise*.toml',
+          '**/.tool-versions') }}
         restore-keys: |
           mise-${{ github.event.repository.name }}-${{ runner.os }}-
 

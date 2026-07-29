@@ -1,5 +1,7 @@
 name: "Docker build & push"
-description: "Build a container image with Buildx and push it to GHCR or the local registry, with sha/latest/version tags and layer caching."
+description:
+  "Build a container image with Buildx and push it to GHCR or the local
+  registry, with sha/latest/version tags and layer caching."
 author: "DataLabHell"
 
 branding:
@@ -13,18 +15,25 @@ branding:
 # the `username` / `password` inputs (the caller wires them from its secrets).
 inputs:
   image:
-    description: 'Final path segment of the image, e.g. "api" -> <registry>/<namespace>/api'
+    description:
+      'Final path segment of the image, e.g. "api" -> <registry>/<namespace>/api'
     required: true
   namespace:
-    description: "Path between registry and image. Defaults to this repo (owner/name), matching GHCR."
+    description:
+      "Path between registry and image. Defaults to this repo (owner/name),
+      matching GHCR."
     required: false
     default: "${{ github.repository }}"
   registry:
-    description: 'Target registry (allowlisted): "ghcr.io" (alias "ghcr") or "truenas.dlh-k8s.com:5000" (alias "truenas").'
+    description:
+      'Target registry (allowlisted): "ghcr.io" (alias "ghcr") or
+      "truenas.dlh-k8s.com:5000" (alias "truenas").'
     required: false
     default: "ghcr.io"
   tags:
-    description: "Newline-separated tag suffixes (each becomes <ref>:<suffix>). Blank lines are skipped, so an optional version expression may be empty."
+    description:
+      "Newline-separated tag suffixes (each becomes <ref>:<suffix>). Blank lines
+      are skipped, so an optional version expression may be empty."
     required: false
     default: "latest"
   context:
@@ -32,11 +41,14 @@ inputs:
     required: false
     default: "."
   dockerfile:
-    description: "Path to the Dockerfile (empty = the default Dockerfile in the context)"
+    description:
+      "Path to the Dockerfile (empty = the default Dockerfile in the context)"
     required: false
     default: ""
   cache:
-    description: "Layer cache backend: gha (GitHub-hosted), registry (self-hosted/local), or none"
+    description:
+      "Layer cache backend: gha (GitHub-hosted), registry (self-hosted/local),
+      or none"
     required: false
     default: "gha"
   push:
@@ -49,7 +61,8 @@ inputs:
 #   truenas  -> no login step; uses the credentials configured on the runner
 outputs:
   ref:
-    description: "The fully-qualified image ref (without tag), e.g. ghcr.io/org/repo/api"
+    description:
+      "The fully-qualified image ref (without tag), e.g. ghcr.io/org/repo/api"
     value: ${{ steps.prep.outputs.ref }}
 
 runs:

@@ -1,9 +1,10 @@
 # python/lint
 
 Lint and type-check a Python project with [ruff](https://docs.astral.sh/ruff/)
-(`ruff check` + `ruff format --check`) and [ty](https://github.com/astral-sh/ty),
-all run through `uv`. ruff issues fail the job; ty is soft by default (reports a
-warning) so you can adopt typing gradually.
+(`ruff check` + `ruff format --check`) and
+[ty](https://github.com/astral-sh/ty), all run through `uv`. ruff issues fail
+the job; ty is soft by default (reports a warning) so you can adopt typing
+gradually.
 
 ## Requirements
 
@@ -45,8 +46,8 @@ Make typing block the build once it's clean:
 
 ## Notes
 
-- ruff `check` and `format --check` are hard failures. `ty` follows `type-check`:
-  `warn` prints a `::warning` and continues, `error` fails the job, `off` skips it
-  (and skips the `uv sync` that ty needs).
+- ruff `check` and `format --check` are hard failures. `ty` follows
+  `type-check`: `warn` prints a `::warning` and continues, `error` fails the
+  job, `off` skips it (and skips the `uv sync` that ty needs).
 - `type-check-paths` is separate from `paths` because you often want ruff to
   cover tests and scripts while ty checks only the package.

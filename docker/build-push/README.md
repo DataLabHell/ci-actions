@@ -2,7 +2,8 @@
 
 Build a container image with Docker **Buildx** and push it to a registry, with
 consistent tagging and layer caching. It's a thin composite wrapper around the
-official [`docker/setup-buildx-action`](https://github.com/docker/setup-buildx-action),
+official
+[`docker/setup-buildx-action`](https://github.com/docker/setup-buildx-action),
 [`docker/login-action`](https://github.com/docker/login-action) and
 [`docker/build-push-action`](https://github.com/docker/build-push-action) — it
 just removes the boilerplate those three always need (login, buildx setup,
@@ -30,10 +31,11 @@ The **caller owns the job**. A composite action can't set `runs-on`, `matrix`,
   - `ghcr.io` → logs in with the workflow's `GITHUB_TOKEN` (needs
     `permissions: packages: write`).
   - `truenas` (local) → no login step; the push uses the credentials configured
-    on the runner (`~/.docker/config.json`), which are **provisioned by Ansible**
-    when the runner is set up. Just run on a `self-hosted` runner (see
+    on the runner (`~/.docker/config.json`), which are **provisioned by
+    Ansible** when the runner is set up. Just run on a `self-hosted` runner (see
     [Local registry](#example-3--local-registry)). The action **fails fast** if
-    it detects a GitHub-hosted runner here, since it won't have those credentials.
+    it detects a GitHub-hosted runner here, since it won't have those
+    credentials.
 
 ## Inputs
 
@@ -145,8 +147,8 @@ the workflow or per repo.
 
 ## Matrix + release (two jobs)
 
-To build **several images** and tag them with a **single release version**, split
-into two jobs: tag **once**, then fan the build out over a matrix. Running
+To build **several images** and tag them with a **single release version**,
+split into two jobs: tag **once**, then fan the build out over a matrix. Running
 `tag-and-alias` inside the matrix would make every cell try to create the same
 tag and collide — so it lives in its own job, and the version crosses to the
 build job as a job output.
@@ -189,8 +191,9 @@ jobs:
 ```
 
 The multiline `tags` output survives the job boundary, so it drops straight into
-each matrix cell's `tags`. For a **single** image you can do this in one job; see
-the [build-and-push-a-versioned-image example](../../README.md#build-and-push-a-versioned-image)
+each matrix cell's `tags`. For a **single** image you can do this in one job;
+see the
+[build-and-push-a-versioned-image example](../../README.md#build-and-push-a-versioned-image)
 in the top README.
 
 ## Notes
@@ -204,9 +207,9 @@ in the top README.
   simply adds no tag.
 - **Mirror your release tags.** In a release job, feed
   [`release/tag-and-alias`](../../release/tag-and-alias)'s `versions` output
-  (bare — or `tags` for the `v`-prefixed form) straight into this action's `tags`
-  input to tag the image with the same rolling `0.1.3` / `0.1` / `0` set as the
-  git refs.
+  (bare — or `tags` for the `v`-prefixed form) straight into this action's
+  `tags` input to tag the image with the same rolling `0.1.3` / `0.1` / `0` set
+  as the git refs.
 - **PR builds.** Set `push: ${{ github.event_name != 'pull_request' }}` to build
   (validate) on PRs without pushing. With `cache: registry`, the cache is only
   written when pushing, so PRs won't try to mutate the registry.

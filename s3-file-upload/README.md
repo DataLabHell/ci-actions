@@ -26,8 +26,8 @@ referenced by its path within the repo plus a tag:
 ```
 
 `@vX.Y` is a placeholder for the current minor alias (see
-[VERSION](../VERSION)). Pin to a released tag rather than `@main` so pipelines are
-not broken by in-progress changes.
+[VERSION](../VERSION)). Pin to a released tag rather than `@main` so pipelines
+are not broken by in-progress changes.
 
 ## Connection & credentials
 
@@ -178,13 +178,13 @@ each step's `source`/`destination` is tightly scoped.
   excludes on top.
 - `destination` is a plain prefix — the examples use a fixed service name
   (`my-service`), which overwrites the same location each run. If you'd rather
-  keep uploads separate per run/branch/commit, put a GitHub context expression in
-  it, e.g. `my-service/${{ github.run_id }}`, `my-service/${{ github.ref_name }}`,
-  or `my-service/${{ github.sha }}`.
+  keep uploads separate per run/branch/commit, put a GitHub context expression
+  in it, e.g. `my-service/${{ github.run_id }}`,
+  `my-service/${{ github.ref_name }}`, or `my-service/${{ github.sha }}`.
 - `delete-removed` only affects objects **under the `destination` prefix**, and
   only those matching the include/exclude filters. Because the default bucket is
-  shared, the action refuses to run `--delete` when `destination` is empty — give
-  each pipeline its own prefix (e.g. `my-service/`) before enabling it.
+  shared, the action refuses to run `--delete` when `destination` is empty —
+  give each pipeline its own prefix (e.g. `my-service/`) before enabling it.
 - Credentials are never inputs and never appear in the workflow (see
   [Connection & credentials](#connection--credentials)): they stay in the
   runner's `~/.aws/credentials` under the profile. The action doesn't read,
