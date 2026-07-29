@@ -1,15 +1,16 @@
 # versioning/auto-patch
 
-Reads `MAJOR.MINOR` from a version file (default `VERSION`) and **auto-increments
-the patch** based on the existing `vMAJOR.MINOR.*` tags, outputting the next
-**bare** version `X.Y.Z`. Feed it into the release actions
+Reads `MAJOR.MINOR` from a version file (default `VERSION`) and
+**auto-increments the patch** based on the existing `vMAJOR.MINOR.*` tags,
+outputting the next **bare** version `X.Y.Z`. Feed it into the release actions
 ([`release/tag-and-alias`](../../release/tag-and-alias) +
 [`release/github-release`](../../release/github-release)) — this is the default
 versioning strategy: you set `MAJOR.MINOR`, the patch takes care of itself.
 
-The resolver emits only the bare version; [`release/tag-and-alias`](../../release/tag-and-alias)
-owns the tag format (the `v` prefix). The `prefix` input here is used _only_ to
-find this series' existing tags in the repo.
+The resolver emits only the bare version;
+[`release/tag-and-alias`](../../release/tag-and-alias) owns the tag format (the
+`v` prefix). The `prefix` input here is used _only_ to find this series'
+existing tags in the repo.
 
 ## Requirements
 

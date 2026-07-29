@@ -19,7 +19,8 @@ on:
         required: false
         default: "self-hosted"
       log-level:
-        description: "Renovate LOG_LEVEL. Set to debug to trace a run that finds nothing."
+        description:
+          "Renovate LOG_LEVEL. Set to debug to trace a run that finds nothing."
         type: string
         required: false
         default: "info"
@@ -27,7 +28,9 @@ on:
       RENOVATE_TOKEN:
         # Underscored, unlike every kebab-case input in this repo: GitHub secret
         # names cannot contain hyphens.
-        description: "PAT with contents + pull-request write. GITHUB_TOKEN will not do: pull requests it opens do not trigger the consumer's CI."
+        description:
+          "PAT with contents + pull-request write. GITHUB_TOKEN will not do:
+          pull requests it opens do not trigger the consumer's CI."
         required: true
 
 permissions:

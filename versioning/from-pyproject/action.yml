@@ -1,5 +1,7 @@
 name: "Version from pyproject.toml"
-description: "Read [project].version from a pyproject.toml (uv / PEP 621) and output it as a bare version X.Y.Z."
+description:
+  "Read [project].version from a pyproject.toml (uv / PEP 621) and output it as
+  a bare version X.Y.Z."
 author: "DataLabHell"
 
 branding:
@@ -14,7 +16,8 @@ inputs:
 
 outputs:
   version:
-    description: "The bare version string, e.g. 1.2.3 (feed into release/tag-and-alias)"
+    description:
+      "The bare version string, e.g. 1.2.3 (feed into release/tag-and-alias)"
     value: ${{ steps.read.outputs.version }}
 
 runs:

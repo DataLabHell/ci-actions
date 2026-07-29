@@ -68,6 +68,6 @@ jobs:
 
 ## Notes
 
-- The `tag` input is `MAJOR.MINOR.PATCH` (an optional leading `v` is accepted and
-  normalized). The `vX` / `vX.Y` aliases are derived from it and force-moved, so
-  consumers pinned to `@vX` / `@vX.Y` follow along.
+- The `tag` input is `MAJOR.MINOR.PATCH` (an optional leading `v` is accepted
+  and normalized). The `vX` / `vX.Y` aliases are derived from it and
+  force-moved, so consumers pinned to `@vX` / `@vX.Y` follow along.

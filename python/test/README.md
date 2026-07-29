@@ -38,7 +38,7 @@ jobs:
 
 ## Notes
 
-- When `python-version` is set, it's passed to both `uv sync` and `uv run` so the
-  environment and the test run use the same interpreter.
+- When `python-version` is set, it's passed to both `uv sync` and `uv run` so
+  the environment and the test run use the same interpreter.
 - The matrix (and its `fail-fast`) belongs to the caller — a composite action
   can't fan one out itself.

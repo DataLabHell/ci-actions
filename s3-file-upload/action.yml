@@ -1,5 +1,7 @@
 name: "S3 File Upload"
-description: "Upload files/folders from a repo to any S3-compatible bucket (RustFS, AWS S3, MinIO, on-prem, etc.), with glob include/exclude filtering."
+description:
+  "Upload files/folders from a repo to any S3-compatible bucket (RustFS, AWS S3,
+  MinIO, on-prem, etc.), with glob include/exclude filtering."
 author: "DataLabHell"
 
 branding:
@@ -12,7 +14,10 @@ inputs:
     required: false
     default: "reports"
   profile:
-    description: "Named AWS CLI profile configured on the runner (~/.aws/config + ~/.aws/credentials). The profile provides the endpoint, region and credentials."
+    description:
+      "Named AWS CLI profile configured on the runner (~/.aws/config +
+      ~/.aws/credentials). The profile provides the endpoint, region and
+      credentials."
     required: true
     default: "dlh"
   source:
@@ -24,15 +29,22 @@ inputs:
     required: false
     default: ""
   include:
-    description: 'Comma-separated glob pattern(s) of files to include, relative to "source" (e.g. "*.html,*.css"). AWS CLI "*" matches across "/", so "*.html" covers every depth; set to "*" to upload everything. Defaults to HTML files only.'
+    description:
+      'Comma-separated glob pattern(s) of files to include, relative to "source"
+      (e.g. "*.html,*.css"). AWS CLI "*" matches across "/", so "*.html" covers
+      every depth; set to "*" to upload everything. Defaults to HTML files only.'
     required: false
     default: "*.html"
   exclude:
-    description: "Comma-separated glob pattern(s) of files to exclude (applied after include)"
+    description:
+      "Comma-separated glob pattern(s) of files to exclude (applied after
+      include)"
     required: false
     default: ""
   delete-removed:
-    description: "Delete files in the destination that no longer exist in source (adds --delete)"
+    description:
+      "Delete files in the destination that no longer exist in source (adds
+      --delete)"
     required: false
     default: "false"
 

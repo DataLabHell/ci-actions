@@ -1,9 +1,9 @@
 # release/github-release
 
-Publishes a **GitHub Release** for an existing tag, with auto-generated notes and
-optional attached assets. A thin wrapper over `softprops/action-gh-release` with
-our defaults. Pair it after [`release/tag-and-alias`](../tag-and-alias) when you
-want a Release page in addition to the tags.
+Publishes a **GitHub Release** for an existing tag, with auto-generated notes
+and optional attached assets. A thin wrapper over `softprops/action-gh-release`
+with our defaults. Pair it after [`release/tag-and-alias`](../tag-and-alias)
+when you want a Release page in addition to the tags.
 
 ## Requirements
 

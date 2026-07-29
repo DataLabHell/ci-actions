@@ -1,5 +1,7 @@
 name: "Python test"
-description: "Install a Python project with uv and run pytest, optionally pinned to a Python version."
+description:
+  "Install a Python project with uv and run pytest, optionally pinned to a
+  Python version."
 author: "DataLabHell"
 
 branding:
@@ -11,7 +13,9 @@ branding:
 # (runner, checkout).
 inputs:
   python-version:
-    description: 'Python version to test against, e.g. "3.13". Empty uses the project default.'
+    description:
+      'Python version to test against, e.g. "3.13". Empty uses the project
+      default.'
     required: false
     default: ""
   sync-args:
