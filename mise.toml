@@ -1,7 +1,10 @@
 [tools]
 "aqua:koalaman/shellcheck" = "latest"
 "aqua:mvdan/sh" = "latest"
+"aqua:rhysd/actionlint" = "latest"
 "aqua:tamasfe/taplo" = "latest"
+node = "lts"                          # the npm backend below needs a node runtime
+"npm:prettier" = "latest"
 
 ###########
 # Linting #
@@ -9,7 +12,15 @@
 
 [tasks.lint]
 description = "Lint all languages"
-depends = ["lint:bash", "lint:toml"]
+depends = ["lint:actions", "lint:bash", "lint:toml"]
+
+[tasks."lint:actions"]
+description = "Lint GitHub workflows with actionlint"
+# Lints the files under .github/workflows/ only. Where one of them references a
+# local action, actionlint reads that action.yml far enough to check the inputs
+# passed to it, but it does not lint the action's own steps or shell - shellcheck
+# and shfmt cover the .sh files those steps call.
+run = "actionlint"
 
 [tasks."lint:bash"]
 description = "Lint shell scripts with shellcheck"
@@ -41,11 +52,11 @@ fi
 
 [tasks."format:_write"]
 hide = true
-depends = ["format:bash", "format:toml"]
+depends = ["format:bash", "format:prettier", "format:toml"]
 
 [tasks."format:_check"]
 hide = true
-depends = ["format:bash check", "format:toml check"]
+depends = ["format:bash check", "format:prettier check", "format:toml check"]
 
 [tasks."format:bash"]
 description = "Format shell scripts with shfmt (pass `check` to verify only, `--file` for a single file)"
@@ -65,6 +76,22 @@ if [ "$usage_mode" = check ]; then
   shfmt -i 2 -ci -d $target
 else
   shfmt -i 2 -ci -w $target
+fi
+'''
+
+[tasks."format:prettier"]
+description = "Format YAML/Markdown/JSON with prettier (pass `check` to verify only, `--file` for a single file)"
+usage = '''
+arg "[mode]" help="pass `check` to verify without modifying"
+flag "--file <path>" help="format only this file"
+'''
+run = '''
+# Running prettier (skips extensions it has no parser for, e.g. .sh and .toml)
+target="${usage_file:-.}"
+if [ "$usage_mode" = check ]; then
+  prettier --check "$target"
+else
+  prettier --write "$target"
 fi
 '''
 
