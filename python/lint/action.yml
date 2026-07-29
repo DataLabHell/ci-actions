@@ -8,8 +8,8 @@ branding:
   icon: "check-circle"
   color: "blue"
 
-# Runs on any runner that has uv installed (ruff and ty are fetched on demand by
-# uvx). The caller owns the job (runner, checkout).
+# ruff runs via the official ruff-action; ty (no official action) via uv, only
+# when type-check is not "off". The caller owns the job (runner, checkout).
 inputs:
   paths:
     description: "Space-separated paths for ruff check + format"
@@ -34,10 +34,29 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - shell: bash
-      run: bash "${{ github.action_path }}/lint.sh"
+    - name: ruff check
+      uses: astral-sh/ruff-action@v3 # Renovate digest-pins this
+      with:
+        args: check
+        src: ${{ inputs.paths }}
+
+    - name: ruff format --check
+      uses: astral-sh/ruff-action@v3 # Renovate digest-pins this
+      with:
+        args: format --check
+        src: ${{ inputs.paths }}
+
+    - name: Install uv (for ty)
+      if: ${{ inputs.type-check != 'off' }}
+      uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+      with:
+        enable-cache: false
+
+    - name: ty
+      if: ${{ inputs.type-check != 'off' }}
+      shell: bash
+      run: bash "${{ github.action_path }}/ty.sh"
       env:
-        INPUT_PATHS: ${{ inputs.paths }}
         INPUT_TYPE_CHECK: ${{ inputs.type-check }}
         INPUT_TYPE_CHECK_PATHS: ${{ inputs.type-check-paths }}
         INPUT_SYNC_ARGS: ${{ inputs.sync-args }}
