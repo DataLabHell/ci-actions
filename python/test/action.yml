@@ -1,10 +1,10 @@
-name: 'Python test'
-description: 'Install a Python project with uv and run pytest, optionally pinned to a Python version.'
-author: 'DataLabHell'
+name: "Python test"
+description: "Install a Python project with uv and run pytest, optionally pinned to a Python version."
+author: "DataLabHell"
 
 branding:
-  icon: 'check-square'
-  color: 'blue'
+  icon: "check-square"
+  color: "blue"
 
 # Runs on any runner that has uv installed. One Python version per invocation;
 # the caller owns the matrix (see the README). The caller owns the job too
@@ -13,18 +13,18 @@ inputs:
   python-version:
     description: 'Python version to test against, e.g. "3.13". Empty uses the project default.'
     required: false
-    default: ''
+    default: ""
   sync-args:
     description: 'Args passed to "uv sync"'
     required: false
-    default: '--all-groups --all-extras'
+    default: "--all-groups --all-extras"
   pytest-args:
-    description: 'Extra args passed to pytest'
+    description: "Extra args passed to pytest"
     required: false
-    default: ''
+    default: ""
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - shell: bash
       run: bash "${{ github.action_path }}/test.sh"

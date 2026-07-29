@@ -1,24 +1,24 @@
-name: 'Version from pyproject.toml'
-description: 'Read [project].version from a pyproject.toml (uv / PEP 621) and output it as a bare version X.Y.Z.'
-author: 'DataLabHell'
+name: "Version from pyproject.toml"
+description: "Read [project].version from a pyproject.toml (uv / PEP 621) and output it as a bare version X.Y.Z."
+author: "DataLabHell"
 
 branding:
-  icon: 'package'
-  color: 'blue'
+  icon: "package"
+  color: "blue"
 
 inputs:
   file:
-    description: 'Path to the pyproject.toml to read'
+    description: "Path to the pyproject.toml to read"
     required: false
-    default: 'pyproject.toml'
+    default: "pyproject.toml"
 
 outputs:
   version:
-    description: 'The bare version string, e.g. 1.2.3 (feed into release/tag-and-alias)'
+    description: "The bare version string, e.g. 1.2.3 (feed into release/tag-and-alias)"
     value: ${{ steps.read.outputs.version }}
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Read version
       id: read
