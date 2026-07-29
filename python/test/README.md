@@ -11,11 +11,11 @@ versions in a **matrix** in the caller (see below).
 
 ## Inputs
 
-| Input            | Required | Default                     | Description                                                     |
-| ---------------- | -------- | --------------------------- | --------------------------------------------------------------- |
+| Input            | Required | Default                     | Description                                                           |
+| ---------------- | -------- | --------------------------- | --------------------------------------------------------------------- |
 | `python-version` | no       | `''`                        | Python version to test against, e.g. `3.13`. Empty = project default. |
-| `sync-args`      | no       | `--all-groups --all-extras` | Args passed to `uv sync`.                                       |
-| `pytest-args`    | no       | `''`                        | Extra args passed to pytest (e.g. `-q tests/unit`).             |
+| `sync-args`      | no       | `--all-groups --all-extras` | Args passed to `uv sync`.                                             |
+| `pytest-args`    | no       | `''`                        | Extra args passed to pytest (e.g. `-q tests/unit`).                   |
 
 ## Usage — matrix over Python versions
 
@@ -31,7 +31,7 @@ jobs:
         python-version: ["3.12", "3.13", "3.14"]
     steps:
       - uses: actions/checkout@v4
-      - uses: DataLabHell/ci-actions/python/test@v0.2
+      - uses: DataLabHell/ci-actions/python/test@vX.Y
         with:
           python-version: ${{ matrix.python-version }}
 ```

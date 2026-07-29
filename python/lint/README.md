@@ -14,11 +14,11 @@ warning) so you can adopt typing gradually.
 
 ## Inputs
 
-| Input              | Required | Default        | Description                                                                 |
-| ------------------ | -------- | -------------- | --------------------------------------------------------------------------- |
-| `paths`            | no       | `.`            | Space-separated paths for `ruff check` + `ruff format --check`.             |
-| `type-check`       | no       | `warn`         | `warn` (soft-fail with a `::warning`), `error` (hard fail), or `off` (skip). |
-| `type-check-paths` | no       | `.`            | Space-separated paths for `ty` (used only when `type-check` is not `off`).  |
+| Input              | Required | Default        | Description                                                                   |
+| ------------------ | -------- | -------------- | ----------------------------------------------------------------------------- |
+| `paths`            | no       | `.`            | Space-separated paths for `ruff check` + `ruff format --check`.               |
+| `type-check`       | no       | `warn`         | `warn` (soft-fail with a `::warning`), `error` (hard fail), or `off` (skip).  |
+| `type-check-paths` | no       | `.`            | Space-separated paths for `ty` (used only when `type-check` is not `off`).    |
 | `sync-args`        | no       | `--all-groups` | Args for the `uv sync` run before `ty` (ty resolves against the project env). |
 
 ## Usage
@@ -29,18 +29,18 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
-      - uses: DataLabHell/ci-actions/python/lint@v0.2
+      - uses: DataLabHell/ci-actions/python/lint@vX.Y
         with:
           paths: datalabhell scripts tests
-          type-check-paths: datalabhell   # ruff over everything, ty only on the package
+          type-check-paths: datalabhell # ruff over everything, ty only on the package
 ```
 
 Make typing block the build once it's clean:
 
 ```yaml
-      - uses: DataLabHell/ci-actions/python/lint@v0.2
-        with:
-          type-check: error
+- uses: DataLabHell/ci-actions/python/lint@vX.Y
+  with:
+    type-check: error
 ```
 
 ## Notes

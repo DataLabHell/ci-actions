@@ -12,29 +12,29 @@ want a Release page in addition to the tags.
 
 ## Inputs
 
-| Input           | Required | Default | Description                                                        |
-| --------------- | -------- | ------- | ------------------------------------------------------------------ |
-| `tag`           | yes      | —       | Existing tag to publish a Release for, e.g. `v1.2.3`.              |
-| `github-token`  | yes      | —       | Token to create the release. Pass `${{ secrets.GITHUB_TOKEN }}`.  |
-| `release-notes` | no       | `true`  | Auto-generate release notes.                                       |
-| `files`         | no       | `''`    | Newline- or comma-separated glob(s) of assets to attach.           |
+| Input           | Required | Default | Description                                                      |
+| --------------- | -------- | ------- | ---------------------------------------------------------------- |
+| `tag`           | yes      | —       | Existing tag to publish a Release for, e.g. `v1.2.3`.            |
+| `github-token`  | yes      | —       | Token to create the release. Pass `${{ secrets.GITHUB_TOKEN }}`. |
+| `release-notes` | no       | `true`  | Auto-generate release notes.                                     |
+| `files`         | no       | `''`    | Newline- or comma-separated glob(s) of assets to attach.         |
 
 ## Usage
 
 ```yaml
-      - id: ver
-        uses: DataLabHell/ci-actions/versioning/auto-patch@v0.2
+- id: ver
+  uses: DataLabHell/ci-actions/versioning/auto-patch@vX.Y
 
-      - id: rel
-        uses: DataLabHell/ci-actions/release/tag-and-alias@v0.2
-        with:
-          tag: ${{ steps.ver.outputs.version }}   # bare; tag-and-alias adds the v
+- id: rel
+  uses: DataLabHell/ci-actions/release/tag-and-alias@vX.Y
+  with:
+    tag: ${{ steps.ver.outputs.version }} # bare; tag-and-alias adds the v
 
-      - uses: DataLabHell/ci-actions/release/github-release@v0.2
-        with:
-          tag: ${{ steps.rel.outputs.tag }}       # canonical v1.2.3 from tag-and-alias
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          # files: dist/*.tgz        # optionally attach build artifacts
+- uses: DataLabHell/ci-actions/release/github-release@vX.Y
+  with:
+    tag: ${{ steps.rel.outputs.tag }} # canonical v1.2.3 from tag-and-alias
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    # files: dist/*.tgz        # optionally attach build artifacts
 ```
 
 ## Notes

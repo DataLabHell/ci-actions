@@ -1,0 +1,54 @@
+name: Release
+
+# Releases this repo's shared actions and workflows using our own versioning +
+# release actions. On every push to main: read VERSION (MAJOR.MINOR),
+# auto-increment the patch, tag vMAJOR.MINOR.PATCH, move the rolling vMAJOR /
+# vMAJOR.MINOR aliases, and publish a GitHub Release. Bump MAJOR/MINOR by
+# editing VERSION.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**/action.yml" # an action (or pipeline) definition changed
+      - "**/*.sh" # an action's script logic changed
+      - ".github/workflows/*.yml" # a published reusable workflow changed
+      - "VERSION" # a major/minor bump
+      - "!_template/**" # ...but not the scaffold
+      - "!.github/workflows/_*.yml" # ...and not this repo's own CI
+      # README/docs-only changes do NOT cut a release.
+
+permissions:
+  contents: write # create tags and releases
+
+concurrency:
+  group: release # never release twice at once
+  cancel-in-progress: false
+
+jobs:
+  # The quality gate must pass before anything is tagged/released.
+  check:
+    uses: ./.github/workflows/_ci.yml
+
+  release:
+    needs: check
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history + tags for version diff
+
+      # Resolve the next tag from the VERSION file, tag it, then publish a
+      # Release. All actions come from this repo (local paths, no tag
+      # bootstrapping needed).
+      - id: ver
+        uses: ./versioning/auto-patch
+
+      - id: rel
+        uses: ./release/tag-and-alias
+        with:
+          tag: ${{ steps.ver.outputs.version }}
+
+      - uses: ./release/github-release
+        with:
+          tag: ${{ steps.rel.outputs.tag }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}

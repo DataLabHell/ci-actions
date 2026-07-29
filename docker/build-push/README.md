@@ -37,30 +37,30 @@ The **caller owns the job**. A composite action can't set `runs-on`, `matrix`,
 
 ## Inputs
 
-| Input        | Required | Default                    | Description                                                                                          |
-| ------------ | -------- | -------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `image`      | yes      | —                          | Final path segment, e.g. `api` → `<registry>/<namespace>/api`.                                       |
-| `namespace`  | no       | `${{ github.repository }}` | Path between registry and image. Defaults to `owner/name` (matches GHCR).                             |
+| Input        | Required | Default                    | Description                                                                                                           |
+| ------------ | -------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `image`      | yes      | —                          | Final path segment, e.g. `api` → `<registry>/<namespace>/api`.                                                        |
+| `namespace`  | no       | `${{ github.repository }}` | Path between registry and image. Defaults to `owner/name` (matches GHCR).                                             |
 | `registry`   | no       | `ghcr.io`                  | Allowlisted registry: `ghcr.io` (alias `ghcr`) or `truenas.dlh-k8s.com:5000` (alias `truenas`). Anything else errors. |
-| `tags`       | no       | `latest`                   | Newline-separated tag **suffixes** (each becomes `<ref>:<suffix>`). Blank lines skipped.              |
-| `context`    | no       | `.`                        | Build context directory.                                                                             |
-| `dockerfile` | no       | `''`                       | Dockerfile path (empty = default `Dockerfile` in the context, e.g. set `Dockerfile.api`).            |
-| `cache`      | no       | `gha`                      | Layer cache backend: `gha`, `registry`, or `none` (see [Caching](#caching)).                          |
-| `push`       | no       | `true`                     | Push the image; set `"false"` for PR validation builds.                                              |
+| `tags`       | no       | `latest`                   | Newline-separated tag **suffixes** (each becomes `<ref>:<suffix>`). Blank lines skipped.                              |
+| `context`    | no       | `.`                        | Build context directory.                                                                                              |
+| `dockerfile` | no       | `''`                       | Dockerfile path (empty = default `Dockerfile` in the context, e.g. set `Dockerfile.api`).                             |
+| `cache`      | no       | `gha`                      | Layer cache backend: `gha`, `registry`, or `none` (see [Caching](#caching)).                                          |
+| `push`       | no       | `true`                     | Push the image; set `"false"` for PR validation builds.                                                               |
 
 ## Output
 
-| Output | Description                                                     |
-| ------ | --------------------------------------------------------------- |
+| Output | Description                                                             |
+| ------ | ----------------------------------------------------------------------- |
 | `ref`  | The fully-qualified image ref without tag, e.g. `ghcr.io/org/repo/api`. |
 
 ## Caching
 
-| `cache`    | Use when                       | Behavior                                                                                 |
-| ---------- | ------------------------------ | ---------------------------------------------------------------------------------------- |
-| `gha`      | GitHub-hosted runners          | GitHub Actions cache, scoped per `image`. The default.                                    |
-| `registry` | self-hosted / local registry   | Cache stored as a `<ref>:buildcache` image. Only written when `push: true`.               |
-| `none`     | —                              | No layer cache.                                                                          |
+| `cache`    | Use when                     | Behavior                                                                    |
+| ---------- | ---------------------------- | --------------------------------------------------------------------------- |
+| `gha`      | GitHub-hosted runners        | GitHub Actions cache, scoped per `image`. The default.                      |
+| `registry` | self-hosted / local registry | Cache stored as a `<ref>:buildcache` image. Only written when `push: true`. |
+| `none`     | —                            | No layer cache.                                                             |
 
 ## Example 1 — GHCR, matrix build (sha + latest)
 
@@ -76,7 +76,7 @@ jobs:
         service: [api, mcp]
     steps:
       - uses: actions/checkout@v4
-      - uses: DataLabHell/ci-actions/docker/build-push@v0.2
+      - uses: DataLabHell/ci-actions/docker/build-push@vX.Y
         with:
           image: ${{ matrix.service }}
           dockerfile: Dockerfile.${{ matrix.service }}
@@ -97,11 +97,11 @@ steps:
   - uses: actions/checkout@v4
 
   - id: ver
-    uses: DataLabHell/ci-actions/versioning/from-pyproject@v0.2
+    uses: DataLabHell/ci-actions/versioning/from-pyproject@vX.Y
     with:
       file: api/pyproject.toml
 
-  - uses: DataLabHell/ci-actions/docker/build-push@v0.2
+  - uses: DataLabHell/ci-actions/docker/build-push@vX.Y
     with:
       image: api
       context: ./api
@@ -123,11 +123,11 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
-      - uses: DataLabHell/ci-actions/docker/build-push@v0.2
+      - uses: DataLabHell/ci-actions/docker/build-push@vX.Y
         with:
           image: my-service
-          registry: truenas             # alias -> truenas.dlh-k8s.com:5000
-          namespace: my-team            # -> truenas.dlh-k8s.com:5000/my-team/my-service
+          registry: truenas # alias -> truenas.dlh-k8s.com:5000
+          namespace: my-team # -> truenas.dlh-k8s.com:5000/my-team/my-service
           cache: registry
           tags: |
             latest
@@ -153,24 +153,24 @@ build job as a job output.
 
 ```yaml
 jobs:
-  release:                       # runs once
+  release: # runs once
     runs-on: self-hosted
     permissions:
       contents: write
     outputs:
-      tags: ${{ steps.rel.outputs.versions }}   # 0.1.3 / 0.1 / 0 (bare, newline-separated)
+      tags: ${{ steps.rel.outputs.versions }} # 0.1.3 / 0.1 / 0 (bare, newline-separated)
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - id: ver
-        uses: DataLabHell/ci-actions/versioning/auto-patch@v0.2
+        uses: DataLabHell/ci-actions/versioning/auto-patch@vX.Y
       - id: rel
-        uses: DataLabHell/ci-actions/release/tag-and-alias@v0.2
+        uses: DataLabHell/ci-actions/release/tag-and-alias@vX.Y
         with:
           tag: ${{ steps.ver.outputs.version }}
 
-  build:                         # fans out over the images
+  build: # fans out over the images
     needs: release
     runs-on: self-hosted
     strategy:
@@ -178,7 +178,7 @@ jobs:
         service: [api, mcp, worker]
     steps:
       - uses: actions/checkout@v4
-      - uses: DataLabHell/ci-actions/docker/build-push@v0.2
+      - uses: DataLabHell/ci-actions/docker/build-push@vX.Y
         with:
           image: ${{ matrix.service }}
           registry: truenas
@@ -210,7 +210,7 @@ in the top README.
 - **PR builds.** Set `push: ${{ github.event_name != 'pull_request' }}` to build
   (validate) on PRs without pushing. With `cache: registry`, the cache is only
   written when pushing, so PRs won't try to mutate the registry.
-- **Whole-job duplication?** If several repos repeat the *entire* build job
+- **Whole-job duplication?** If several repos repeat the _entire_ build job
   (matrix + needs + permissions) identically, that's the one case a reusable
   workflow (`workflow_call`) fits better than this action — it can own the job.
   This action is the right tool when you want a single, composable build step.
