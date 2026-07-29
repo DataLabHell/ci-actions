@@ -1,0 +1,92 @@
+[tools]
+"aqua:koalaman/shellcheck" = "latest"
+"aqua:mvdan/sh" = "latest"
+"aqua:tamasfe/taplo" = "latest"
+
+###########
+# Linting #
+###########
+
+[tasks.lint]
+description = "Lint all languages"
+depends = ["lint:bash", "lint:toml"]
+
+[tasks."lint:bash"]
+description = "Lint shell scripts with shellcheck"
+run = '''
+# Running shellcheck
+files=$(git ls-files --cached --others --exclude-standard '*.sh' '*.bash')
+if [ -n "$files" ]; then shellcheck $files; else echo "no shell scripts found"; fi
+'''
+
+[tasks."lint:toml"]
+description = "Lint TOML files with taplo"
+run = "taplo lint"
+
+##############
+# Formatting #
+##############
+
+[tasks.format]
+description = "Format all languages (pass `check` to verify only)"
+usage = 'arg "[mode]" help="pass `check` to verify without modifying"'
+run = '''
+# Running format
+if [ "$usage_mode" = check ]; then
+  mise run "format:_check"
+else
+  mise run "format:_write"
+fi
+'''
+
+[tasks."format:_write"]
+hide = true
+depends = ["format:bash", "format:toml"]
+
+[tasks."format:_check"]
+hide = true
+depends = ["format:bash check", "format:toml check"]
+
+[tasks."format:bash"]
+description = "Format shell scripts with shfmt (pass `check` to verify only, `--file` for a single file)"
+usage = '''
+arg "[mode]" help="pass `check` to verify without modifying"
+flag "--file <path>" help="format only this file"
+'''
+run = '''
+# Running shfmt (2-space indent, indented case branches)
+if [ -n "$usage_file" ]; then
+  target="$usage_file"
+else
+  target=$(git ls-files --cached --others --exclude-standard '*.sh' '*.bash')
+fi
+if [ -z "$target" ]; then echo "no shell scripts found"; exit 0; fi
+if [ "$usage_mode" = check ]; then
+  shfmt -i 2 -ci -d $target
+else
+  shfmt -i 2 -ci -w $target
+fi
+'''
+
+[tasks."format:toml"]
+description = "Format TOML files with taplo (pass `check` to verify only, `--file` for a single file)"
+usage = '''
+arg "[mode]" help="pass `check` to verify without modifying"
+flag "--file <path>" help="format only this file"
+'''
+run = '''
+# Running taplo
+if [ "$usage_mode" = check ]; then
+  taplo fmt --check $usage_file
+else
+  taplo fmt $usage_file
+fi
+'''
+
+#############
+# Harnesses #
+#############
+
+[tasks.check]
+description = "Full quality gate (fmt, lint)"
+depends = ["format check", "lint"]
