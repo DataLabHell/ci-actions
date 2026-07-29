@@ -1,9 +1,16 @@
+[settings]
+# safer in ci workloads than the default
+npm.package_manager = "npm"
+
 [tools]
+# dependencies
+node = "lts" # npm
+
+# linters
 "aqua:koalaman/shellcheck" = "latest"
 "aqua:mvdan/sh" = "latest"
 "aqua:rhysd/actionlint" = "latest"
 "aqua:tamasfe/taplo" = "latest"
-node = "lts"                          # the npm backend below needs a node runtime
 "npm:prettier" = "latest"
 
 ###########
