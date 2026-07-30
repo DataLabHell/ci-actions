@@ -1,0 +1,56 @@
+{
+  "repositories": {
+    "local": {
+      "packageFiles": {
+        "regex": [
+          {
+            "deps": [
+              {
+                "depName": "pgbackrest",
+                "packageName": "pgbackrest",
+                "currentValue": "2.58.0",
+                "datasource": "deb",
+                "versioning": "semver",
+                "extractVersion": "^(?<version>\\d+\\.\\d+\\.\\d+)",
+                "registryUrls": [
+                  "https://apt.postgresql.org/pub/repos/apt/?suite=trixie-pgdg&components=main&binaryArch=amd64"
+                ],
+                "replaceString": "ARG PGBACKREST_VERSION=2.58.0",
+                "updates": [
+                  {
+                    "bucket": "minor",
+                    "newVersion": "2.59.0",
+                    "newValue": "2.59.0",
+                    "newMajor": 2,
+                    "newMinor": 59,
+                    "newPatch": 0,
+                    "updateType": "minor",
+                    "isBreaking": false,
+                    "pendingChecks": true,
+                    "branchName": "renovate/pgbackrest"
+                  }
+                ],
+                "warnings": [],
+                "registryUrl": "https://apt.postgresql.org/pub/repos/apt/?suite=trixie-pgdg&components=main&binaryArch=amd64",
+                "homepage": "https://www.pgbackrest.org/",
+                "currentVersion": "2.58.0",
+                "isSingleVersion": true,
+                "fixedVersion": "2.58.0"
+              }
+            ],
+            "matchStrings": [
+              "ARG PGBACKREST_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
+            ],
+            "depNameTemplate": "pgbackrest",
+            "packageNameTemplate": "pgbackrest",
+            "datasourceTemplate": "deb",
+            "versioningTemplate": "semver",
+            "extractVersionTemplate": "^(?<version>\\d+\\.\\d+\\.\\d+)",
+            "registryUrlTemplate": "https://apt.postgresql.org/pub/repos/apt/?suite=trixie-pgdg&components=main&binaryArch=amd64",
+            "packageFile": "backup/postgres/Dockerfile"
+          }
+        ]
+      }
+    }
+  }
+}

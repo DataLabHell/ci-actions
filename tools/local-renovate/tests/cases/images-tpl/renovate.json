@@ -1,0 +1,36 @@
+{
+  "packageRules": [
+    {
+      "groupName": "Rust dependencies",
+      "automerge": true
+    },
+    {
+      "groupName": "rust toolchain",
+      "automerge": true
+    },
+    {
+      "groupName": "rust toolchain review",
+      "automerge": false
+    },
+    {
+      "groupName": "OpenTelemetry",
+      "automerge": true
+    },
+    {
+      "groupName": "Docker dependencies",
+      "automerge": true
+    },
+    {
+      "groupName": "pgbackrest",
+      "automerge": true
+    },
+    {
+      "groupName": "GitHub Actions",
+      "automerge": true
+    },
+    {
+      "groupName": "mise dev tools",
+      "automerge": true
+    }
+  ]
+}

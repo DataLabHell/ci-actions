@@ -1,0 +1,133 @@
+{
+  "repositories": {
+    "local": {
+      "packageFiles": {
+        "mise": [
+          {
+            "deps": [
+              {
+                "depName": "github:rtk-ai/rtk",
+                "currentValue": "0.43.0",
+                "packageName": "rtk-ai/rtk",
+                "datasource": "github-releases",
+                "lockedVersion": "0.43.0",
+                "updates": [
+                  {
+                    "bucket": "minor",
+                    "newVersion": "v0.44.0",
+                    "newValue": "v0.44.0",
+                    "releaseTimestamp": "2026-07-26T12:39:04.000Z",
+                    "newVersionAgeInDays": 3,
+                    "newMajor": 0,
+                    "newMinor": 44,
+                    "newPatch": 0,
+                    "updateType": "minor",
+                    "isBreaking": true,
+                    "pendingVersions": ["v0.44.1"],
+                    "libYears": 0.07713800101471334,
+                    "branchName": "renovate/dev-toolchain-(mise-+-python)"
+                  }
+                ],
+                "versioning": "semver-coerced",
+                "warnings": [],
+                "sourceUrl": "https://github.com/rtk-ai/rtk",
+                "registryUrl": "https://github.com",
+                "mostRecentTimestamp": "2026-07-28T17:36:50.000Z",
+                "currentVersion": "0.43.0",
+                "currentVersionTimestamp": "2026-06-28T08:55:20.000Z",
+                "currentVersionAgeInDays": 31,
+                "isSingleVersion": true,
+                "fixedVersion": "0.43.0"
+              }
+            ],
+            "lockFiles": ["mise.agentic.lock"],
+            "packageFile": "mise.agentic.toml"
+          },
+          {
+            "deps": [
+              {
+                "depName": "uv",
+                "currentValue": "0.11.31",
+                "datasource": "github-releases",
+                "packageName": "astral-sh/uv",
+                "lockedVersion": "0.11.31",
+                "updates": [
+                  {
+                    "bucket": "patch",
+                    "newVersion": "0.11.32",
+                    "newValue": "0.11.32",
+                    "releaseTimestamp": "2026-07-23T23:17:45.000Z",
+                    "newVersionAgeInDays": 5,
+                    "newMajor": 0,
+                    "newMinor": 11,
+                    "newPatch": 32,
+                    "updateType": "patch",
+                    "isBreaking": true,
+                    "pendingVersions": ["0.11.33"],
+                    "libYears": 0.005190417300862506,
+                    "branchName": "renovate/patch-dev-toolchain-(mise-+-python)"
+                  },
+                  {
+                    "bucket": "minor",
+                    "newVersion": "0.12.0",
+                    "newValue": "0.12.0",
+                    "releaseTimestamp": "2026-07-28T18:58:12.000Z",
+                    "newVersionAgeInDays": 0,
+                    "newMajor": 0,
+                    "newMinor": 12,
+                    "newPatch": 0,
+                    "updateType": "minor",
+                    "isBreaking": true,
+                    "pendingChecks": true,
+                    "libYears": 0.018395230847285643,
+                    "branchName": "renovate/dev-toolchain-(mise-+-python)"
+                  }
+                ],
+                "versioning": "semver-coerced",
+                "warnings": [],
+                "sourceUrl": "https://github.com/astral-sh/uv",
+                "registryUrl": "https://github.com",
+                "mostRecentTimestamp": "2026-07-28T18:58:12.000Z",
+                "currentVersion": "0.11.31",
+                "currentVersionTimestamp": "2026-07-22T01:49:40.000Z",
+                "currentVersionAgeInDays": 7,
+                "isSingleVersion": true,
+                "fixedVersion": "0.11.31"
+              },
+              {
+                "depName": "java",
+                "currentValue": "21.0.11+10.0.LTS",
+                "datasource": "java-version",
+                "packageName": "java-jdk",
+                "lockedVersion": "temurin-21.0.11+10.0.LTS",
+                "updates": [
+                  {
+                    "bucket": "patch",
+                    "newVersion": "21.0.12+8.0.LTS",
+                    "newValue": "21.0.12+8.0.LTS",
+                    "newMajor": 21,
+                    "newMinor": 0,
+                    "newPatch": 12,
+                    "updateType": "major",
+                    "isBreaking": true,
+                    "pendingChecks": true,
+                    "branchName": "renovate/java-21.x"
+                  }
+                ],
+                "versioning": "regex:^(?<major>\\d+)?(\\.(?<minor>\\d+))?(\\.(?<patch>\\d+))?([\\._+](?<build>(\\d\\.?)+)(LTS)?)?(-(?<compatibility>.*))?$",
+                "warnings": [],
+                "registryUrl": "https://api.adoptium.net/",
+                "homepage": "https://adoptium.net",
+                "currentVersion": "temurin-21.0.11+10.0.LTS",
+                "isSingleVersion": true,
+                "fixedVersion": "temurin-21.0.11+10.0.LTS"
+              }
+            ],
+            "lockFiles": ["mise.lock"],
+            "packageFile": "mise.toml"
+          }
+        ]
+      }
+    }
+  }
+}

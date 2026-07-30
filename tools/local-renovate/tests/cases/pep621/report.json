@@ -1,0 +1,100 @@
+{
+  "repositories": {
+    "local": {
+      "packageFiles": {
+        "pep621": [
+          {
+            "extractedConstraints": {
+              "python": "==3.13.14"
+            },
+            "deps": [
+              {
+                "packageName": "ruff",
+                "depName": "ruff",
+                "datasource": "pypi",
+                "depType": "dependency-groups",
+                "currentValue": "==0.15.22",
+                "currentVersion": "0.15.22",
+                "managerData": {
+                  "depGroup": "dev"
+                },
+                "lockedVersion": "0.15.22",
+                "updates": [
+                  {
+                    "bucket": "minor",
+                    "newVersion": "0.16.0",
+                    "newValue": "==0.16.0",
+                    "releaseTimestamp": "2026-07-23T19:10:46.000Z",
+                    "newVersionAgeInDays": 5,
+                    "newMajor": 0,
+                    "newMinor": 16,
+                    "newPatch": 0,
+                    "updateType": "minor",
+                    "isBreaking": false,
+                    "isRange": true,
+                    "libYears": 0.019629851598173514,
+                    "branchName": "renovate/dev-python-deps"
+                  }
+                ],
+                "versioning": "pep440",
+                "warnings": [],
+                "sourceUrl": "https://github.com/astral-sh/ruff",
+                "registryUrl": "https://pypi.org/pypi",
+                "homepage": "https://docs.astral.sh/ruff",
+                "changelogUrl": "https://github.com/astral-sh/ruff/blob/main/CHANGELOG.md",
+                "mostRecentTimestamp": "2026-07-23T19:10:46.000Z",
+                "currentVersionTimestamp": "2026-07-16T15:13:19.000Z",
+                "currentVersionAgeInDays": 12,
+                "isSingleVersion": true,
+                "fixedVersion": "0.15.22"
+              },
+              {
+                "packageName": "ty",
+                "depName": "ty",
+                "datasource": "pypi",
+                "depType": "dependency-groups",
+                "currentValue": "==0.0.62",
+                "currentVersion": "0.0.62",
+                "managerData": {
+                  "depGroup": "dev"
+                },
+                "lockedVersion": "0.0.62",
+                "updates": [
+                  {
+                    "bucket": "patch",
+                    "newVersion": "0.0.63",
+                    "newValue": "==0.0.63",
+                    "releaseTimestamp": "2026-07-23T11:41:03.000Z",
+                    "newVersionAgeInDays": 6,
+                    "newMajor": 0,
+                    "newMinor": 0,
+                    "newPatch": 63,
+                    "updateType": "patch",
+                    "isBreaking": false,
+                    "isRange": true,
+                    "pendingVersions": ["0.0.64"],
+                    "libYears": 0.003955447742262811,
+                    "branchName": "renovate/patch-dev-python-deps"
+                  }
+                ],
+                "versioning": "pep440",
+                "warnings": [],
+                "sourceUrl": "https://github.com/astral-sh/ty",
+                "registryUrl": "https://pypi.org/pypi",
+                "changelogUrl": "https://github.com/astral-sh/ty/blob/main/CHANGELOG.md",
+                "mostRecentTimestamp": "2026-07-27T18:32:08.000Z",
+                "currentVersionTimestamp": "2026-07-22T01:02:04.000Z",
+                "currentVersionAgeInDays": 7,
+                "isSingleVersion": true,
+                "fixedVersion": "0.0.62"
+              }
+            ],
+            "packageFileVersion": "0.1.0",
+            "lockFiles": ["uv.lock"],
+            "packageFile": "pyproject.toml"
+          }
+        ]
+      }
+    }
+  }
+}

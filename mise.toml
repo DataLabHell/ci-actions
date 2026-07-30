@@ -4,14 +4,19 @@ npm.package_manager = "npm"
 
 [tools]
 # dependencies
-node = "lts" # npm
+## lts, provides npm
+node = "v24.18.1"
+## required by renovate scripts
+"aqua:jqlang/jq" = "1.8.2"
 
 # linters
-"aqua:koalaman/shellcheck" = "latest"
-"aqua:mvdan/sh" = "latest"
-"aqua:rhysd/actionlint" = "latest"
-"aqua:tamasfe/taplo" = "latest"
-"npm:prettier" = "latest"
+"aqua:koalaman/shellcheck" = "0.11.0"
+"aqua:mpalmer/action-validator" = "0.9.0"
+"aqua:mvdan/sh" = "3.13.1"
+"aqua:rhysd/actionlint" = "1.7.12"
+"aqua:tamasfe/taplo" = "0.10.0"
+"npm:prettier" = "3.9.6"
+"npm:renovate" = "44.7.4"
 
 ###########
 # Linting #
@@ -19,14 +24,25 @@ node = "lts" # npm
 
 [tasks.lint]
 description = "Lint all languages"
-depends = ["lint:actions", "lint:bash", "lint:toml"]
+depends = [
+  "lint:bash",
+  "lint:renovate",
+  "lint:schemas",
+  "lint:toml",
+  "lint:workflows",
+]
 
-[tasks."lint:actions"]
+[tasks."lint:schemas"]
+description = "Validate every action.yml and workflow against its GitHub schema"
+run = '''
+# Running action-validator
+files=$(git ls-files --cached --others --exclude-standard \
+  'action.yml' '*/action.yml' '.github/workflows/*.yml' '.github/workflows/*.yaml')
+if [ -n "$files" ]; then action-validator $files; else echo "no action or workflow files found"; fi
+'''
+
+[tasks."lint:workflows"]
 description = "Lint GitHub workflows with actionlint"
-# Lints the files under .github/workflows/ only. Where one of them references a
-# local action, actionlint reads that action.yml far enough to check the inputs
-# passed to it, but it does not lint the action's own steps or shell - shellcheck
-# and shfmt cover the .sh files those steps call.
 run = "actionlint"
 
 [tasks."lint:bash"]
@@ -36,6 +52,10 @@ run = '''
 files=$(git ls-files --cached --others --exclude-standard '*.sh' '*.bash')
 if [ -n "$files" ]; then shellcheck $files; else echo "no shell scripts found"; fi
 '''
+
+[tasks."lint:renovate"]
+description = "Validate renovate.json against its schema (strict)"
+run = "renovate-config-validator --strict"
 
 [tasks."lint:toml"]
 description = "Lint TOML files with taplo"
@@ -117,10 +137,44 @@ else
 fi
 '''
 
+################
+# Dependencies #
+################
+
+[tasks.renovate]
+description = "Preview, gate, or apply dependency updates with renovate"
+# `depends` would swallow the mode and flags; an alias forwards them
+alias = "dependencies"
+usage = '''
+arg "[mode]" help="`check` exits non-zero when updates exist; `apply` rewrites the manifests renovate.json would automerge"
+flag "--force" help="with apply, also rewrite manual/major bumps"
+'''
+run = '''
+tools/local-renovate/local-renovate.sh $usage_mode ${usage_force:+--force}
+# refresh the installed tools to match the rewritten pins
+if [ "$usage_mode" = apply ]; then
+  echo "Running mise install..."
+  mise install
+  echo "Pruning stale mise versions..."
+  mise prune -y
+  echo "Updating lock file..."
+  mise lock
+  echo "Done upgrading dependencies"
+fi
+'''
+
+###########
+# Testing #
+###########
+
+[tasks.test]
+description = "Run the local-renovate fixture tests"
+run = "tools/local-renovate/tests/run.sh"
+
 #############
 # Harnesses #
 #############
 
 [tasks.check]
-description = "Full quality gate (fmt, lint)"
-depends = ["format check", "lint"]
+description = "Full quality gate (fmt, lint, test)"
+depends = ["format check", "lint", "test"]

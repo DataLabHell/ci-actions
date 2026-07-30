@@ -223,12 +223,16 @@ jobs:
 ci-actions/
 ├── README.md                 # this file — index of all actions
 ├── VERSION                   # MAJOR.MINOR driving releases
-├── mise.toml                 # dev tools + `mise run check` quality gate
+├── mise.toml                 # dev tools (exact pins) + `mise run check` gate
+├── renovate.json             # what Renovate keeps updated here
 ├── .github/workflows/        # a leading _ marks this repo's own CI; the rest are published
 │   ├── _ci.yml               #   internal: the mise quality gate
 │   ├── _release.yml          #   internal: tag + GitHub Release
+│   ├── _renovate.yml         #   internal: calls renovate.yml below on a cron
 │   └── renovate.yml          #   PUBLISHED reusable workflow
 ├── _template/                # scaffold to copy when adding an action
+├── tools/                    # helpers we ship or use — programs, not actions
+│   └── local-renovate/       #   run Renovate locally, preview or apply bumps
 │
 │   # single actions (building blocks) — each in its own root folder:
 ├── s3-file-upload/           #   action.yml + upload.sh + README
@@ -304,22 +308,120 @@ pins the linters and defines the tasks, so the same commands run locally and in
 CI:
 
 ```bash
-mise install        # get shellcheck, shfmt, taplo, actionlint and prettier
-mise run check      # the full gate: format check + lint (what CI runs)
+mise install        # get the linters, jq and renovate
+mise run check      # the full gate: format check + lint + test (what CI runs)
 mise run format     # apply shfmt, prettier and taplo formatting
+mise run test       # the local-renovate fixture tests on their own
+mise run renovate   # list pending dependency bumps (alias: `dependencies`)
 mise tasks          # list everything, including the per-language tasks
 ```
 
-What the gate covers: shellcheck and shfmt on `*.sh`, prettier on YAML, Markdown
-and JSON, taplo on TOML, and actionlint on `.github/workflows/`. Mind
-actionlint's boundary: it lints the workflow files, and where one references a
-local action it checks the inputs against that `action.yml`, but it does not
-lint an action's own steps or shell. That is what keeping the logic in a `.sh`
-file buys: shellcheck and shfmt reach it.
+What the gate covers, so that everything this repo ships is checked:
+
+| Tool                        | Covers                                      |
+| --------------------------- | ------------------------------------------- |
+| `action-validator`          | every `action.yml` and workflow, by schema  |
+| `actionlint`                | `.github/workflows/`                        |
+| `shellcheck`, `shfmt`       | `*.sh`                                      |
+| `renovate-config-validator` | `renovate.json` (strict)                    |
+| `prettier`                  | YAML, Markdown, JSON                        |
+| `taplo`                     | TOML                                        |
+| `tools/local-renovate`      | the rewrite methods, against canned reports |
+
+GitHub YAML goes through two tools because neither covers the other's ground.
+actionlint parses whatever it is given as a workflow, so it cannot read an
+`action.yml` at all; action-validator picks the right schema per file and is
+what checks the 10 actions this repo ships. Workflows then get both: actionlint
+is the stronger check there, since it type-checks expressions, runs shellcheck
+over `run:` blocks, and resolves a reference into a local action or reusable
+workflow to verify the inputs and secrets passed to it. action-validator is a
+cheap second opinion on top.
+
+Neither one lints the steps inside an action as code. That is what keeping each
+action's logic in a `.sh` file buys: shellcheck and shfmt reach it, and would
+not reach inline `run:` shell.
 
 CI runs `mise run check` through this repo's own [`mise-setup`](./mise-setup)
 action by local path, so a pull request is gated by the version of that action
 it contains.
+
+## Dependency updates
+
+Renovate keeps this repo current, driven by [`renovate.json`](./renovate.json)
+and run by [`_renovate.yml`](./.github/workflows/_renovate.yml), which calls
+this repo's own published [`renovate.yml`](./.github/workflows/renovate.yml) by
+local path. So the shared workflow is exercised here before consumers get it.
+
+Two things are tracked, both kept as exact pins:
+
+- **mise tool versions** in [`mise.toml`](./mise.toml). Every entry is an exact
+  version, never `latest` or `lts`, so the version a CI run installs is the
+  version the file records. Renovate's mise manager covers the `core`, `aqua`
+  and `npm` backends this repo uses.
+- **Node stays on LTS with no rule needed.** The mise manager resolves `node`
+  through the `node-version` datasource, whose default versioning scheme counts
+  a release as unstable until its major line reaches the LTS date published in
+  [nodejs/Release](https://github.com/nodejs/Release). `ignoreUnstable` defaults
+  to true, so a Current release such as 25.x is never proposed, and neither is
+  an even major during the months before it enters LTS. To lock to a single line
+  rather than follow LTS to LTS, `allowedVersions` accepts an LTS
+  [codename](https://github.com/nodejs/Release/blob/main/CODENAMES.md) and
+  expands it to that major, so `krypton` means `^24`.
+- **Third-party action refs**, pinned to a commit SHA with the exact tag in a
+  trailing comment (`@<sha> # v4.4.0`). The SHA is what runs, so a moved
+  upstream tag cannot change it; the comment is how Renovate knows which version
+  that SHA is. Keep the comment exact rather than a major alias like `# v4`,
+  because a major alias hides patch updates from Renovate.
+
+Update policy: a release has to be **3 days old** before Renovate proposes it
+(`minimumReleaseAge`), and three grouped rules decide what merges itself.
+
+| Group            | Covers                     | Automerge |
+| ---------------- | -------------------------- | --------- |
+| `github actions` | every action ref bump      | yes       |
+| `mise tools`     | tool patch and minor bumps | yes       |
+| `mise majors`    | tool major bumps           | no        |
+
+Automerge lives on the groups rather than at the top level, so a tool major
+stops for review while the rest flows through. Action majors do automerge: the
+refs are SHA-pinned, so the change is a reviewable diff and CI still gates it.
+
+Grouping the majors instead of leaving them unmatched is deliberate. It gives
+them an explicit `automerge: false`, which is also what makes
+[`local-renovate`](./tools/local-renovate) report them as `manual` rather than
+`default`, since that verdict is read from rules carrying a `groupName`.
+
+Two caveats worth knowing before you rely on any of it:
+
+- **Automerge needs a `RENOVATE_TOKEN` secret on this repo.** Without one the
+  workflow falls back to `GITHUB_TOKEN`, and pull requests opened with that
+  token do not trigger `_ci.yml`, so there are no checks for automerge to wait
+  on.
+- **The checks are lint-only.** `mise run check` runs the linters and the
+  `local-renovate` fixture tests; it does not execute the actions against a real
+  registry, runner or release. A green check on an action major means the YAML
+  is well-formed, not that the action still behaves the same.
+
+Editing `renovate.json` has no effect on a local run until the change is
+committed. Renovate's `local` platform reads the config through git, and an
+uncommitted file leaves it reporting `Repo is not onboarded` and quietly falling
+back to its own onboarding defaults.
+
+Because the release workflow triggers on `**/action.yml`, an automerged bump to
+a pinned action ref cuts a new release, which is how consumers pick the update
+up.
+
+### Running Renovate locally
+
+[`tools/local-renovate/`](./tools/local-renovate) holds a script that runs
+Renovate through its read-only `local` platform, so you can see the pending
+bumps for a repo, gate on them, or write them into the manifests without waiting
+for a scheduled run. It is a development script rather than an action, so there
+is no `uses:` reference for it. Distribution comes later: a release process will
+publish it for mise's `github` backend as `local-renovate@vX.Y.Z`.
+
+See [its README](./tools/local-renovate/README.md) for the modes and the rewrite
+methods.
 
 ## Versioning
 

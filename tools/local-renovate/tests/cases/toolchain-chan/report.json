@@ -1,0 +1,28 @@
+{
+  "repositories": {
+    "local": {
+      "packageFiles": {
+        "rust-toolchain": [
+          {
+            "packageFile": "rust-toolchain.toml",
+            "deps": [
+              {
+                "depName": "rust",
+                "currentValue": "1.94.0",
+                "datasource": "github-releases",
+                "updates": [
+                  {
+                    "newValue": "1.95.0",
+                    "newVersion": "1.95.0",
+                    "updateType": "minor",
+                    "branchName": "renovate/auto-group"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

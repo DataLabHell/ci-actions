@@ -1,0 +1,16 @@
+{
+  "packageRules": [
+    {
+      "groupName": "dev toolchain (mise + python)",
+      "automerge": true
+    },
+    {
+      "groupName": "dev python deps",
+      "automerge": true
+    },
+    {
+      "groupName": "runtime dbt deps",
+      "automerge": true
+    }
+  ]
+}
