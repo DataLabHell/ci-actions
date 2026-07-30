@@ -1,0 +1,2 @@
+[project]
+dependencies = ["ruff==0.15.22", "ty==0.0.62", "ruff-lsp==0.15.22"]

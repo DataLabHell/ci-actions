@@ -1,0 +1,28 @@
+{
+  "repositories": {
+    "local": {
+      "packageFiles": {
+        "github-actions": [
+          {
+            "packageFile": ".github/workflows/x.yml",
+            "deps": [
+              {
+                "depName": "owner/act",
+                "currentValue": "v1",
+                "replaceString": "owner/act@v1",
+                "autoReplaceStringTemplate": "{{depName}}@{{#each versions}}{{this}}{{/each}}",
+                "updates": [
+                  {
+                    "newValue": "v2",
+                    "updateType": "major",
+                    "branchName": "renovate/auto-group"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

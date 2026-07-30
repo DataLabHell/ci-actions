@@ -1,0 +1,16 @@
+{
+  "repositories": {
+    "local": {
+      "packageFiles": {
+        "mise": [
+          {
+            "packageFile": "mise.toml",
+            "deps": [
+              { "depName": "uv", "currentValue": "0.11.31", "updates": [] }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "repositories": {
+    "local": {
+      "packageFiles": {
+        "mise": [
+          {
+            "deps": [
+              {
+                "depName": "github:rtk-ai/rtk",
+                "currentValue": "v0.44.0",
+                "packageName": "rtk-ai/rtk",
+                "datasource": "github-releases",
+                "updates": [
+                  {
+                    "bucket": "patch",
+                    "newVersion": "v0.44.1",
+                    "newValue": "v0.44.1",
+                    "releaseTimestamp": "2026-07-28T13:51:32.000Z",
+                    "newVersionAgeInDays": 0,
+                    "newMajor": 0,
+                    "newMinor": 44,
+                    "newPatch": 1,
+                    "updateType": "patch",
+                    "isBreaking": true,
+                    "pendingChecks": true,
+                    "libYears": 0.005617326230339929,
+                    "branchName": "renovate/patch-mise-dev-tools"
+                  }
+                ],
+                "versioning": "semver-coerced",
+                "warnings": [],
+                "sourceUrl": "https://github.com/rtk-ai/rtk",
+                "registryUrl": "https://github.com",
+                "mostRecentTimestamp": "2026-07-28T17:36:50.000Z",
+                "currentVersion": "v0.44.0",
+                "currentVersionTimestamp": "2026-07-26T12:39:04.000Z",
+                "currentVersionAgeInDays": 3,
+                "isSingleVersion": true,
+                "fixedVersion": "v0.44.0"
+              }
+            ],
+            "packageFile": "mise.agentic.toml"
+          }
+        ]
+      }
+    }
+  }
+}

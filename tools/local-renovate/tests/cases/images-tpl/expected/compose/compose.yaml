@@ -1,0 +1,3 @@
+services:
+  sftp:
+    image: atmoz/sftp:alpine@sha256:81fa92512bf8ead4849f33c1c153907b86d32d77704d1c62a9c70b4316ae9e50

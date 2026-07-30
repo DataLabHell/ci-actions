@@ -1,0 +1,102 @@
+{
+  "repositories": {
+    "local": {
+      "packageFiles": {
+        "github-actions": [
+          {
+            "packageFile": ".github/workflows/edge.yml",
+            "deps": [
+              {
+                "depName": "owner/unpinned",
+                "currentValue": "v4",
+                "replaceString": "owner/unpinned@v4",
+                "autoReplaceStringTemplate": "{{depName}}@{{#if newDigest}}{{newDigest}}{{#if newValue}} # {{newValue}}{{/if}}{{/if}}{{#unless newDigest}}{{newValue}}{{/unless}}",
+                "updates": [
+                  {
+                    "newValue": "v5",
+                    "updateType": "major",
+                    "branchName": "renovate/auto-group"
+                  }
+                ]
+              },
+              {
+                "depName": "owner/floating",
+                "currentValue": "stable",
+                "replaceString": "owner/floating@stable",
+                "autoReplaceStringTemplate": "{{depName}}@{{#if newDigest}}{{newDigest}}{{#if newValue}} # {{newValue}}{{/if}}{{/if}}{{#unless newDigest}}{{newValue}}{{/unless}}",
+                "updates": [
+                  {
+                    "newValue": "stable",
+                    "newDigest": "1111111111111111111111111111111111111111",
+                    "updateType": "digest",
+                    "branchName": "renovate/auto-group"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "packageFile": ".github/workflows/absent.yml",
+            "deps": [
+              {
+                "depName": "owner/absent",
+                "currentValue": "v1",
+                "replaceString": "owner/absent@v1",
+                "autoReplaceStringTemplate": "{{depName}}@{{#if newDigest}}{{newDigest}}{{#if newValue}} # {{newValue}}{{/if}}{{/if}}{{#unless newDigest}}{{newValue}}{{/unless}}",
+                "updates": [
+                  {
+                    "newValue": "v2",
+                    "updateType": "major",
+                    "branchName": "renovate/auto-group"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "docker-compose": [
+          {
+            "packageFile": "compose.yaml",
+            "deps": [
+              {
+                "depName": "nginx",
+                "currentValue": "1.29",
+                "currentDigest": "sha256:aaaa",
+                "datasource": "docker",
+                "replaceString": "nginx:1.29@sha256:aaaa",
+                "autoReplaceStringTemplate": "{{depName}}{{#if newValue}}:{{newValue}}{{/if}}{{#if newDigest}}@{{newDigest}}{{/if}}",
+                "updates": [
+                  {
+                    "newValue": "1.30",
+                    "updateType": "minor",
+                    "branchName": "renovate/auto-group"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "regex": [
+          {
+            "packageFile": "src/image.rs",
+            "deps": [
+              {
+                "depName": "postgres",
+                "currentValue": "17.2",
+                "datasource": "docker",
+                "replaceString": "// renovate: depName=postgres\n    .with_tag(\"17.2\")",
+                "updates": [
+                  {
+                    "newValue": "17.3",
+                    "updateType": "minor",
+                    "branchName": "renovate/auto-group"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

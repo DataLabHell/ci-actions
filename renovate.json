@@ -1,0 +1,36 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", "helpers:pinGitHubActionDigests"],
+  "enabledManagers": ["mise", "github-actions"],
+  "rangeStrategy": "pin",
+  "minimumReleaseAge": "3 days",
+  "platformAutomerge": true,
+  "packageRules": [
+    {
+      "description": "Keep the tool pins in mise.toml exact rather than widening them to a range.",
+      "matchManagers": ["mise"],
+      "rangeStrategy": "pin",
+      "commitMessageTopic": "{{depName}} (mise)"
+    },
+    {
+      "description": "Action refs are SHA-pinned, so any bump is reviewable as a diff and safe to automerge once CI is green.",
+      "groupName": "github actions",
+      "matchManagers": ["github-actions"],
+      "automerge": true
+    },
+    {
+      "description": "Tool patch and minor bumps automerge.",
+      "groupName": "mise tools",
+      "matchManagers": ["mise"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true
+    },
+    {
+      "description": "A tool major waits for review: the gate only lints, so it cannot catch a behaviour change. Grouped rather than left ungrouped so the verdict reads `manual` instead of `default`.",
+      "groupName": "mise majors",
+      "matchManagers": ["mise"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    }
+  ]
+}

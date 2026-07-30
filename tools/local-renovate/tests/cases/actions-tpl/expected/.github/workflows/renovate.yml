@@ -1,0 +1,4 @@
+jobs:
+  renovate:
+    steps:
+      - uses: renovatebot/github-action@973d3e5a68e735a444e8c03432b66eedb343c302 # v46.2.0

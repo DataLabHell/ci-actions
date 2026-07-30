@@ -14,7 +14,6 @@ on:
       - ".github/workflows/*.yml" # a published reusable workflow changed
       - "VERSION" # a major/minor bump
       - "!_template/**" # ...but not the scaffold
-      - "!.github/workflows/_*.yml" # ...and not this repo's own CI
       # README/docs-only changes do NOT cut a release.
 
 permissions:
@@ -33,7 +32,7 @@ jobs:
     needs: check
     runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0 # full history + tags for version diff
 

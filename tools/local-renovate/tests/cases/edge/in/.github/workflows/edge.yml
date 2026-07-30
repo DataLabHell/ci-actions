@@ -1,0 +1,5 @@
+jobs:
+  edge:
+    steps:
+      - uses: owner/unpinned@v4
+      - uses: owner/floating@stable

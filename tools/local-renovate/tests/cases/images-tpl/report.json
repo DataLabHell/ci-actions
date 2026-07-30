@@ -1,0 +1,34 @@
+{
+  "repositories": {
+    "local": {
+      "packageFiles": {
+        "docker-compose": [
+          {
+            "deps": [
+              {
+                "depName": "atmoz/sftp",
+                "packageName": "atmoz/sftp",
+                "currentValue": "alpine",
+                "currentDigest": "sha256:a6cb3eb29202ca7f57e73bb7e527286e66e0e822fff65609207c7e0ef2d135a3",
+                "replaceString": "atmoz/sftp:alpine@sha256:a6cb3eb29202ca7f57e73bb7e527286e66e0e822fff65609207c7e0ef2d135a3",
+                "autoReplaceStringTemplate": "{{depName}}{{#if newValue}}:{{newValue}}{{/if}}{{#if newDigest}}@{{newDigest}}{{/if}}",
+                "datasource": "docker",
+                "updates": [
+                  {
+                    "updateType": "digest",
+                    "newValue": "alpine",
+                    "newDigest": "sha256:81fa92512bf8ead4849f33c1c153907b86d32d77704d1c62a9c70b4316ae9e50",
+                    "branchName": "renovate/docker-dependencies"
+                  }
+                ],
+                "versioning": "docker",
+                "warnings": []
+              }
+            ],
+            "packageFile": "compose/compose.yaml"
+          }
+        ]
+      }
+    }
+  }
+}
