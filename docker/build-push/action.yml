@@ -55,6 +55,14 @@ inputs:
     description: 'Push the image (set "false" for PR validation builds)'
     required: false
     default: "true"
+  platforms:
+    description:
+      "Target platforms, newline- or comma-separated (e.g. \"linux/amd64,
+      linux/arm64\" for a Raspberry Pi 5). Empty = the runner's native platform
+      only. Runners are x86-64, so non-amd64 platforms are built under QEMU
+      emulation and take noticeably longer."
+    required: false
+    default: ""
 
 # Authentication is decided by the registry. You never pass credentials:
 #   ghcr.io  -> logs in with the workflow's GITHUB_TOKEN
@@ -79,6 +87,12 @@ runs:
         INPUT_TAGS: ${{ inputs.tags }}
         INPUT_CACHE: ${{ inputs.cache }}
         INPUT_PUSH: ${{ inputs.push }}
+        INPUT_PLATFORMS: ${{ inputs.platforms }}
+
+    # Only needed for non-amd64 targets: registers the binfmt handlers that let
+    # the x86-64 runner execute foreign-arch build steps.
+    - if: ${{ steps.prep.outputs.qemu == 'true' }}
+      uses: docker/setup-qemu-action@v4
 
     - uses: docker/setup-buildx-action@v3
 
@@ -97,6 +111,7 @@ runs:
         context: ${{ inputs.context }}
         file: ${{ inputs.dockerfile }}
         push: ${{ inputs.push }}
+        platforms: ${{ steps.prep.outputs.platforms }}
         tags: ${{ steps.prep.outputs.tags }}
         cache-from: ${{ steps.prep.outputs.cache-from }}
         cache-to: ${{ steps.prep.outputs.cache-to }}
