@@ -11,6 +11,7 @@ IMAGE="${INPUT_IMAGE:-}"
 TAGS_IN="${INPUT_TAGS:-}"
 CACHE="${INPUT_CACHE:-gha}"
 PUSH="${INPUT_PUSH:-true}"
+PLATFORMS_IN="${INPUT_PLATFORMS:-}"
 
 if [ -z "$IMAGE" ]; then
   echo "::error::'image' is required"
@@ -61,6 +62,41 @@ while IFS= read -r suffix; do
   [ -n "$suffix" ] && TAGS+=("$REF:$suffix")
 done <<<"$TAGS_IN"
 
+# Target platforms. Accepts newline- and/or comma-separated values so callers can
+# write a YAML block or a one-liner. Empty = let buildx pick the runner's native
+# platform (linux/amd64 here).
+#
+# The runners are x86-64, so any non-amd64 platform is built through QEMU
+# emulation: we emit `qemu=true` and action.yml then runs setup-qemu-action.
+# Emulated builds are slow, which is why QEMU is only installed when needed.
+PLATFORMS=()
+QEMU="false"
+while IFS= read -r platform; do
+  platform="$(echo "$platform" | xargs)"
+  [ -z "$platform" ] && continue
+  case "$platform" in
+    */*) ;;
+    *)
+      echo "::error::invalid platform '$platform': expected '<os>/<arch>', e.g. linux/amd64 or linux/arm64"
+      exit 1
+      ;;
+  esac
+  PLATFORMS+=("$platform")
+  # linux/amd64 (and its aliases) is native; everything else needs emulation.
+  case "$platform" in
+    linux/amd64 | linux/x86_64 | linux/386) ;;
+    *) QEMU="true" ;;
+  esac
+done <<<"$(echo "$PLATFORMS_IN" | tr ',' '\n')"
+
+PLATFORMS_OUT=""
+if [ "${#PLATFORMS[@]}" -gt 0 ]; then
+  PLATFORMS_OUT="$(
+    IFS=,
+    echo "${PLATFORMS[*]}"
+  )"
+fi
+
 if [ "${#TAGS[@]}" -eq 0 ]; then
   echo "::error::no tags resolved; pass at least one non-empty tag suffix (e.g. 'latest')"
   exit 1
@@ -99,8 +135,14 @@ esac
   echo "__TAGS_EOF__"
   echo "cache-from=$CACHE_FROM"
   echo "cache-to=$CACHE_TO"
+  echo "platforms=$PLATFORMS_OUT"
+  echo "qemu=$QEMU"
 } >>"$GITHUB_OUTPUT"
 
 echo "Image ref: $REF"
 printf 'Tags:\n'
 printf '  %s\n' "${TAGS[@]}"
+echo "Platforms: ${PLATFORMS_OUT:-<runner native>}"
+if [ "$QEMU" = "true" ]; then
+  echo "Non-amd64 platform requested: building under QEMU emulation (slower)."
+fi
