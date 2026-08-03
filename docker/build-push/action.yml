@@ -57,10 +57,10 @@ inputs:
     default: "true"
   platforms:
     description:
-      "Target platforms, newline- or comma-separated (e.g. \"linux/amd64,
-      linux/arm64\" for a Raspberry Pi 5). Empty = the runner's native platform
+      'Target platforms, newline- or comma-separated (e.g. "linux/amd64,
+      linux/arm64" for a Raspberry Pi 5). Empty = the runner''s native platform
       only. Runners are x86-64, so non-amd64 platforms are built under QEMU
-      emulation and take noticeably longer."
+      emulation and take noticeably longer.'
     required: false
     default: ""
 

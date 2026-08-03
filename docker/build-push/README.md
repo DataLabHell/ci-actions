@@ -49,7 +49,7 @@ The **caller owns the job**. A composite action can't set `runs-on`, `matrix`,
 | `dockerfile` | no       | `''`                       | Dockerfile path (empty = default `Dockerfile` in the context, e.g. set `Dockerfile.api`).                             |
 | `cache`      | no       | `gha`                      | Layer cache backend: `gha`, `registry`, or `none` (see [Caching](#caching)).                                          |
 | `push`       | no       | `true`                     | Push the image; set `"false"` for PR validation builds.                                                               |
-| `platforms`  | no       | `''`                       | Target platforms, newline- or comma-separated (e.g. `linux/arm64`). Empty = the runner's native platform only.         |
+| `platforms`  | no       | `''`                       | Target platforms, newline- or comma-separated (e.g. `linux/arm64`). Empty = the runner's native platform only.        |
 
 ## Output
 
@@ -92,13 +92,13 @@ How it works and what to watch out for:
 - Because the runner is x86-64, any non-amd64 platform is built through **QEMU
   emulation**. The action installs it (`docker/setup-qemu-action`) only when a
   foreign platform is actually requested — native-only builds are unaffected.
-- **Emulated builds are slow.** Compile-heavy steps (native Python wheels, Go/Rust
-  builds) can take several times longer than the amd64 build. Keep the layer
-  cache on, and prefer prebuilt arm64 wheels/base images where you can.
+- **Emulated builds are slow.** Compile-heavy steps (native Python wheels,
+  Go/Rust builds) can take several times longer than the amd64 build. Keep the
+  layer cache on, and prefer prebuilt arm64 wheels/base images where you can.
 - Your **base images must have arm64 variants** (most official ones do). Avoid
   pinning a digest, which pins a single architecture.
-- If you build for arm64 **only**, note that the resulting image can't run on the
-  runner — fine for pushing, but any in-workflow smoke test of it will fail.
+- If you build for arm64 **only**, note that the resulting image can't run on
+  the runner — fine for pushing, but any in-workflow smoke test of it will fail.
 - With `push: false` a multi-platform build is validated but produces no local
   image (buildx can't load a manifest list into the daemon). That's exactly what
   you want for PR validation.
