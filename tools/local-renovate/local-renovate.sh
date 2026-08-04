@@ -90,7 +90,7 @@ rows=$(jq -r --argjson gm "$groupmap" '
   | .updates[]
   # branch group renovate assigned, minus renovate/ + patch-/minor-/major- prefix
   | ((.branchName // "") | ltrimstr("renovate/") | sub("^(patch|minor|major)-"; "") | slug) as $grp
-  | [$mgr, ($gm[$grp] // "default"), $n, $cur, "->", (.newVersion // .newValue), (.updateType // "")] | @tsv
+  | [$mgr, ($gm[$grp] // "default"), $n, $cur, "->", (.newVersion // .newValue // "-"), (.updateType // "")] | @tsv
 ' "$report" | sort -u | sort -t$'\t' -k1,1 -k2,2 -k3,3 -k6,6 | align)
 
 if [ -z "$rows" ]; then
@@ -146,7 +146,14 @@ if [ "$mode" = apply ]; then
            {method: "tpl", f1: ($rs | @base64), f2: ($tpl | @base64), f3: $dep,
             f4: ($new // "-"), f5: ($newdig // "-")}
          elif $rs != null then
-           {method: "lit", f1: ($rs | @base64), f2: (($rs | split($cur) | join($new)) | @base64),
+           # Version and digest move independently, so each is swapped only when
+           # renovate reported a new one. The null guards are load-bearing:
+           # split(null) raises, which under set -e kills the whole run.
+           {method: "lit", f1: ($rs | @base64),
+            f2: (($rs
+                  | if $new != null and $cur != null then split($cur) | join($new) else . end
+                  | if $curdig != null then split($curdig) | join($newdig) else . end)
+                 | @base64),
             f3: "-", f4: "-", f5: "-"}
          elif $mgr == "mise" or $mgr == "cargo" then
            {method: "key", f1: $dep, f2: $cur, f3: $new, f4: "-", f5: "-"}
@@ -158,7 +165,9 @@ if [ "$mode" = apply ]; then
          else
            {method: "lit", f1: ($cur | @base64), f2: ($new | @base64),
             f3: "-", f4: "-", f5: "-"}
-         end) + {f: $f, dep: $dep, cur: $cur, new: $new}
+         end) + {f: $f, dep: $dep, cur: ($cur // "-"), new: ($new // "-")}
+      # a swap that reproduces its own input has nothing to report
+      | select(.method != "lit" or .f1 != .f2)
     ]
     | group_by([.f, .dep])          # separateMinorPatch emits patch+minor per dep
     | map(max_by(.new | ver))       # keep the highest applicable target
