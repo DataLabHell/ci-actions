@@ -1,0 +1,7 @@
+services:
+  ofelia:
+    image: mcuadros/ofelia@sha256:1d4b93c0e7a5f28610c3b7de49a05f8b2c6e31740d9a85fb2e07c619a3d84b57
+    environment:
+      RESTIC_VERSION: "0.18.0"
+    labels:
+      ofelia.job-run.backup.image: docker:29-cli@sha256:5f0a2b9d3c14e8a7b62d90f4c1e73a58d0b6c2419e8fa37d5c04b71e29a6d8f3

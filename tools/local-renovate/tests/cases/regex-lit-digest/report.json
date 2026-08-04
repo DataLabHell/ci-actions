@@ -1,0 +1,79 @@
+{
+  "repositories": {
+    "local": {
+      "packageFiles": {
+        "regex": [
+          {
+            "deps": [
+              {
+                "depName": "docker",
+                "packageName": "docker",
+                "currentValue": "29-cli",
+                "currentDigest": "sha256:5f0a2b9d3c14e8a7b62d90f4c1e73a58d0b6c2419e8fa37d5c04b71e29a6d8f3",
+                "replaceString": "image: docker:29-cli@sha256:5f0a2b9d3c14e8a7b62d90f4c1e73a58d0b6c2419e8fa37d5c04b71e29a6d8f3",
+                "datasource": "docker",
+                "versioning": "docker",
+                "updates": [
+                  {
+                    "updateType": "digest",
+                    "newValue": "29-cli",
+                    "newDigest": "sha256:c73e81a4f0b25d69e3a17c8b4d0f6e2953b8a71c4de2095f6b3c8140a7e5d962",
+                    "branchName": "renovate/docker-dependencies"
+                  }
+                ],
+                "warnings": []
+              },
+              {
+                "depName": "mcuadros/ofelia",
+                "packageName": "mcuadros/ofelia",
+                "currentDigest": "sha256:1d4b93c0e7a5f28610c3b7de49a05f8b2c6e31740d9a85fb2e07c619a3d84b57",
+                "replaceString": "image: mcuadros/ofelia@sha256:1d4b93c0e7a5f28610c3b7de49a05f8b2c6e31740d9a85fb2e07c619a3d84b57",
+                "datasource": "docker",
+                "versioning": "docker",
+                "updates": [
+                  {
+                    "updateType": "digest",
+                    "newDigest": "sha256:9a20f6cb37d81e45b90c2af7e5136d804b7c9e02fa631d58c47b0e9a25f3c186",
+                    "branchName": "renovate/docker-dependencies"
+                  }
+                ],
+                "warnings": []
+              }
+            ],
+            "matchStrings": [
+              "image: (?<depName>[^:@\\s]+)(?::(?<currentValue>[^@\\s]+))?@(?<currentDigest>sha256:[a-f0-9]+)"
+            ],
+            "datasourceTemplate": "docker",
+            "packageFile": "compose/backup/prod.yaml"
+          },
+          {
+            "deps": [
+              {
+                "depName": "restic",
+                "packageName": "restic/restic",
+                "replaceString": "RESTIC_VERSION: \"0.18.0\"",
+                "datasource": "github-releases",
+                "updates": [
+                  {
+                    "updateType": "minor",
+                    "newVersion": "0.19.0",
+                    "newValue": "0.19.0",
+                    "branchName": "renovate/docker-dependencies"
+                  }
+                ],
+                "warnings": []
+              }
+            ],
+            "matchStrings": [
+              "RESTIC_VERSION: \"(?<version>\\d+\\.\\d+\\.\\d+)\""
+            ],
+            "depNameTemplate": "restic",
+            "packageNameTemplate": "restic/restic",
+            "datasourceTemplate": "github-releases",
+            "packageFile": "compose/backup/prod.yaml"
+          }
+        ]
+      }
+    }
+  }
+}
