@@ -15,6 +15,7 @@ if [ -n "$PYTHON_VERSION" ]; then
 fi
 
 echo "::group::uv sync"
+uv --version
 # shellcheck disable=SC2086
 uv sync $SYNC_ARGS "${PY_FLAG[@]}"
 echo "::endgroup::"
