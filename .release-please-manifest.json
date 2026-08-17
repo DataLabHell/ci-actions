@@ -1,0 +1,11 @@
+{
+  "s3-file-upload": "0.3.5",
+  "docker/build-push": "0.3.5",
+  "versioning/auto-patch": "0.3.5",
+  "versioning/from-pyproject": "0.3.5",
+  "release/tag-and-alias": "0.3.5",
+  "release/github-release": "0.3.5",
+  "python/lint": "0.3.5",
+  "python/test": "0.3.5",
+  "mise-setup": "0.3.5"
+}

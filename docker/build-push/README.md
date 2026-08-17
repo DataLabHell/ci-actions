@@ -26,7 +26,7 @@ The **caller owns the job**. A composite action can't set `runs-on`, `matrix`,
 - `runs-on` any runner with Docker available.
 - For **GHCR**: `permissions: { packages: write }` (and the default
   `GITHUB_TOKEN` is enough — no extra secret).
-- `actions/checkout@v4` before this step.
+- `actions/checkout@v7` before this step.
 - **You never pass credentials.** Authentication is decided by the `registry`:
   - `ghcr.io` → logs in with the workflow's `GITHUB_TOKEN` (needs
     `permissions: packages: write`).
@@ -72,7 +72,7 @@ are x86-64, so `linux/amd64`. To also run the image on an **arm64** device such
 as a Raspberry Pi 5, list both platforms:
 
 ```yaml
-- uses: DataLabHell/ci-actions/docker/build-push@vX.Y
+- uses: DataLabHell/ci-actions/docker/build-push@docker/build-push/vX.Y.Z
   with:
     image: api
     platforms: |
@@ -116,8 +116,8 @@ jobs:
       matrix:
         service: [api, mcp]
     steps:
-      - uses: actions/checkout@v4
-      - uses: DataLabHell/ci-actions/docker/build-push@vX.Y
+      - uses: actions/checkout@v7
+      - uses: DataLabHell/ci-actions/docker/build-push@docker/build-push/vX.Y.Z
         with:
           image: ${{ matrix.service }}
           dockerfile: Dockerfile.${{ matrix.service }}
@@ -135,14 +135,14 @@ image tags are usually bare):
 
 ```yaml
 steps:
-  - uses: actions/checkout@v4
+  - uses: actions/checkout@v7
 
   - id: ver
-    uses: DataLabHell/ci-actions/versioning/from-pyproject@vX.Y
+    uses: DataLabHell/ci-actions/versioning/from-pyproject@versioning/from-pyproject/vX.Y.Z
     with:
       file: api/pyproject.toml
 
-  - uses: DataLabHell/ci-actions/docker/build-push@vX.Y
+  - uses: DataLabHell/ci-actions/docker/build-push@docker/build-push/vX.Y.Z
     with:
       image: api
       context: ./api
@@ -163,8 +163,8 @@ jobs:
   build:
     runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v4
-      - uses: DataLabHell/ci-actions/docker/build-push@vX.Y
+      - uses: actions/checkout@v7
+      - uses: DataLabHell/ci-actions/docker/build-push@docker/build-push/vX.Y.Z
         with:
           image: my-service
           registry: truenas # alias -> truenas.dlh-k8s.com:5000
@@ -201,13 +201,13 @@ jobs:
     outputs:
       tags: ${{ steps.rel.outputs.versions }} # 0.1.3 / 0.1 / 0 (bare, newline-separated)
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - id: ver
-        uses: DataLabHell/ci-actions/versioning/auto-patch@vX.Y
+        uses: DataLabHell/ci-actions/versioning/auto-patch@versioning/auto-patch/vX.Y.Z
       - id: rel
-        uses: DataLabHell/ci-actions/release/tag-and-alias@vX.Y
+        uses: DataLabHell/ci-actions/release/tag-and-alias@release/tag-and-alias/vX.Y.Z
         with:
           tag: ${{ steps.ver.outputs.version }}
 
@@ -218,8 +218,8 @@ jobs:
       matrix:
         service: [api, mcp, worker]
     steps:
-      - uses: actions/checkout@v4
-      - uses: DataLabHell/ci-actions/docker/build-push@vX.Y
+      - uses: actions/checkout@v7
+      - uses: DataLabHell/ci-actions/docker/build-push@docker/build-push/vX.Y.Z
         with:
           image: ${{ matrix.service }}
           registry: truenas

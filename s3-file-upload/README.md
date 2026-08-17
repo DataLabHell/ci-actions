@@ -22,12 +22,13 @@ This action lives in the shared [`ci-actions`](../README.md) monorepo, so it is
 referenced by its path within the repo plus a tag:
 
 ```yaml
-- uses: DataLabHell/ci-actions/s3-file-upload@vX.Y
+- uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload/vX.Y.Z
 ```
 
-`@vX.Y` is a placeholder for the current minor alias (see
-[VERSION](../VERSION)). Pin to a released tag rather than `@main` so pipelines
-are not broken by in-progress changes.
+`@s3-file-upload/vX.Y.Z` is a placeholder — each action is versioned
+independently and tagged `<action-path>/vMAJOR.MINOR.PATCH` (see
+[Versioning](../README.md#versioning)). Substitute the current version and pin
+an exact tag rather than `@main`; Renovate keeps it current.
 
 ## Connection & credentials
 
@@ -37,7 +38,7 @@ region, and credentials — so a normal upload needs **no credentials in the
 workflow at all**:
 
 ```yaml
-- uses: DataLabHell/ci-actions/s3-file-upload@vX.Y
+- uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload/vX.Y.Z
   with:
     source: outputs
     destination: my-service
@@ -99,7 +100,7 @@ profile, no credentials are needed in the workflow:
 
 ```yaml
 - name: Upload report to S3
-  uses: DataLabHell/ci-actions/s3-file-upload@vX.Y
+  uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload/vX.Y.Z
   with:
     source: report
     destination: my-service
@@ -116,13 +117,13 @@ jobs:
   coverage:
     runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Generate coverage report
         run: npm run coverage:html
 
       - name: Upload coverage report
-        uses: DataLabHell/ci-actions/s3-file-upload@vX.Y
+        uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload/vX.Y.Z
         with:
           bucket: coverage
           source: coverage/html
@@ -143,17 +144,17 @@ jobs:
   publish:
     runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Upload docs
-        uses: DataLabHell/ci-actions/s3-file-upload@vX.Y
+        uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload/vX.Y.Z
         with:
           source: docs
           destination: my-service/docs
           include: "*"
 
       - name: Upload HTML reports
-        uses: DataLabHell/ci-actions/s3-file-upload@vX.Y
+        uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload/vX.Y.Z
         with:
           source: htmls
           destination: my-service/htmls

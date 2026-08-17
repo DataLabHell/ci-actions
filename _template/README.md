@@ -33,10 +33,10 @@ jobs:
   example:
     runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: TODO
-        uses: DataLabHell/ci-actions/TODO-action-name@vX.Y
+        uses: DataLabHell/ci-actions/TODO-action-name@TODO-action-name/vX.Y.Z
         with:
           example: value
 ```

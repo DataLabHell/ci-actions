@@ -10,7 +10,7 @@ Uses only `git` — no `gh` CLI — so it runs on self-hosted runners.
 
 ## Requirements
 
-- Check out with `actions/checkout@v4` and `fetch-depth: 0`.
+- Check out with `actions/checkout@v7` and `fetch-depth: 0`.
 - Grant `permissions: contents: write` so the tags can be pushed (the checkout
   token is used for `git push`).
 
@@ -45,20 +45,20 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - id: ver
-        uses: DataLabHell/ci-actions/versioning/auto-patch@vX.Y
+        uses: DataLabHell/ci-actions/versioning/auto-patch@versioning/auto-patch/vX.Y.Z
 
       - id: rel
-        uses: DataLabHell/ci-actions/release/tag-and-alias@vX.Y
+        uses: DataLabHell/ci-actions/release/tag-and-alias@release/tag-and-alias/vX.Y.Z
         with:
           tag: ${{ steps.ver.outputs.version }} # bare; this action adds the v
 
       # Tag the image with the same rolling set as the git refs (bare form):
-      - uses: DataLabHell/ci-actions/docker/build-push@vX.Y
+      - uses: DataLabHell/ci-actions/docker/build-push@docker/build-push/vX.Y.Z
         with:
           image: api
           tags: |

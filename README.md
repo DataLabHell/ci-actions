@@ -2,20 +2,13 @@
 
 Shared GitHub Actions and workflows for the organization. This is a
 **monorepo**: each action (the building blocks) lives in its own folder at the
-repo root, with its own `action.yml` and `README.md`, and everything is
-versioned together with a single set of tags.
+repo root, with its own `action.yml` and `README.md`, and each is **versioned
+and released independently** via release-please (see [Versioning](#versioning)).
 
-Two kinds of things ship from here:
-
-- **[Actions](#available-actions)**: one step you drop into a job you own.
-- **[Reusable workflows](#available-workflows)**: a whole job, triggers
-  excepted, for flows where the job body itself is the value (Renovate is the
-  first). They live flat in `.github/workflows/`, because GitHub does not
-  resolve a workflow `uses:` reference in a subfolder.
-
-Multi-step flows that vary too much between repos to bundle cleanly (releasing,
-building an image) are neither: they stay copy-paste
-[composition examples](#composition-examples).
+Each action is one step you drop into a job you own (see
+[Available actions](#available-actions)). Multi-step flows that vary too much
+between repos to bundle cleanly (releasing, building an image) aren't shipped as
+actions; they stay copy-paste [composition examples](#composition-examples).
 
 ## Available actions
 
@@ -40,9 +33,9 @@ jobs:
   build:
     runs-on: self-hosted # s3-file-upload needs the dlh AWS profile on the runner
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: DataLabHell/ci-actions/s3-file-upload@vX.Y
+      - uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload/vX.Y.Z
         with:
           source: images
           bucket: reports
@@ -50,71 +43,12 @@ jobs:
           include: "*.html"
 ```
 
-`@vX.Y` throughout these docs is a placeholder, not a tag: substitute the
-current minor alias, which is the `MAJOR.MINOR` in [`VERSION`](./VERSION) and
-the newest entry under
-[releases](https://github.com/DataLabHell/ci-actions/releases). Always pin to a
-released tag rather than `@main`, so downstream workflows are not affected by
-in-progress changes on the default branch.
-
-## Available workflows
-
-| Workflow                                           | Description                                                                                                                   |
-| -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| [`renovate.yml`](./.github/workflows/renovate.yml) | Run Renovate against the calling repo, with ghcr credentials wired up. [Inputs and secrets](#renovateyml-inputs-and-secrets). |
-
-## Using a workflow
-
-Reference a workflow by `<owner>/ci-actions/.github/workflows/<file>.yml@<tag>`,
-the full path, including `.github/workflows/`, because that is the only place
-GitHub resolves one from. It replaces the whole job, so the caller supplies just
-the triggers and the secrets:
-
-```yaml
-name: Renovate
-
-on:
-  schedule:
-    - cron: "0 */6 * * *" # every 6 hours
-  workflow_dispatch: # allow manual triggering
-
-jobs:
-  renovate:
-    uses: DataLabHell/ci-actions/.github/workflows/renovate.yml@vX.Y
-    secrets:
-      RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN }}
-```
-
-Two things a shared workflow cannot do for you:
-
-- **Triggers.** A called workflow's own `on:` block is ignored, so the `cron`
-  and `workflow_dispatch` above have to live in your repo. Note that `schedule`
-  only fires on the default branch, so the stub has to be merged before it runs.
-- **Tool config.** Renovate's rules stay in your repo's `renovate.json`. This
-  workflow runs the bot; it does not decide what the bot does.
-
-### `renovate.yml` inputs and secrets
-
-| Input       | Required | Default       | Description                                                                           |
-| ----------- | -------- | ------------- | ------------------------------------------------------------------------------------- |
-| `runs-on`   | no       | `self-hosted` | Runner label for the job. Pass `ubuntu-latest` on a repo without self-hosted runners. |
-| `log-level` | no       | `info`        | Renovate `LOG_LEVEL`. Set to `debug` to trace a run that finds nothing.               |
-
-| Secret           | Required | Description                                                                       |
-| ---------------- | -------- | --------------------------------------------------------------------------------- |
-| `RENOVATE_TOKEN` | no       | PAT with contents + pull-request write. Falls back to `GITHUB_TOKEN` when absent. |
-
-Secret names stay `UPPER_SNAKE` while inputs are kebab-case, because a hyphen in
-`${{ secrets.x-y }}` reads as an operator.
-
-The secret is optional on purpose. The free plan has no organization-wide
-secrets for private repos, so requiring a PAT would mean re-adding it to every
-calling repo, the same constraint that keeps the
-[`s3-file-upload` credentials on the runner](./s3-file-upload/README.md#connection--credentials).
-Omit it and the job uses its own `GITHUB_TOKEN`, which needs no setup and can
-open pull requests; the catch is that those pull requests do not trigger your
-CI. GitHub blocks that, and Renovate cannot work around it. Add the PAT to the
-repos where you want Renovate's pull requests to run the pipeline.
+Each action is versioned **independently** and tagged
+`<action-path>/vMAJOR.MINOR.PATCH` (see [Versioning](#versioning)). `@…/vX.Y.Z`
+throughout these docs is a placeholder: substitute the action's current version
+from the [Available actions](#available-actions) table or the
+[releases](https://github.com/DataLabHell/ci-actions/releases) page. Pin an
+exact tag rather than `@main` and let Renovate bump it.
 
 ## Composition examples
 
@@ -136,16 +70,16 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - id: ver
-        uses: DataLabHell/ci-actions/versioning/auto-patch@vX.Y
+        uses: DataLabHell/ci-actions/versioning/auto-patch@versioning/auto-patch/vX.Y.Z
       - id: rel
-        uses: DataLabHell/ci-actions/release/tag-and-alias@vX.Y
+        uses: DataLabHell/ci-actions/release/tag-and-alias@release/tag-and-alias/vX.Y.Z
         with:
           tag: ${{ steps.ver.outputs.version }}
-      - uses: DataLabHell/ci-actions/release/github-release@vX.Y
+      - uses: DataLabHell/ci-actions/release/github-release@release/github-release/vX.Y.Z
         with:
           tag: ${{ steps.rel.outputs.tag }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -169,16 +103,16 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - id: ver
-        uses: DataLabHell/ci-actions/versioning/auto-patch@vX.Y
+        uses: DataLabHell/ci-actions/versioning/auto-patch@versioning/auto-patch/vX.Y.Z
       - id: rel
-        uses: DataLabHell/ci-actions/release/tag-and-alias@vX.Y
+        uses: DataLabHell/ci-actions/release/tag-and-alias@release/tag-and-alias/vX.Y.Z
         with:
           tag: ${{ steps.ver.outputs.version }}
-      - uses: DataLabHell/ci-actions/docker/build-push@vX.Y
+      - uses: DataLabHell/ci-actions/docker/build-push@docker/build-push/vX.Y.Z
         with:
           image: api
           registry: truenas
@@ -198,8 +132,8 @@ jobs:
   lint:
     runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v4
-      - uses: DataLabHell/ci-actions/python/lint@vX.Y
+      - uses: actions/checkout@v7
+      - uses: DataLabHell/ci-actions/python/lint@python/lint/vX.Y.Z
         with:
           paths: datalabhell scripts tests
           type-check-paths: datalabhell # ruff over everything, ty only on the package
@@ -211,8 +145,8 @@ jobs:
       matrix:
         python-version: ["3.12", "3.13", "3.14"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: DataLabHell/ci-actions/python/test@vX.Y
+      - uses: actions/checkout@v7
+      - uses: DataLabHell/ci-actions/python/test@python/test/vX.Y.Z
         with:
           python-version: ${{ matrix.python-version }}
 ```
@@ -221,15 +155,14 @@ jobs:
 
 ```
 ci-actions/
-├── README.md                 # this file — index of all actions
-├── VERSION                   # MAJOR.MINOR driving releases
-├── mise.toml                 # dev tools (exact pins) + `mise run check` gate
-├── renovate.json             # what Renovate keeps updated here
-├── .github/workflows/        # a leading _ marks this repo's own CI; the rest are published
-│   ├── _ci.yml               #   internal: the mise quality gate
-│   ├── _release.yml          #   internal: tag + GitHub Release
-│   ├── _renovate.yml         #   internal: calls renovate.yml below on a cron
-│   └── renovate.yml          #   PUBLISHED reusable workflow
+├── README.md                        # this file — index of all actions
+├── release-please-config.json       # per-action release config
+├── .release-please-manifest.json    # current version of each action
+├── mise.toml                        # dev tools (exact pins) + `mise run check` gate
+├── renovate.json                    # what Renovate keeps updated here
+├── .github/workflows/               # this repo's own CI (underscore-prefixed)
+│   ├── _ci.yml                      #   the mise quality gate (on PRs)
+│   └── _release-please.yml          #   per-action releases (release-please)
 ├── _template/                # scaffold to copy when adding an action
 ├── tools/                    # helpers we ship or use — programs, not actions
 │   └── local-renovate/       #   run Renovate locally, preview or apply bumps
@@ -270,36 +203,15 @@ action plus README:
    shellcheck + shfmt. Inline `run:` shell is not linted.
 4. Fill in `README.md`: inputs table, outputs, and at least one usage example.
    Reference the action as `DataLabHell/ci-actions/<folder>@<tag>`.
-5. Add a row to the [Available actions](#available-actions) table above.
-6. Open a PR. Merging to `main` releases automatically (patch bump). If the new
-   action warrants a minor bump, also edit [`VERSION`](#versioning) in the PR.
+5. Add a row to the [Available actions](#available-actions) table above, and
+   register the action in
+   [`release-please-config.json`](./release-please-config.json) and
+   [`.release-please-manifest.json`](./.release-please-manifest.json).
+6. Open a PR using [Conventional Commits](#versioning). On merge, release-please
+   versions and tags the new action from your commit types.
 
 > The `_template/` folder is a scaffold, not a published action. The leading
 > underscore keeps it sorted first and signals it isn't meant to be referenced.
-
-## Adding a new workflow
-
-Reach for a reusable workflow instead of an action when the value is the job
-body (the runner, permissions, concurrency and pinned third-party SHAs) and only
-the triggers differ per repo. There is no scaffold; copy
-[`renovate.yml`](./.github/workflows/renovate.yml).
-
-1. Add `<name>.yml` **flat** in `.github/workflows/`, with no leading
-   underscore. Subfolders do not work: GitHub only resolves a workflow reference
-   at `.github/workflows/<file>.yml`. The underscore is reserved for this repo's
-   own CI, the same signal `_template/` uses.
-2. Use `on: workflow_call` only. Declare every knob as a typed `input` with a
-   `description` and a default, and every credential under `secrets`. Input
-   names are kebab-case as elsewhere in this repo; secret names cannot contain
-   hyphens, so those are `UPPER_SNAKE`.
-3. Set `permissions` and `concurrency` in the workflow itself rather than
-   leaving them to the caller. Capping its own token is the point of shipping
-   the job.
-4. Add a row to the [Available workflows](#available-workflows) table, and a
-   stub the caller can paste (triggers + secrets) if the trigger is not obvious.
-5. Open a PR. Merging to `main` releases automatically, same as an action: the
-   release trigger covers `.github/workflows/*.yml` but skips the `_`-prefixed
-   files.
 
 ## Local development
 
@@ -347,10 +259,9 @@ it contains.
 
 ## Dependency updates
 
-Renovate keeps this repo current, driven by [`renovate.json`](./renovate.json)
-and run by [`_renovate.yml`](./.github/workflows/_renovate.yml), which calls
-this repo's own published [`renovate.yml`](./.github/workflows/renovate.yml) by
-local path. So the shared workflow is exercised here before consumers get it.
+Renovate keeps this repo current, driven by [`renovate.json`](./renovate.json).
+Preview or apply updates locally with the
+[local-renovate tool](#running-renovate-locally).
 
 Two things are tracked, both kept as exact pins:
 
@@ -425,69 +336,79 @@ methods.
 
 ## Versioning
 
-Releases are **automatic** and driven by the [`VERSION`](./VERSION) file, which
-holds the `MAJOR.MINOR` (e.g. `0.1`). Actions and reusable workflows share the
-same tags (a tag is a snapshot of the whole repo), and consumers reference
-`DataLabHell/ci-actions/<action>@<tag>`.
+Each action is released **independently** with
+[release-please](https://github.com/googleapis/release-please) and
+[Conventional Commits](https://www.conventionalcommits.org/). A git tag is
+repo-wide, so the action name is encoded in it: releases are tagged
+`<action-path>/vMAJOR.MINOR.PATCH`, e.g. `docker/build-push/v0.2.1`.
 
-The [Release workflow](./.github/workflows/_release.yml) runs on every push to
-`main` and chains this repo's own actions (dogfooding): a **resolver** produces
-the next bare version, then the **release** actions tag it and publish it.
+### How a release happens
 
-1. [`versioning/auto-patch`](./versioning/auto-patch) reads `MAJOR.MINOR` from
-   `VERSION`, finds the highest existing `vMAJOR.MINOR.*` tag, and
-   **auto-increments the patch** (starting at `.0` if the series is new) →
-   outputs the next **bare** version `MAJOR.MINOR.PATCH`.
-2. [`release/tag-and-alias`](./release/tag-and-alias) takes that version, owns
-   the tag format (adds the `v`), creates the `vMAJOR.MINOR.PATCH` tag, and
-   moves the rolling `vMAJOR` / `vMAJOR.MINOR` aliases to it, outputting the
-   canonical tag.
-3. [`release/github-release`](./release/github-release) publishes a GitHub
-   Release for the tag from step 2.
+release-please attributes each commit to an action by the **file paths it
+touches**, so a `fix:` under `docker/build-push/` bumps only that action. On
+every push to `main` the
+[Release Please workflow](./.github/workflows/_release-please.yml) maintains a
+single **release PR**; merging it tags the changed actions and publishes a
+GitHub Release for each. The bump follows the commit type:
 
-Both halves are pluggable: swap step 1 for
-[`versioning/from-pyproject`](./versioning/from-pyproject) (or any step that
-outputs a bare `X.Y.Z` version) to change the version source, and drop step 3
-when you only need tags (e.g. a container build). The pieces compose.
+| Commit                                    | Bump  |
+| ----------------------------------------- | ----- |
+| `fix: …`                                  | patch |
+| `feat: …`                                 | minor |
+| `feat!: …` or a `BREAKING CHANGE:` footer | major |
 
-### Everyday changes → patch bump
-
-Merge a change to any action to `main`. You don't touch `VERSION`. Each such
-push releases the next patch automatically: `v0.2.0` → `v0.2.1` → …
-
-Only changes to action files cut a release: an `action.yml`, an action script
-(`*.sh`), or the `VERSION` file. **README/docs-only changes do not** (the
-workflow's `paths` filter skips them), so you don't get empty patch bumps for
-documentation edits.
-
-### Bumping major or minor
-
-Edit `VERSION` and merge it. Because the new series has no tags yet, the next
-release starts at patch `0`, and the alias tags follow:
-
-| `VERSION` change | Next release | Aliases moved |
-| ---------------- | ------------ | ------------- |
-| `0.1` → `0.2`    | `v0.2.0`     | `v0`, `v0.2`  |
-| `0.9` → `1.0`    | `v1.0.0`     | `v1`, `v1.0`  |
-
-Follow semver: bump **minor** for new features, **major** for breaking changes
-to an action's inputs or behavior.
+Current versions live in
+[`.release-please-manifest.json`](./.release-please-manifest.json); the action
+list is in [`release-please-config.json`](./release-please-config.json). Add a
+new action to both when you create it.
 
 ### What consumers pin to
 
-Three pins are available, in decreasing order of movement:
+Pin an **exact** per-action tag and let Renovate bump it:
 
-- `@vX.Y`: rolling minor alias; **the recommended pin** while on `0.x` (moves on
-  patches only, never breaking).
-- `@vX.Y.Z`: an exact, immutable release.
-- `@vX`: rolling major alias; **not recommended during `0.x`**, because it moves
-  with every release including the next minor, which may be breaking.
+```yaml
+- uses: DataLabHell/ci-actions/docker/build-push@docker/build-push/v0.2.1
+```
 
-Follow semver: while on `0.x`, breaking changes bump the **minor**, so a
-consumer pinned to `@v0.3` stays safe. The break lands on `0.4`, which `@v0.3`
-never follows. You don't need a `1.0` for this; stay on `0.x` as long as you
-like. Once the API is stable, bump `VERSION` to `1.0`; after that, breaking
-changes bump the major, `@v1` users are protected, and `@v1` becomes a safe pin.
+There are **no rolling `vX` aliases**. Exact tags are immutable, and Renovate
+opens a PR when a new version ships — the reviewable, security-friendly way to
+stay current. Find the current version of each action in the
+[Available actions](#available-actions) table or under
+[releases](https://github.com/DataLabHell/ci-actions/releases).
+
+### Keeping pins current with Renovate (consumer setup)
+
+Because the tags are path-prefixed (`docker/build-push/v0.2.1`), a consumer's
+Renovate needs an `extractVersion` rule to read the version out of them —
+otherwise it can't tell which tag is newer and won't raise bumps. Add this to
+the **consuming** repo's `renovate.json`:
+
+```json
+{
+  "packageRules": [
+    {
+      "matchPackageNames": ["DataLabHell/ci-actions/**"],
+      "extractVersion": "/v(?<version>\\d+\\.\\d+\\.\\d+)$"
+    }
+  ]
+}
+```
+
+With `helpers:pinGitHubActionDigests` (recommended), Renovate also rewrites the
+pin to an immutable commit SHA with the version in a trailing comment
+(`@<sha> # docker/build-push/v0.2.1`) and keeps both current. Validate this on
+one repo before relying on it — monorepo path-prefixed action tags are the one
+part of this that Renovate can be finicky about.
+
+### The `versioning/*` and `release/*` actions
+
+Note that this repo does **not** use its own release actions for its releases
+(that's release-please). [`versioning/auto-patch`](./versioning/auto-patch),
+[`versioning/from-pyproject`](./versioning/from-pyproject),
+[`release/tag-and-alias`](./release/tag-and-alias) and
+[`release/github-release`](./release/github-release) are **products for consumer
+repos** that prefer a VERSION-file flow over release-please. They're maintained
+here, just not dogfooded.
 
 ## Conventions
 

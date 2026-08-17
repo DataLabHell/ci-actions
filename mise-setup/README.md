@@ -20,7 +20,7 @@ what `mise prune` can reach to that set.
 
 ## Requirements
 
-- `actions/checkout@v4` before this step, so mise can see the project config.
+- `actions/checkout@v7` before this step, so mise can see the project config.
 - A mise config in the checked-out repo.
 - Nothing preinstalled on the runner: `jdx/mise-action` installs mise itself.
 
@@ -60,9 +60,9 @@ jobs:
   build:
     runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: DataLabHell/ci-actions/mise-setup@vX.Y
+      - uses: DataLabHell/ci-actions/mise-setup@mise-setup/vX.Y.Z
 
       - name: Run a project task
         shell: bash
@@ -72,7 +72,7 @@ jobs:
 To share one tool tree across every repo on the runner instead:
 
 ```yaml
-- uses: DataLabHell/ci-actions/mise-setup@vX.Y
+- uses: DataLabHell/ci-actions/mise-setup@mise-setup/vX.Y.Z
   with:
     global: "true"
 ```
