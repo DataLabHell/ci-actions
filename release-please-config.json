@@ -4,14 +4,14 @@
   "separator": "/",
   "include-component-in-tag": true,
   "packages": {
-    "s3-file-upload": {},
-    "docker/build-push": {},
-    "versioning/auto-patch": {},
-    "versioning/from-pyproject": {},
-    "release/tag-and-alias": {},
-    "release/github-release": {},
-    "python/lint": {},
-    "python/test": {},
-    "mise-setup": {}
+    "s3-file-upload": { "component": "s3-file-upload" },
+    "docker/build-push": { "component": "docker/build-push" },
+    "versioning/auto-patch": { "component": "versioning/auto-patch" },
+    "versioning/from-pyproject": { "component": "versioning/from-pyproject" },
+    "release/tag-and-alias": { "component": "release/tag-and-alias" },
+    "release/github-release": { "component": "release/github-release" },
+    "python/lint": { "component": "python/lint" },
+    "python/test": { "component": "python/test" },
+    "mise-setup": { "component": "mise-setup" }
   }
 }
