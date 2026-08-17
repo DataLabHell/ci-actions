@@ -6,6 +6,6 @@
   "release/tag-and-alias": "0.5.0",
   "release/github-release": "0.5.0",
   "python/lint": "0.5.0",
-  "python/test": "0.5.0",
+  "python/test": "0.5.1",
   "mise-setup": "0.5.0"
 }
