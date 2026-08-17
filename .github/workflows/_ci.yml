@@ -10,6 +10,8 @@ permissions:
 jobs:
   check:
     name: Check
+    # The release PR only touches generated changelogs and the manifest.
+    if: ${{ !startsWith(github.head_ref, 'release-please--') }}
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
