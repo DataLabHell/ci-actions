@@ -1,0 +1,20 @@
+name: Release Please
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write # create tags/releases and the release PR's branch
+  issues: write # apply the autorelease:* labels
+  pull-requests: write # open/update the release PR
+
+jobs:
+  release-please:
+    runs-on: self-hosted
+    steps:
+      - uses: googleapis/release-please-action@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json

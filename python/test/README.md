@@ -8,7 +8,7 @@ versions in a **matrix** in the caller (see below).
 
 - Nothing preinstalled — the action installs `uv` itself via
   [`astral-sh/setup-uv`](https://github.com/astral-sh/setup-uv).
-- `actions/checkout@v4` before this step.
+- `actions/checkout@v7` before this step.
 
 ## Inputs
 
@@ -31,8 +31,8 @@ jobs:
       matrix:
         python-version: ["3.12", "3.13", "3.14"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: DataLabHell/ci-actions/python/test@vX.Y
+      - uses: actions/checkout@v7
+      - uses: DataLabHell/ci-actions/python/test@python/test/vX.Y.Z
         with:
           python-version: ${{ matrix.python-version }}
 ```

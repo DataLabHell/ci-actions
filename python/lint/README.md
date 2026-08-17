@@ -13,7 +13,7 @@ default (reports a warning) so you can adopt typing gradually.
   installs `uv` (via
   [`astral-sh/setup-uv`](https://github.com/astral-sh/setup-uv)) for the ty
   step.
-- `actions/checkout@v4` before this step.
+- `actions/checkout@v7` before this step.
 
 ## Inputs
 
@@ -31,8 +31,8 @@ jobs:
   lint:
     runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v4
-      - uses: DataLabHell/ci-actions/python/lint@vX.Y
+      - uses: actions/checkout@v7
+      - uses: DataLabHell/ci-actions/python/lint@python/lint/vX.Y.Z
         with:
           paths: datalabhell scripts tests
           type-check-paths: datalabhell # ruff over everything, ty only on the package
@@ -41,7 +41,7 @@ jobs:
 Make typing block the build once it's clean:
 
 ```yaml
-- uses: DataLabHell/ci-actions/python/lint@vX.Y
+- uses: DataLabHell/ci-actions/python/lint@python/lint/vX.Y.Z
   with:
     type-check: error
 ```

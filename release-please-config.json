@@ -1,0 +1,17 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "release-type": "simple",
+  "separator": "/",
+  "include-component-in-tag": true,
+  "packages": {
+    "s3-file-upload": {},
+    "docker/build-push": {},
+    "versioning/auto-patch": {},
+    "versioning/from-pyproject": {},
+    "release/tag-and-alias": {},
+    "release/github-release": {},
+    "python/lint": {},
+    "python/test": {},
+    "mise-setup": {}
+  }
+}
