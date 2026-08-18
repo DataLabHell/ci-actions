@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.0](https://github.com/DataLabHell/ci-actions/compare/s3-file-upload-v0.5.0...s3-file-upload-v1.0.0) (2026-08-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* **s3-file-upload:** `profile` no longer defaults to `dlh`, pass it explicitly.
+
+### Features
+
+* **s3-file-upload:** enable credentials usage without aws profile ([c04e3c0](https://github.com/DataLabHell/ci-actions/commit/c04e3c0d59c56d89a83a22d3f6e7478ad8b223a0))
+* **s3-file-upload:** support credential inputs and the AWS credential chain ([a950cbc](https://github.com/DataLabHell/ci-actions/commit/a950cbc5ce076caa04f95e6600d4e572edf11e25))
+
 ## [0.5.0](https://github.com/DataLabHell/ci-actions/compare/s3-file-upload-v0.4.0...s3-file-upload-v0.5.0) (2026-08-17)
 
 
