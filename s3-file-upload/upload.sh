@@ -3,6 +3,11 @@ set -euo pipefail
 
 # Inputs are passed in as INPUT_* environment variables by action.yml.
 PROFILE="${INPUT_PROFILE:-}"
+ACCESS_KEY_ID="${INPUT_ACCESS_KEY_ID:-}"
+SECRET_ACCESS_KEY="${INPUT_SECRET_ACCESS_KEY:-}"
+SESSION_TOKEN="${INPUT_SESSION_TOKEN:-}"
+ENDPOINT_URL="${INPUT_ENDPOINT_URL:-}"
+REGION="${INPUT_REGION:-}"
 BUCKET="${INPUT_BUCKET:-}"
 SOURCE="${INPUT_SOURCE:-}"
 DEST_PREFIX="${INPUT_DESTINATION:-}"
@@ -10,28 +15,50 @@ INCLUDE="${INPUT_INCLUDE:-}"
 EXCLUDE="${INPUT_EXCLUDE:-}"
 DELETE_REMOVED="${INPUT_DELETE_REMOVED:-false}"
 
-# The AWS CLI must already be on the runner (we never install at CI time).
+# The AWS CLI must already be on the runner; we never install at CI time.
 if ! command -v aws &>/dev/null; then
   echo "::error::aws CLI not found on this runner. Install AWS CLI v2 (see https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)"
   exit 1
 fi
 aws --version
 
-# All connection settings (endpoint, region) and credentials come from this AWS
-# profile, configured on the runner in ~/.aws/config and ~/.aws/credentials. We
-# don't touch the AWS config, so its settings apply as-is.
-if [ -z "$PROFILE" ]; then
-  echo "::error::'profile' is required. Configure an AWS profile on the runner (endpoint, region, credentials) and pass its name."
-  exit 1
+# Explicit keys win, so a repo can upload from any runner; otherwise fall back
+# to a profile configured on the runner. We never write to the AWS config.
+AWS_ARGS=()
+if [ -n "$ACCESS_KEY_ID" ] || [ -n "$SECRET_ACCESS_KEY" ]; then
+  if [ -z "$ACCESS_KEY_ID" ] || [ -z "$SECRET_ACCESS_KEY" ]; then
+    echo "::error::'access-key-id' and 'secret-access-key' must be given together."
+    exit 1
+  fi
+  # Exported, not passed as flags, to keep them out of the process list.
+  export AWS_ACCESS_KEY_ID="$ACCESS_KEY_ID"
+  export AWS_SECRET_ACCESS_KEY="$SECRET_ACCESS_KEY"
+  if [ -n "$SESSION_TOKEN" ]; then
+    export AWS_SESSION_TOKEN="$SESSION_TOKEN"
+  fi
+  echo "Authenticating with credentials passed to the action"
+else
+  if [ -z "$PROFILE" ]; then
+    echo "::error::no credentials given. Pass 'access-key-id' + 'secret-access-key', or name a 'profile' configured on the runner."
+    exit 1
+  fi
+
+  # A missing profile almost always means a GitHub-hosted runner. Fail fast
+  # rather than with a confusing error deep inside 'aws s3 sync'.
+  if ! aws configure list-profiles 2>/dev/null | grep -qx "$PROFILE"; then
+    echo "::error::AWS profile '$PROFILE' not found on this runner. Either configure it in ~/.aws (config + credentials), or pass 'access-key-id' and 'secret-access-key' instead."
+    exit 1
+  fi
+  AWS_ARGS+=(--profile "$PROFILE")
+  echo "Authenticating with runner profile '$PROFILE'"
 fi
 
-# The profile must actually exist on this runner. If it doesn't, this is almost
-# always a job running on a GitHub-hosted runner (e.g. self-hosted) instead of
-# a self-hosted one where ~/.aws is set up. Fail fast with a clear cause rather
-# than a confusing credentials error deep inside 'aws s3 sync'.
-if ! aws configure list-profiles 2>/dev/null | grep -qx "$PROFILE"; then
-  echo "::error::AWS profile '$PROFILE' not found on this runner. s3-file-upload must run on a self-hosted runner where the profile is configured in ~/.aws (config + credentials)."
-  exit 1
+# Applied in both modes; with a profile these override what it configures.
+if [ -n "$ENDPOINT_URL" ]; then
+  AWS_ARGS+=(--endpoint-url "$ENDPOINT_URL")
+fi
+if [ -n "$REGION" ]; then
+  AWS_ARGS+=(--region "$REGION")
 fi
 
 DEST="s3://${BUCKET}"
@@ -44,9 +71,8 @@ if [ ! -d "$SOURCE" ]; then
   exit 1
 fi
 
-# Build include/exclude filters. AWS CLI applies filters in the given order, so
-# exclude everything first, re-include the requested patterns, then apply any
-# explicit excludes on top.
+# Filters apply in order: exclude everything, re-include the requested
+# patterns, then layer explicit excludes on top.
 FILTER_ARGS=(--exclude "*")
 IFS=',' read -ra INCLUDES <<<"$INCLUDE"
 for pattern in "${INCLUDES[@]}"; do
@@ -63,8 +89,7 @@ fi
 
 DELETE_ARGS=()
 if [ "$DELETE_REMOVED" = "true" ]; then
-  # --delete against a bare bucket root would mirror-delete every other
-  # pipeline's files in this (shared) bucket. Require a destination prefix.
+  # --delete at the bucket root would wipe other pipelines' files.
   if [ -z "$DEST_PREFIX" ]; then
     echo "::error::delete-removed=true requires a non-empty 'destination' prefix; refusing to run --delete against the bucket root '$DEST'"
     exit 1
@@ -74,7 +99,7 @@ fi
 
 echo "Uploading '$SOURCE' -> '$DEST'"
 aws s3 sync "$SOURCE" "$DEST" \
-  --profile "$PROFILE" \
+  "${AWS_ARGS[@]}" \
   "${FILTER_ARGS[@]}" \
   "${DELETE_ARGS[@]}"
 

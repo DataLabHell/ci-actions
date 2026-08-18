@@ -16,10 +16,36 @@ inputs:
   profile:
     description:
       "Named AWS CLI profile configured on the runner (~/.aws/config +
-      ~/.aws/credentials). The profile provides the endpoint, region and
-      credentials."
-    required: true
+      ~/.aws/credentials), providing endpoint, region and credentials. Used only
+      when 'access-key-id' and 'secret-access-key' are not given."
+    required: false
     default: "dlh"
+  access-key-id:
+    description:
+      "Access key to authenticate with instead of a runner profile. Pass from
+      secrets. Requires 'secret-access-key'."
+    required: false
+    default: ""
+  secret-access-key:
+    description: "Secret key matching 'access-key-id'. Pass from secrets."
+    required: false
+    default: ""
+  session-token:
+    description: "Optional session token, for temporary credentials."
+    required: false
+    default: ""
+  endpoint-url:
+    description:
+      "S3 endpoint URL, e.g. https://s3.example.internal. Required with
+      'access-key-id' for non-AWS buckets; overrides the profile's endpoint when
+      both are given."
+    required: false
+    default: ""
+  region:
+    description:
+      "AWS region. Overrides the profile's region when both are given."
+    required: false
+    default: ""
   source:
     description: "Folder in the repo to upload from"
     required: false
@@ -62,6 +88,11 @@ runs:
       run: bash "${{ github.action_path }}/upload.sh"
       env:
         INPUT_PROFILE: ${{ inputs.profile }}
+        INPUT_ACCESS_KEY_ID: ${{ inputs.access-key-id }}
+        INPUT_SECRET_ACCESS_KEY: ${{ inputs.secret-access-key }}
+        INPUT_SESSION_TOKEN: ${{ inputs.session-token }}
+        INPUT_ENDPOINT_URL: ${{ inputs.endpoint-url }}
+        INPUT_REGION: ${{ inputs.region }}
         INPUT_BUCKET: ${{ inputs.bucket }}
         INPUT_SOURCE: ${{ inputs.source }}
         INPUT_DESTINATION: ${{ inputs.destination }}
