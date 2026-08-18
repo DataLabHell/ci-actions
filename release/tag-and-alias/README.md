@@ -1,12 +1,12 @@
 # release/tag-and-alias
 
 Creates a `vMAJOR.MINOR.PATCH` tag and force-moves the rolling `vMAJOR` /
-`vMAJOR.MINOR` alias tags to it. **No GitHub Release** — use this when you only
-need the git tags (e.g. a container build that tags the commit and pushes an
-image), and add [`release/github-release`](../github-release) afterwards if you
-also want a Release page.
+`vMAJOR.MINOR` alias tags to it. It creates no GitHub Release, so use it when
+you only need the git tags (e.g. a container build that tags the commit and
+pushes an image), and add [`release/github-release`](../github-release)
+afterwards if you also want a Release page.
 
-Uses only `git` — no `gh` CLI — so it runs on self-hosted runners.
+Uses only `git`, never the `gh` CLI, so it runs on self-hosted runners.
 
 ## Requirements
 
@@ -18,14 +18,14 @@ Uses only `git` — no `gh` CLI — so it runs on self-hosted runners.
 
 | Input | Required | Default | Description                                                                                                                                                           |
 | ----- | -------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `tag` | yes      | —       | Version to tag, `MAJOR.MINOR.PATCH` with an optional leading `v` (resolvers emit the bare form). This action normalizes it and always creates a `v`-prefixed git tag. |
+| `tag` | yes      | n/a     | Version to tag, `MAJOR.MINOR.PATCH` with an optional leading `v` (resolvers emit the bare form). This action normalizes it and always creates a `v`-prefixed git tag. |
 
 ## Outputs
 
 The tag and its rolling aliases are exposed so a later step can reuse the exact
-same set — e.g. tagging a container image to mirror the git refs. Naming follows
-one rule: **`tag`/`tags` carry the `v`** (git-ref form), **`version`/`versions`
-are bare** (no `v`).
+same set, for example tagging a container image to mirror the git refs. Naming
+follows one rule: `tag`/`tags` carry the `v` (git-ref form),
+`version`/`versions` are bare.
 
 | Output     | Example              | Description                                                 |
 | ---------- | -------------------- | ----------------------------------------------------------- |

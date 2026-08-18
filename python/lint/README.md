@@ -9,7 +9,7 @@ default (reports a warning) so you can adopt typing gradually.
 
 ## Requirements
 
-- Nothing preinstalled — `ruff-action` brings its own ruff, and the action
+- Nothing preinstalled. `ruff-action` brings its own ruff, and the action
   installs `uv` (via
   [`astral-sh/setup-uv`](https://github.com/astral-sh/setup-uv)) for the ty
   step.

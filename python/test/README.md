@@ -2,11 +2,11 @@
 
 Install a Python project with `uv` and run pytest, optionally pinned to a
 specific Python version. One version per invocation; run several by putting the
-versions in a **matrix** in the caller (see below).
+versions in a matrix in the caller (see below).
 
 ## Requirements
 
-- Nothing preinstalled — the action installs `uv` itself via
+- Nothing preinstalled. The action installs `uv` itself via
   [`astral-sh/setup-uv`](https://github.com/astral-sh/setup-uv).
 - `actions/checkout@v7` before this step.
 
@@ -18,7 +18,7 @@ versions in a **matrix** in the caller (see below).
 | `sync-args`      | no       | `--all-groups --all-extras` | Args passed to `uv sync`.                                             |
 | `pytest-args`    | no       | `''`                        | Extra args passed to pytest (e.g. `-q tests/unit`).                   |
 
-## Usage — matrix over Python versions
+## Usage: matrix over Python versions
 
 `python-version` is a single value, so the matrix lives in the caller's job:
 
@@ -41,5 +41,5 @@ jobs:
 
 - When `python-version` is set, it's passed to both `uv sync` and `uv run` so
   the environment and the test run use the same interpreter.
-- The matrix (and its `fail-fast`) belongs to the caller — a composite action
-  can't fan one out itself.
+- The matrix (and its `fail-fast`) belongs to the caller, because a composite
+  action can't fan one out itself.

@@ -101,9 +101,9 @@ it to the deps of interest, and put the manifests they reference under `in/`.
 
 ## Notes
 
-- **Alignment uses `awk`.** `column` is absent on some machines and its `-t`
-  output differs between BSD and GNU, so the listing would be neither portable
-  nor testable.
-- **Distribution is not wired up yet.** The script lives here as the single
-  source; a later release process will publish it so mise can install it with
-  the `github` backend as `local-renovate@vX.Y.Z`.
+- Alignment uses `awk`. `column` is absent on some machines and its `-t` output
+  differs between BSD and GNU, so the listing would be neither portable nor
+  testable.
+- Distribution is not wired up yet. The script lives here as the single source;
+  a later release process will publish it so mise can install it with the
+  `github` backend as `local-renovate@vX.Y.Z`.

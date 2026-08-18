@@ -1,50 +1,49 @@
 # docker/build-push
 
-Build a container image with Docker **Buildx** and push it to a registry, with
+Build a container image with Docker Buildx and push it to a registry, with
 consistent tagging and layer caching. It's a thin composite wrapper around the
 official
 [`docker/setup-buildx-action`](https://github.com/docker/setup-buildx-action),
 [`docker/login-action`](https://github.com/docker/login-action) and
-[`docker/build-push-action`](https://github.com/docker/build-push-action) — it
-just removes the boilerplate those three always need (login, buildx setup,
-lowercased ref, cache config, tag assembly).
+[`docker/build-push-action`](https://github.com/docker/build-push-action). It
+removes the boilerplate those three always need: login, buildx setup, lowercased
+ref, cache config, tag assembly.
 
-Works with **GHCR** out of the box and with **any other registry** (including a
+Works with GHCR out of the box, and with any other registry (including a
 local/on-prem one like the org RustFS/registry) by pointing `registry` at it and
 passing credentials.
 
-> **Why Buildx and not `docker build`/`push`?** With `push: true`, Buildx pushes
+> Why Buildx and not `docker build`/`push`? With `push: true`, Buildx pushes
 > straight to the registry and never loads the image into the runner's local
-> daemon — so there's **no cleanup step** (`docker rmi` / `image prune`) needed,
-> even on persistent self-hosted runners.
+> daemon, so no cleanup step (`docker rmi` / `image prune`) is needed, even on
+> persistent self-hosted runners.
 
 ## Requirements
 
-The **caller owns the job**. A composite action can't set `runs-on`, `matrix`,
-`permissions`, or triggers — provide those yourself:
+The caller owns the job. A composite action can't set `runs-on`, `matrix`,
+`permissions` or triggers, so provide those yourself:
 
 - `runs-on` any runner with Docker available.
-- For **GHCR**: `permissions: { packages: write }` (and the default
-  `GITHUB_TOKEN` is enough — no extra secret).
+- For GHCR: `permissions: { packages: write }`. The default `GITHUB_TOKEN` is
+  enough, with no extra secret.
 - `actions/checkout@v7` before this step.
-- **You never pass credentials.** Authentication is decided by the `registry`:
+- You never pass credentials. Authentication is decided by the `registry`:
   - `ghcr.io` → logs in with the workflow's `GITHUB_TOKEN` (needs
     `permissions: packages: write`).
   - `truenas` (local) → no login step; the push uses the credentials configured
-    on the runner (`~/.docker/config.json`), which are **provisioned by
-    Ansible** when the runner is set up. Just run on a `self-hosted` runner (see
-    [Local registry](#example-3--local-registry)). The action **fails fast** if
-    it detects a GitHub-hosted runner here, since it won't have those
-    credentials.
+    on the runner (`~/.docker/config.json`), which Ansible provisions when the
+    runner is set up. Run on a `self-hosted` runner (see
+    [Local registry](#example-3-local-registry)). The action fails fast if it
+    detects a GitHub-hosted runner here, since it won't have those credentials.
 
 ## Inputs
 
 | Input        | Required | Default                    | Description                                                                                                           |
 | ------------ | -------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `image`      | yes      | —                          | Final path segment, e.g. `api` → `<registry>/<namespace>/api`.                                                        |
+| `image`      | yes      | n/a                        | Final path segment, e.g. `api` → `<registry>/<namespace>/api`.                                                        |
 | `namespace`  | no       | `${{ github.repository }}` | Path between registry and image. Defaults to `owner/name` (matches GHCR).                                             |
 | `registry`   | no       | `ghcr.io`                  | Allowlisted registry: `ghcr.io` (alias `ghcr`) or `truenas.dlh-k8s.com:5000` (alias `truenas`). Anything else errors. |
-| `tags`       | no       | `latest`                   | Newline-separated tag **suffixes** (each becomes `<ref>:<suffix>`). Blank lines skipped.                              |
+| `tags`       | no       | `latest`                   | Newline-separated tag suffixes (each becomes `<ref>:<suffix>`). Blank lines skipped.                                  |
 | `context`    | no       | `.`                        | Build context directory.                                                                                              |
 | `dockerfile` | no       | `''`                       | Dockerfile path (empty = default `Dockerfile` in the context, e.g. set `Dockerfile.api`).                             |
 | `cache`      | no       | `gha`                      | Layer cache backend: `gha`, `registry`, or `none` (see [Caching](#caching)).                                          |
@@ -63,13 +62,13 @@ The **caller owns the job**. A composite action can't set `runs-on`, `matrix`,
 | ---------- | ---------------------------- | --------------------------------------------------------------------------- |
 | `gha`      | GitHub-hosted runners        | GitHub Actions cache, scoped per `image`. The default.                      |
 | `registry` | self-hosted / local registry | Cache stored as a `<ref>:buildcache` image. Only written when `push: true`. |
-| `none`     | —                            | No layer cache.                                                             |
+| `none`     | anywhere                     | No layer cache.                                                             |
 
 ## Multi-arch builds (Raspberry Pi 5 & co.)
 
-By default the image is built for the runner's own platform only — the runners
-are x86-64, so `linux/amd64`. To also run the image on an **arm64** device such
-as a Raspberry Pi 5, list both platforms:
+By default the image is built for the runner's own platform only. The runners
+are x86-64, so that means `linux/amd64`. To also run the image on an arm64
+device such as a Raspberry Pi 5, list both platforms:
 
 ```yaml
 - uses: DataLabHell/ci-actions/docker/build-push@docker/build-push/vX.Y.Z
@@ -84,26 +83,26 @@ as a Raspberry Pi 5, list both platforms:
 ```
 
 A comma-separated one-liner (`platforms: linux/amd64,linux/arm64`) works too.
-Each tag then points at a **manifest list**, and `docker pull` on the Pi picks
-the arm64 variant automatically.
+Each tag then points at a manifest list, and `docker pull` on the Pi picks the
+arm64 variant automatically.
 
 How it works and what to watch out for:
 
-- Because the runner is x86-64, any non-amd64 platform is built through **QEMU
-  emulation**. The action installs it (`docker/setup-qemu-action`) only when a
-  foreign platform is actually requested — native-only builds are unaffected.
-- **Emulated builds are slow.** Compile-heavy steps (native Python wheels,
-  Go/Rust builds) can take several times longer than the amd64 build. Keep the
-  layer cache on, and prefer prebuilt arm64 wheels/base images where you can.
-- Your **base images must have arm64 variants** (most official ones do). Avoid
+- Because the runner is x86-64, any non-amd64 platform is built through QEMU
+  emulation. The action installs it (`docker/setup-qemu-action`) only when a
+  foreign platform is actually requested, so native-only builds are unaffected.
+- Emulated builds are slow. Compile-heavy steps (native Python wheels, Go/Rust
+  builds) can take several times longer than the amd64 build. Keep the layer
+  cache on, and prefer prebuilt arm64 wheels/base images where you can.
+- Your base images must have arm64 variants (most official ones do). Avoid
   pinning a digest, which pins a single architecture.
-- If you build for arm64 **only**, note that the resulting image can't run on
-  the runner — fine for pushing, but any in-workflow smoke test of it will fail.
+- If you build for arm64 only, the resulting image can't run on the runner. That
+  is fine for pushing, but any in-workflow smoke test of it will fail.
 - With `push: false` a multi-platform build is validated but produces no local
   image (buildx can't load a manifest list into the daemon). That's exactly what
   you want for PR validation.
 
-## Example 1 — GHCR, matrix build (sha + latest)
+## Example 1: GHCR, matrix build (sha + latest)
 
 ```yaml
 jobs:
@@ -127,7 +126,7 @@ jobs:
             ${{ github.sha }}
 ```
 
-## Example 2 — GHCR with a version tag from `pyproject.toml`
+## Example 2: GHCR with a version tag from `pyproject.toml`
 
 Reuse the repo's [`versioning/from-pyproject`](../../versioning/from-pyproject)
 resolver, then feed its version in as a tag suffix (strip the leading `v`, since
@@ -152,11 +151,11 @@ steps:
         ${{ steps.ver.outputs.version }}   # e.g. 2.3.4 (blank lines are skipped)
 ```
 
-## Example 3 — Local registry
+## Example 3: local registry
 
-Point `registry` at the alias and run on a `self-hosted` runner. **No
-credentials in the workflow** — the push uses the docker credentials configured
-on the runner. Use `cache: registry` since there's no GitHub-hosted cache there:
+Point `registry` at the alias and run on a `self-hosted` runner. No credentials
+go in the workflow; the push uses the docker credentials configured on the
+runner. Use `cache: registry`, since there's no GitHub-hosted cache there:
 
 ```yaml
 jobs:
@@ -175,22 +174,22 @@ jobs:
             ${{ github.sha }}
 ```
 
-The registry credentials are **provisioned by Ansible** as part of runner setup
-— it runs `docker login` for the user the runner service runs as, so the
-credential is already in `~/.docker/config.json` on the node. Nothing to do in
-the workflow or per repo.
+Ansible provisions the registry credentials as part of runner setup. It runs
+`docker login` for the user the runner service runs as, so the credential is
+already in `~/.docker/config.json` on the node. Nothing to do in the workflow or
+per repo.
 
 > Same trade-off as the S3 action's runner profile: the credential lives once on
-> the runner instead of as a per-repo secret — convenient, but any job on that
+> the runner instead of as a per-repo secret. Convenient, but any job on that
 > runner can push to that registry.
 
 ## Matrix + release (two jobs)
 
-To build **several images** and tag them with a **single release version**,
-split into two jobs: tag **once**, then fan the build out over a matrix. Running
+To build several images and tag them with a single release version, split into
+two jobs: tag once, then fan the build out over a matrix. Running
 `tag-and-alias` inside the matrix would make every cell try to create the same
-tag and collide — so it lives in its own job, and the version crosses to the
-build job as a job output.
+tag and collide, so it lives in its own job and the version crosses to the build
+job as a job output.
 
 ```yaml
 jobs:
@@ -230,29 +229,29 @@ jobs:
 ```
 
 The multiline `tags` output survives the job boundary, so it drops straight into
-each matrix cell's `tags`. For a **single** image you can do this in one job;
-see the
+each matrix cell's `tags`. For a single image you can do this in one job; see
+the
 [build-and-push-a-versioned-image example](../../README.md#build-and-push-a-versioned-image)
 in the top README.
 
 ## Notes
 
-- **No manual cleanup.** With `push: true` the image is pushed directly and not
+- No manual cleanup. With `push: true` the image is pushed directly and not
   loaded into the local daemon, so persistent self-hosted runners don't
-  accumulate images — no `docker rmi`/`prune` step required.
-- **Tags are suffixes.** You pass `latest` / a sha / a version; the action
+  accumulate images and no `docker rmi`/`prune` step is required.
+- Tags are suffixes. You pass `latest`, a sha or a version, and the action
   prefixes each with the lowercased `<registry>/<namespace>/<image>` ref. Empty
   lines are dropped, so an optional `${{ ... }}` version that resolves to `''`
   simply adds no tag.
-- **Mirror your release tags.** In a release job, feed
+- Mirror your release tags. In a release job, feed
   [`release/tag-and-alias`](../../release/tag-and-alias)'s `versions` output
-  (bare — or `tags` for the `v`-prefixed form) straight into this action's
-  `tags` input to tag the image with the same rolling `0.1.3` / `0.1` / `0` set
-  as the git refs.
-- **PR builds.** Set `push: ${{ github.event_name != 'pull_request' }}` to build
+  (bare, or `tags` for the `v`-prefixed form) straight into this action's `tags`
+  input to tag the image with the same rolling `0.1.3` / `0.1` / `0` set as the
+  git refs.
+- For PR builds, set `push: ${{ github.event_name != 'pull_request' }}` to build
   (validate) on PRs without pushing. With `cache: registry`, the cache is only
   written when pushing, so PRs won't try to mutate the registry.
-- **Whole-job duplication?** If several repos repeat the _entire_ build job
-  (matrix + needs + permissions) identically, that's the one case a reusable
-  workflow (`workflow_call`) fits better than this action — it can own the job.
-  This action is the right tool when you want a single, composable build step.
+- If several repos repeat the entire build job (matrix, needs, permissions)
+  identically, that's the one case where a reusable workflow (`workflow_call`)
+  fits better than this action, because it can own the job. This action is the
+  right tool when you want a single composable build step.

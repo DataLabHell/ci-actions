@@ -1,10 +1,10 @@
 # versioning/auto-patch
 
-Reads `MAJOR.MINOR` from a version file (default `VERSION`) and
-**auto-increments the patch** based on the existing `vMAJOR.MINOR.*` tags,
-outputting the next **bare** version `X.Y.Z`. Feed it into the release actions
+Reads `MAJOR.MINOR` from a version file (default `VERSION`) and auto-increments
+the patch based on the existing `vMAJOR.MINOR.*` tags, outputting the next bare
+version `X.Y.Z`. Feed it into the release actions
 ([`release/tag-and-alias`](../../release/tag-and-alias) +
-[`release/github-release`](../../release/github-release)) — this is the default
+[`release/github-release`](../../release/github-release)). This is the default
 versioning strategy: you set `MAJOR.MINOR`, the patch takes care of itself.
 
 The resolver emits only the bare version;
@@ -55,5 +55,6 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-Everyday changes → next patch (`v0.1.3` → `v0.1.4`). To start a new series, edit
-the file (`0.1` → `0.2`); with no `v0.2.*` tags yet it starts at `v0.2.0`.
+Everyday changes get the next patch (`v0.1.3` becomes `v0.1.4`). To start a new
+series, edit the file from `0.1` to `0.2`; with no `v0.2.*` tags yet it starts
+at `v0.2.0`.

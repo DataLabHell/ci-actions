@@ -1,9 +1,9 @@
 # release/github-release
 
-Publishes a **GitHub Release** for an existing tag, with auto-generated notes
-and optional attached assets. A thin wrapper over `softprops/action-gh-release`
-with our defaults. Pair it after [`release/tag-and-alias`](../tag-and-alias)
-when you want a Release page in addition to the tags.
+Publishes a GitHub Release for an existing tag, with auto-generated notes and
+optional attached assets. A thin wrapper over `softprops/action-gh-release` with
+our defaults. Pair it after [`release/tag-and-alias`](../tag-and-alias) when you
+want a Release page in addition to the tags.
 
 ## Requirements
 
@@ -14,8 +14,8 @@ when you want a Release page in addition to the tags.
 
 | Input           | Required | Default | Description                                                      |
 | --------------- | -------- | ------- | ---------------------------------------------------------------- |
-| `tag`           | yes      | —       | Existing tag to publish a Release for, e.g. `v1.2.3`.            |
-| `github-token`  | yes      | —       | Token to create the release. Pass `${{ secrets.GITHUB_TOKEN }}`. |
+| `tag`           | yes      | n/a     | Existing tag to publish a Release for, e.g. `v1.2.3`.            |
+| `github-token`  | yes      | n/a     | Token to create the release. Pass `${{ secrets.GITHUB_TOKEN }}`. |
 | `release-notes` | no       | `true`  | Auto-generate release notes.                                     |
 | `files`         | no       | `''`    | Newline- or comma-separated glob(s) of assets to attach.         |
 
