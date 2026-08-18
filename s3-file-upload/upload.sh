@@ -22,8 +22,8 @@ if ! command -v aws &>/dev/null; then
 fi
 aws --version
 
-# Explicit keys win, so a repo can upload from any runner; otherwise fall back
-# to a profile configured on the runner. We never write to the AWS config.
+# Explicit keys win, then a named runner profile. With neither, the CLI falls
+# back to its own chain. We never write to the AWS config.
 AWS_ARGS=()
 if [ -n "$ACCESS_KEY_ID" ] || [ -n "$SECRET_ACCESS_KEY" ]; then
   if [ -z "$ACCESS_KEY_ID" ] || [ -z "$SECRET_ACCESS_KEY" ]; then
@@ -37,16 +37,14 @@ if [ -n "$ACCESS_KEY_ID" ] || [ -n "$SECRET_ACCESS_KEY" ]; then
     export AWS_SESSION_TOKEN="$SESSION_TOKEN"
   fi
   echo "Authenticating with credentials passed to the action"
+elif [ -z "$PROFILE" ]; then
+  # The CLI finds its own credentials. Passing --profile would override them.
+  echo "Authenticating with the ambient AWS environment"
 else
-  if [ -z "$PROFILE" ]; then
-    echo "::error::no credentials given. Pass 'access-key-id' + 'secret-access-key', or name a 'profile' configured on the runner."
-    exit 1
-  fi
-
-  # A missing profile almost always means a GitHub-hosted runner. Fail fast
-  # rather than with a confusing error deep inside 'aws s3 sync'.
+  # Fail fast when the profile isn't on the runner, rather than with a
+  # confusing error deep inside 'aws s3 sync'.
   if ! aws configure list-profiles 2>/dev/null | grep -qx "$PROFILE"; then
-    echo "::error::AWS profile '$PROFILE' not found on this runner. Either configure it in ~/.aws (config + credentials), or pass 'access-key-id' and 'secret-access-key' instead."
+    echo "::error::AWS profile '$PROFILE' not found on this runner. Configure it in ~/.aws (config + credentials), pass 'access-key-id' and 'secret-access-key', or drop the 'profile' input to let the AWS CLI resolve credentials itself."
     exit 1
   fi
   AWS_ARGS+=(--profile "$PROFILE")

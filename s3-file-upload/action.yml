@@ -17,9 +17,11 @@ inputs:
     description:
       "Named AWS CLI profile configured on the runner (~/.aws/config +
       ~/.aws/credentials), providing endpoint, region and credentials. Used only
-      when 'access-key-id' and 'secret-access-key' are not given."
+      when 'access-key-id' and 'secret-access-key' are not given. Left empty,
+      the AWS CLI resolves credentials itself (AWS_* vars, OIDC role, instance
+      profile)."
     required: false
-    default: "dlh"
+    default: ""
   access-key-id:
     description:
       "Access key to authenticate with instead of a runner profile. Pass from

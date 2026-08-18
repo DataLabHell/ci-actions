@@ -2,19 +2,21 @@
 
 Reusable composite GitHub Action that uploads files/folders from a repo to an
 S3-compatible bucket (the org RustFS store) using the AWS CLI. Credentials come
-either from a named AWS profile configured on the runner, or from inputs you
-pass in (see [Connection & credentials](#connection--credentials)).
+from a named AWS profile on the runner, from inputs you pass in, or from the
+ambient AWS environment (see
+[Connection & credentials](#connection--credentials)).
 
 No Docker required (composite action, not a container action).
 
 ## Requirements
 
-- **AWS CLI v2.13+** on the runner (needed for `endpoint_url` in the profile
-  config). Our self-hosted runners already include it; the action installs
-  nothing at CI time, it just checks `aws` is present and fails clearly if not.
-- For the profile mode, a **self-hosted runner** with the `dlh` AWS profile
-  configured. GitHub-hosted runners won't have it, so pass credentials as inputs
-  there instead.
+- AWS CLI v2.13+ on the runner (needed for `endpoint_url` in the profile
+  config). Our self-hosted runners already include it, and GitHub-hosted runners
+  ship it preinstalled. The action installs nothing at CI time, it just checks
+  `aws` is present and fails clearly if not. On a bare self-hosted runner, add
+  an install step such as `unfor19/install-aws-cli-action` first.
+- For the profile mode, a self-hosted runner with that AWS profile configured.
+  GitHub-hosted runners won't have one, so use another mode there.
 
 ## Using it from another repo
 
@@ -32,19 +34,52 @@ an exact tag rather than `@main`; Renovate keeps it current.
 
 ## Connection & credentials
 
-By default the action uses the `dlh` AWS profile configured on the runner. That
-profile supplies the endpoint, region and credentials, so a normal upload needs
-no credentials in the workflow at all:
+Three ways to authenticate, checked in this order:
+
+| Given                                 | Effect                                       |
+| ------------------------------------- | -------------------------------------------- |
+| `access-key-id` + `secret-access-key` | Those keys are used; `profile` is ignored.   |
+| `profile`                             | `--profile <name>` is passed to the AWS CLI. |
+| neither (the default)                 | The AWS CLI resolves credentials itself.     |
+
+### The default: let the AWS CLI resolve credentials
+
+With no `profile` and no keys, the action passes no credentials of its own, so
+the CLI falls back to its usual chain: `AWS_*` environment variables, an OIDC
+role, an instance profile. That composes with
+[`aws-actions/configure-aws-credentials`](https://github.com/aws-actions/configure-aws-credentials):
 
 ```yaml
+- uses: aws-actions/configure-aws-credentials@<sha>
+  with:
+    role-to-assume: arn:aws:iam::123456789012:role/ci-upload
+    aws-region: eu-central-1
+
 - uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload/vX.Y.Z
   with:
+    bucket: reports
     source: outputs
     destination: my-service
 ```
 
-The `dlh` profile is configured once per runner (as the user the runner service
-runs as), in `~/.aws/config` and `~/.aws/credentials`:
+Setting `profile` here would break it: `--profile` takes precedence over the
+environment.
+
+### A profile on the runner
+
+Name a profile and it supplies the endpoint, region and credentials, so nothing
+sensitive goes in the workflow. Inside the org that profile is `dlh`:
+
+```yaml
+- uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload/vX.Y.Z
+  with:
+    profile: dlh
+    source: outputs
+    destination: my-service
+```
+
+It is configured once per runner (as the user the runner service runs as), in
+`~/.aws/config` and `~/.aws/credentials`:
 
 ```ini
 # ~/.aws/config
@@ -62,21 +97,19 @@ aws_secret_access_key = wJalr...
 ```
 
 The action never touches the runner's AWS config, so the profile's own settings
-take effect and credentials never appear in the workflow. It fails fast if the
-named profile isn't configured.
+take effect. It fails fast if the named profile isn't configured, which usually
+means the job landed on a GitHub-hosted runner.
 
 > **Why the profile lives on the runner (not GitHub secrets):** the free GitHub
-> plan doesn't offer **organization-wide** secrets/variables for private repos,
-> so sharing credentials that way would mean re-adding them as secrets in every
-> repo. Configuring the `dlh` profile once per self-hosted runner keeps the
-> credentials in one place and every repo on that runner uses them with no
-> per-repo setup.
+> plan doesn't offer organization-wide secrets/variables for private repos, so
+> sharing credentials that way would mean re-adding them as secrets in every
+> repo. Configuring `dlh` once per self-hosted runner keeps the credentials in
+> one place and every repo on that runner uses them with no per-repo setup.
 
-### Passing credentials instead
+### Keys passed in
 
-When there is no profile on the runner (a GitHub-hosted runner, a different
-store, a one-off bucket), pass `access-key-id` and `secret-access-key`. They
-take precedence over `profile`, and the profile is then never looked up:
+For a store the runner knows nothing about, pass `access-key-id` and
+`secret-access-key`. They take precedence over `profile`:
 
 ```yaml
 - uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload/vX.Y.Z
@@ -91,21 +124,21 @@ take precedence over `profile`, and the profile is then never looked up:
 ```
 
 `endpoint-url` is what points the CLI at a non-AWS store; omit it for real AWS
-S3. `region` is what the profile would otherwise supply, and the CLI errors out
+S3. `region` is what a profile would otherwise supply, and the CLI errors out
 without one unless the runner sets `AWS_DEFAULT_REGION`. Add `session-token` for
 temporary credentials. Both keys must be given together, and the values are read
 from the environment rather than passed as CLI flags so they don't land in the
 process list. Always pass them from `secrets`, never inline.
 
-`endpoint-url` and `region` also work alongside a profile, overriding whatever
-it configures.
+`endpoint-url` and `region` work in all three modes, overriding whatever a
+profile configures.
 
 ## Inputs
 
 | Input               | Required | Default   | Description                                                                                                                                                       |
 | ------------------- | -------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `bucket`            | no       | `reports` | Target bucket name.                                                                                                                                               |
-| `profile`           | no       | `dlh`     | AWS CLI profile configured on the runner; supplies endpoint, region and credentials. Ignored when `access-key-id` is given.                                       |
+| `profile`           | no       | `''`      | AWS CLI profile on the runner; supplies endpoint, region and credentials. Ignored when `access-key-id` is given. Empty lets the AWS CLI resolve credentials.      |
 | `access-key-id`     | no       | `''`      | Access key to use instead of a runner profile. Requires `secret-access-key`. Pass from `secrets`.                                                                 |
 | `secret-access-key` | no       | `''`      | Secret key matching `access-key-id`. Pass from `secrets`.                                                                                                         |
 | `session-token`     | no       | `''`      | Session token, for temporary credentials.                                                                                                                         |
@@ -125,13 +158,14 @@ it configures.
 
 ## Example 1: just the step
 
-Add the step to any job running on a self-hosted runner. With the default `dlh`
+Add the step to any job running on a self-hosted runner. With the org's `dlh`
 profile, no credentials are needed in the workflow:
 
 ```yaml
 - name: Upload report to S3
   uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload/vX.Y.Z
   with:
+    profile: dlh
     source: report
     destination: my-service
     include: "*.html,*.css,*.png"
@@ -155,6 +189,7 @@ jobs:
       - name: Upload coverage report
         uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload/vX.Y.Z
         with:
+          profile: dlh
           bucket: coverage
           source: coverage/html
           include: "*"
@@ -179,6 +214,7 @@ jobs:
       - name: Upload docs
         uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload/vX.Y.Z
         with:
+          profile: dlh
           source: docs
           destination: my-service/docs
           include: "*"
@@ -186,6 +222,7 @@ jobs:
       - name: Upload HTML reports
         uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload/vX.Y.Z
         with:
+          profile: dlh
           source: htmls
           destination: my-service/htmls
           include: "*.html"
