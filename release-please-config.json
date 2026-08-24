@@ -12,6 +12,7 @@
     "release/github-release": { "component": "release/github-release" },
     "python/lint": { "component": "python/lint" },
     "python/test": { "component": "python/test" },
+    "python/publish": { "component": "python/publish" },
     "mise-setup": { "component": "mise-setup" }
   }
 }

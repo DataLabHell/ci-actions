@@ -20,6 +20,7 @@ aren't shipped as actions; they stay copy-paste
 | [`versioning/from-pyproject`](./versioning/from-pyproject) | Resolver: `[project].version` from a `pyproject.toml` (uv / PEP 621) → `vX.Y.Z` tag.                                                          |
 | [`python/lint`](./python/lint)                             | Lint + type-check a Python project with ruff (`check` + `format`) and ty, via `uv`.                                                           |
 | [`python/test`](./python/test)                             | Install with `uv` and run pytest, optionally pinned to a Python version.                                                                      |
+| [`python/publish`](./python/publish)                       | Build with `uv` and publish to a package index (devpi by default), gated to `main` by default.                                                |
 | [`mise-setup`](./mise-setup)                               | Provision a repo's tools with mise into a per-repository dir (cached installs, prune of unreferenced versions), so later steps can call them. |
 
 ## Using an action

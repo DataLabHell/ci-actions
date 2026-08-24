@@ -1,0 +1,82 @@
+name: "Python publish"
+description:
+  "Build a Python project with uv and publish it to a package index (devpi by
+  default); already-published versions are a no-op."
+author: "DataLabHell"
+
+branding:
+  icon: "upload-cloud"
+  color: "blue"
+
+# Installs uv (via setup-uv), then builds and publishes. Publishing is gated on
+# the branch: by default only "main" publishes, so the same workflow can run on
+# feature branches without pushing anything. The caller owns the job (runner,
+# checkout) and resolves the version with one of the versioning/ actions (see
+# the README) — this action only pretends it to setuptools-scm when the project
+# uses dynamic versioning.
+inputs:
+  version:
+    description:
+      "Version to publish, bare X.Y.Z (from versioning/auto-patch or
+      versioning/from-pyproject). Required for projects with dynamic versioning;
+      ignored for projects with a fixed [project].version."
+    required: false
+    default: ""
+  release-branch:
+    description:
+      "The only branch that publishes a final version; every other ref publishes
+      a prerelease (or nothing)."
+    required: false
+    default: "main"
+  publish-other-branches:
+    description:
+      'Also publish from refs other than release-branch, as
+      "X.Y.Z.dev0+<short-sha>"'
+    required: false
+    default: "false"
+  publish-url:
+    description: "Base URL of the index to publish to (no trailing +simple)"
+    required: false
+    default: "https://devpi.apps.dlh-k8s.com/root/internal"
+  username:
+    description: "Index username"
+    required: true
+  password:
+    description: "Index password / token"
+    required: true
+  build:
+    description: 'Run "uv build" before publishing'
+    required: false
+    default: "true"
+  build-args:
+    description: 'Extra args passed to "uv build"'
+    required: false
+    default: ""
+
+outputs:
+  published:
+    description: '"true" if the publish step ran, "false" if it was skipped'
+    value: ${{ steps.publish.outputs.published || 'false' }}
+  version:
+    description: "The version that was published (empty when skipped)"
+    value: ${{ steps.publish.outputs.version }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install uv
+      uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+
+    - name: Publish
+      id: publish
+      shell: bash
+      run: bash "${{ github.action_path }}/publish.sh"
+      env:
+        INPUT_VERSION: ${{ inputs.version }}
+        INPUT_RELEASE_BRANCH: ${{ inputs.release-branch }}
+        INPUT_PUBLISH_OTHER_BRANCHES: ${{ inputs.publish-other-branches }}
+        INPUT_PUBLISH_URL: ${{ inputs.publish-url }}
+        INPUT_BUILD: ${{ inputs.build }}
+        INPUT_BUILD_ARGS: ${{ inputs.build-args }}
+        UV_PUBLISH_USERNAME: ${{ inputs.username }}
+        UV_PUBLISH_PASSWORD: ${{ inputs.password }}
