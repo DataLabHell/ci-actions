@@ -1,7 +1,7 @@
 name: "Python publish"
 description:
-  "Build a Python project with uv and publish it to a package index (devpi by
-  default); already-published versions are a no-op."
+  "Build a Python project with uv and publish it to the internal devpi index
+  (credentials and URL from Vault); already-published versions are a no-op."
 author: "DataLabHell"
 
 branding:
@@ -34,16 +34,6 @@ inputs:
       "X.Y.Z.dev0+<short-sha>"'
     required: false
     default: "false"
-  publish-url:
-    description: "Base URL of the index to publish to (no trailing +simple)"
-    required: false
-    default: "https://devpi.apps.dlh-k8s.com/root/internal"
-  username:
-    description: "Index username"
-    required: true
-  password:
-    description: "Index password / token"
-    required: true
   build:
     description: 'Run "uv build" before publishing'
     required: false
@@ -67,6 +57,22 @@ runs:
     - name: Install uv
       uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
 
+    # Authenticates with the job's OIDC token, so the caller needs
+    # "permissions: id-token: write" (see the README). exportEnv is off: the
+    # secrets stay in this step's outputs instead of leaking into the
+    # environment of every later step in the caller's job.
+    - name: Get devpi credentials
+      id: vault
+      uses: hashicorp/vault-action@892a26828f195e65540a40b4768ae4571f51ebfc # v4.0.0
+      with:
+        url: https://vault1.dlh-k8s.com:8200
+        method: jwt
+        role: ci-actions
+        exportEnv: "false"
+        secrets: |
+          kv/data/k8s/devpi/users ci-actions | UV_PUBLISH_PASSWORD;
+          kv/data/k8s/devpi/config url | DEVPI_URL
+
     - name: Publish
       id: publish
       shell: bash
@@ -75,8 +81,8 @@ runs:
         INPUT_VERSION: ${{ inputs.version }}
         INPUT_RELEASE_BRANCH: ${{ inputs.release-branch }}
         INPUT_PUBLISH_OTHER_BRANCHES: ${{ inputs.publish-other-branches }}
-        INPUT_PUBLISH_URL: ${{ inputs.publish-url }}
         INPUT_BUILD: ${{ inputs.build }}
         INPUT_BUILD_ARGS: ${{ inputs.build-args }}
-        UV_PUBLISH_USERNAME: ${{ inputs.username }}
-        UV_PUBLISH_PASSWORD: ${{ inputs.password }}
+        UV_PUBLISH_USERNAME: ci-actions
+        UV_PUBLISH_PASSWORD: ${{ steps.vault.outputs.UV_PUBLISH_PASSWORD }}
+        DEVPI_URL: ${{ steps.vault.outputs.DEVPI_URL }}
