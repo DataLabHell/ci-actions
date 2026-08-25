@@ -7,7 +7,6 @@ set -euo pipefail
 VERSION="${INPUT_VERSION:-}"
 RELEASE_BRANCH="${INPUT_RELEASE_BRANCH:-main}"
 PUBLISH_OTHER_BRANCHES="${INPUT_PUBLISH_OTHER_BRANCHES:-false}"
-PUBLISH_URL="${INPUT_PUBLISH_URL:-}"
 BUILD="${INPUT_BUILD:-true}"
 BUILD_ARGS="${INPUT_BUILD_ARGS:-}"
 
@@ -78,7 +77,12 @@ fi
 
 # Publishes only when this version is not yet on the index; --check-url makes an
 # already-published version a no-op instead of a failure.
-base="${PUBLISH_URL%/}"
+DEVPI_URL="${DEVPI_URL:-}"
+if [ -z "$DEVPI_URL" ]; then
+  echo "::error::DEVPI_URL is empty — the Vault step did not return kv/data/k8s/devpi/config:url" >&2
+  exit 1
+fi
+base="${DEVPI_URL%/}"
 echo "publishing $VERSION to ${base}/"
 uv publish \
   --publish-url "${base}/" \
