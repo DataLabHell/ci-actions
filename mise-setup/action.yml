@@ -54,8 +54,3 @@ runs:
       with:
         experimental: true
         cache: false
-
-    # Housekeeping: drop installed versions that mise.toml no longer references,
-    # so the cached install dirs don't grow across runs.
-    - shell: bash
-      run: mise prune -y
