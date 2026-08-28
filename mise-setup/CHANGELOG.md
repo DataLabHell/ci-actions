@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/DataLabHell/ci-actions/compare/mise-setup-v0.5.0...mise-setup-v0.5.1) (2026-08-28)
+
+
+### Bug Fixes
+
+* **mise-setup:** prune not necessary anymore since cache is keyed ([6736c93](https://github.com/DataLabHell/ci-actions/commit/6736c93a751cda6d66edfe193c72e4b33621a837))
+
 ## [0.5.0](https://github.com/DataLabHell/ci-actions/compare/mise-setup-v0.4.0...mise-setup-v0.5.0) (2026-08-17)
 
 
