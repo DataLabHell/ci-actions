@@ -19,8 +19,14 @@ branches and never opens a pull request. CI still does that.
 | --------------- | ----------------------------------------------------------------------- |
 | _(no argument)_ | List the pending bumps with the verdict renovate.json implies. Exits 0. |
 | `check`         | Same listing, but exits 1 when any update is pending. For CI gating.    |
-| `apply`         | Rewrite the manifests for updates whose verdict is `auto`.              |
+| `apply`         | Rewrite the manifests to the highest `auto` target of each dependency.  |
 | `apply --force` | Also rewrite the `manual` and `default` ones, including majors.         |
+
+`separateMinorPatch` reports a patch and a minor entry for the same dependency.
+`apply` takes the highest target it is allowed to, so a dependency whose patch
+and minor both count as `auto` goes to the minor. The listing collapses to the
+same choice: one row per dependency and verdict, carrying the target that row
+would apply.
 
 Exit codes beyond those: `2` when renovate extracted no dependencies at all
 (usually a network or rate-limit problem, check `RENOVATE_GITHUB_COM_TOKEN`),
@@ -73,9 +79,9 @@ supported (`{{var}}`, `{{#if}}`, `{{#unless}}`); anything else exits 3 rather
 than writing a half-rendered string.
 
 Two guards apply to every method: updates for the same dep in the same file are
-collapsed to the highest target, because `separateMinorPatch` reports a patch
-and a minor entry separately, and a digest-pinned dep whose update carries no
-new digest is skipped since there is nothing to write.
+collapsed to the highest target that passes the verdict filter, and a
+digest-pinned dep whose update carries no new digest is skipped since there is
+nothing to write.
 
 ## Tests
 
