@@ -5,18 +5,18 @@ npm.package_manager = "npm"
 [tools]
 # dependencies
 ## lts, provides npm
-node = "v24.18.1"
+node = "v24.20.0"
 ## required by renovate scripts
 "aqua:jqlang/jq" = "1.8.2"
 
 # linters
 "aqua:koalaman/shellcheck" = "0.11.0"
 "aqua:mpalmer/action-validator" = "0.9.0"
-"aqua:mvdan/sh" = "3.13.1"
+"aqua:mvdan/sh" = "3.14.0"
 "aqua:rhysd/actionlint" = "1.7.12"
 "aqua:tamasfe/taplo" = "0.10.0"
 "npm:prettier" = "3.9.6"
-"npm:renovate" = "44.7.4"
+"npm:renovate" = "44.52.1"
 
 ###########
 # Linting #
