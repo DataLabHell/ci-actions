@@ -80,17 +80,27 @@ groupmap=$(jq -c '
   | add // {}
 ' renovate.json)
 
+# One row per dep and verdict, carrying the highest target of that verdict:
+# separateMinorPatch reports a patch and a minor entry for the same dep, and
+# `apply` takes the highest it is allowed to, so listing both would not say
+# which one it picks.
 rows=$(jq -r --argjson gm "$groupmap" '
   def slug: ascii_downcase | gsub("[^a-z0-9]+"; "-") | gsub("(^-|-$)"; "");
-  (.repositories.local.packageFiles // {})
-  | to_entries[] | .key as $mgr
-  | .value[]? | (.deps // [])[]
-  | select(.updates? and (.updates | length > 0))
-  | .depName as $n | (.currentValue // .currentVersion // "?") as $cur
-  | .updates[]
-  # branch group renovate assigned, minus renovate/ + patch-/minor-/major- prefix
-  | ((.branchName // "") | ltrimstr("renovate/") | sub("^(patch|minor|major)-"; "") | slug) as $grp
-  | [$mgr, ($gm[$grp] // "default"), $n, $cur, "->", (.newVersion // .newValue // "-"), (.updateType // "")] | @tsv
+  def ver: [splits("[^0-9]+")] | map(select(length > 0) | tonumber);
+  [ (.repositories.local.packageFiles // {})
+    | to_entries[] | .key as $mgr
+    | .value[]? | .packageFile as $f | (.deps // [])[]
+    | select(.updates? and (.updates | length > 0))
+    | .depName as $n | (.currentValue // .currentVersion // "?") as $cur
+    | .updates[]
+    # branch group renovate assigned, minus renovate/ + patch-/minor-/major- prefix
+    | ((.branchName // "") | ltrimstr("renovate/") | sub("^(patch|minor|major)-"; "") | slug) as $grp
+    | {f: $f, mgr: $mgr, verdict: ($gm[$grp] // "default"), dep: $n, cur: $cur,
+       new: (.newVersion // .newValue // "-"), type: (.updateType // "")}
+  ]
+  | group_by([.f, .dep, .verdict])
+  | map(max_by(.new | ver))
+  | .[] | [.mgr, .verdict, .dep, .cur, "->", .new, .type] | @tsv
 ' "$report" | sort -u | sort -t$'\t' -k1,1 -k2,2 -k3,3 -k6,6 | align)
 
 if [ -z "$rows" ]; then
