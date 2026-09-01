@@ -5,6 +5,8 @@
   "rangeStrategy": "pin",
   "minimumReleaseAge": "3 days",
   "platformAutomerge": true,
+  "description": "Replaces config:recommended's :ignoreModulesAndTests list, whose `**/test/**` entry hid the python/test action. ignorePaths has no git-style re-include, so the list is narrowed to what this repo needs rather than negated.",
+  "ignorePaths": ["**/node_modules/**", "**/tests/**"],
   "packageRules": [
     {
       "description": "Keep the tool pins in mise.toml exact rather than widening them to a range.",
