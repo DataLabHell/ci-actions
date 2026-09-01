@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.2](https://github.com/DataLabHell/ci-actions/compare/python/test-v0.5.1...python/test-v0.5.2) (2026-09-01)
+
+
+### Bug Fixes
+
+* **renovate:** python/test was erroneously excluded ([f0a9481](https://github.com/DataLabHell/ci-actions/commit/f0a94817253675dd70cfa381971bbe7e57b8e509))
+
 ## [0.5.1](https://github.com/DataLabHell/ci-actions/compare/python/test-v0.5.0...python/test-v0.5.1) (2026-08-18)
 
 
