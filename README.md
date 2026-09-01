@@ -281,6 +281,14 @@ write them into the manifests without waiting for a scheduled run. See
 [its README](./tools/local-renovate/README.md) for the modes and rewrite
 methods.
 
+It also ships as a program. Releases carry the script as an asset named
+`local-renovate`, so another repo installs it as a mise tool:
+
+```toml
+[tools]
+"github:DataLabHell/ci-actions" = { version = "0.1.0", version_prefix = "local-renovate/v", asset_pattern = "local-renovate" }
+```
+
 ## Versioning
 
 Each action is released independently with
@@ -324,6 +332,11 @@ On every push to `main` the
 [Release Please workflow](./.github/workflows/_release-please.yml) maintains a
 single release PR; merging it tags the changed actions and publishes a GitHub
 Release for each.
+
+[`tools/local-renovate`](./tools/local-renovate) is in the same rotation under
+the `local-renovate/vX.Y.Z` tag. Being a program rather than an action, its
+release also gets the script attached as an asset, uploaded by the same
+workflow.
 
 Current versions live in
 [`.release-please-manifest.json`](./.release-please-manifest.json); the action

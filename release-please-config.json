@@ -13,6 +13,7 @@
     "python/lint": { "component": "python/lint" },
     "python/test": { "component": "python/test" },
     "python/publish": { "component": "python/publish" },
-    "mise-setup": { "component": "mise-setup" }
+    "mise-setup": { "component": "mise-setup" },
+    "tools/local-renovate": { "component": "local-renovate" }
   }
 }
