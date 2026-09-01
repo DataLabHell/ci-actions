@@ -1,0 +1,7 @@
+Scheduled updates:
+github-actions auto actions/checkout v4.1.0 -> v4.2.0 minor
+github-actions auto actions/checkout v5.0.0 -> v5.1.0 minor
+
+Applying (auto only):
+  .github/workflows/ci.yml: actions/checkout v4.1.0 -> v4.2.0
+  .github/workflows/ci.yml: actions/checkout v5.0.0 -> v5.1.0

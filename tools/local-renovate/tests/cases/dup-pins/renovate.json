@@ -1,0 +1,8 @@
+{
+  "packageRules": [
+    {
+      "groupName": "github actions",
+      "automerge": true
+    }
+  ]
+}

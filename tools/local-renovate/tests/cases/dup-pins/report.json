@@ -1,0 +1,55 @@
+{
+  "repositories": {
+    "local": {
+      "packageFiles": {
+        "github-actions": [
+          {
+            "deps": [
+              {
+                "depName": "actions/checkout",
+                "versioning": "github-actions",
+                "depType": "action",
+                "replaceString": "actions/checkout@1111111111111111111111111111111111111111 # v4.1.0",
+                "autoReplaceStringTemplate": "{{depName}}@{{#if newDigest}}{{newDigest}}{{#if newValue}} # {{newValue}}{{/if}}{{/if}}{{#unless newDigest}}{{newValue}}{{/unless}}",
+                "currentValue": "v4.1.0",
+                "currentDigest": "1111111111111111111111111111111111111111",
+                "datasource": "github-tags",
+                "updates": [
+                  {
+                    "updateType": "minor",
+                    "newVersion": "v4.2.0",
+                    "newValue": "v4.2.0",
+                    "newDigest": "3333333333333333333333333333333333333333",
+                    "branchName": "renovate/github-actions"
+                  }
+                ],
+                "packageName": "actions/checkout"
+              },
+              {
+                "depName": "actions/checkout",
+                "versioning": "github-actions",
+                "depType": "action",
+                "replaceString": "actions/checkout@2222222222222222222222222222222222222222 # v5.0.0",
+                "autoReplaceStringTemplate": "{{depName}}@{{#if newDigest}}{{newDigest}}{{#if newValue}} # {{newValue}}{{/if}}{{/if}}{{#unless newDigest}}{{newValue}}{{/unless}}",
+                "currentValue": "v5.0.0",
+                "currentDigest": "2222222222222222222222222222222222222222",
+                "datasource": "github-tags",
+                "updates": [
+                  {
+                    "updateType": "minor",
+                    "newVersion": "v5.1.0",
+                    "newValue": "v5.1.0",
+                    "newDigest": "4444444444444444444444444444444444444444",
+                    "branchName": "renovate/github-actions"
+                  }
+                ],
+                "packageName": "actions/checkout"
+              }
+            ],
+            "packageFile": ".github/workflows/ci.yml"
+          }
+        ]
+      }
+    }
+  }
+}

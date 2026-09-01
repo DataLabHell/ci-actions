@@ -78,10 +78,11 @@ means the GitHub Actions and docker managers. Only a small handlebars subset is
 supported (`{{var}}`, `{{#if}}`, `{{#unless}}`); anything else exits 3 rather
 than writing a half-rendered string.
 
-Two guards apply to every method: updates for the same dep in the same file are
-collapsed to the highest target that passes the verdict filter, and a
-digest-pinned dep whose update carries no new digest is skipped since there is
-nothing to write.
+Two guards apply to every method: updates for the same dep, file and current
+version are collapsed to the highest target that passes the verdict filter, and
+a digest-pinned dep whose update carries no new digest is skipped since there is
+nothing to write. The current version is part of that key because one file can
+pin the same dep twice at different versions, and both pins move.
 
 ## Tests
 

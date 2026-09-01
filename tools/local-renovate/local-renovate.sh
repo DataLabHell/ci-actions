@@ -98,7 +98,7 @@ rows=$(jq -r --argjson gm "$groupmap" '
     | {f: $f, mgr: $mgr, verdict: ($gm[$grp] // "default"), dep: $n, cur: $cur,
        new: (.newVersion // .newValue // "-"), type: (.updateType // "")}
   ]
-  | group_by([.f, .dep, .verdict])
+  | group_by([.f, .dep, .cur, .verdict])
   | map(max_by(.new | ver))
   | .[] | [.mgr, .verdict, .dep, .cur, "->", .new, .type] | @tsv
 ' "$report" | sort -u | sort -t$'\t' -k1,1 -k2,2 -k3,3 -k6,6 | align)
@@ -179,7 +179,9 @@ if [ "$mode" = apply ]; then
       # a swap that reproduces its own input has nothing to report
       | select(.method != "lit" or .f1 != .f2)
     ]
-    | group_by([.f, .dep])          # separateMinorPatch emits patch+minor per dep
+    # separateMinorPatch emits patch+minor per dep; the current version is part
+    # of the key because one file can hold two pins of the same dep
+    | group_by([.f, .dep, .cur])
     | map(max_by(.new | ver))       # keep the highest applicable target
     | .[] | [.method, .f, .f1, .f2, .f3, .f4, .f5, .dep, .cur, .new] | @tsv
   ' "$report" | while IFS=$'\t' read -r method file f1 f2 f3 f4 f5 dep cur new; do
