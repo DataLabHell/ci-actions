@@ -13,8 +13,34 @@ jobs:
   release-please:
     runs-on: self-hosted
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # only the working tree is needed; keeping the write token in
+          # .git/config would expose it to later jobs on the same runner
+          persist-credentials: false
+
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        id: release
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+      # local-renovate is a program, not an action, so consumers install it from
+      # the release asset (mise github backend) instead of referencing the tag.
+      - name: Attach local-renovate to its release
+        if:
+          steps.release.outputs['tools/local-renovate--release_created'] ==
+          'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          UPLOAD_URL:
+            ${{ steps.release.outputs['tools/local-renovate--upload_url'] }}
+        run: |
+          install -m 755 tools/local-renovate/local-renovate.sh local-renovate
+          curl --fail --silent --show-error \
+            -X POST \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @local-renovate \
+            "${UPLOAD_URL%\{*}?name=local-renovate" >/dev/null

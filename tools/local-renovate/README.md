@@ -106,11 +106,38 @@ To add a case, capture a report with
 `renovate --platform=local --report-type=file --report-path=report.json`, trim
 it to the deps of interest, and put the manifests they reference under `in/`.
 
+## Installing it in another repo
+
+Releases are cut by release-please under the `local-renovate/vX.Y.Z` tag and
+carry one asset: the script itself, named `local-renovate`. mise's `github`
+backend installs it straight from there.
+
+```toml
+[tools]
+"github:DataLabHell/ci-actions" = { version = "0.1.0", version_prefix = "local-renovate/v", asset_pattern = "local-renovate" }
+```
+
+Both options are load-bearing. `version_prefix` keeps the other components' tags
+out of the version list, since every action in this repo releases from the same
+repository. `asset_pattern` names the asset outright, because the default is
+OS/arch autodetection and a shell script has neither. The command lands on PATH
+as `local-renovate`, the asset's own name.
+
+The consuming repo also needs `jq`, `perl` and `renovate` (see
+[Requirements](#requirements)), and a `GITHUB_TOKEN` or `MISE_GITHUB_TOKEN` with
+read access, because `DataLabHell/ci-actions` is private.
+
+Wire it into a task the same way this repo does:
+
+```toml
+[tasks.renovate]
+description = "Preview, gate, or apply dependency updates with renovate"
+usage = 'arg "[mode]" help="`check` or `apply`"'
+run = "local-renovate $usage_mode"
+```
+
 ## Notes
 
 - Alignment uses `awk`. `column` is absent on some machines and its `-t` output
   differs between BSD and GNU, so the listing would be neither portable nor
   testable.
-- Distribution is not wired up yet. The script lives here as the single source;
-  a later release process will publish it so mise can install it with the
-  `github` backend as `local-renovate@vX.Y.Z`.
