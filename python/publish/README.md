@@ -72,7 +72,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: DataLabHell/ci-actions/python/publish@python/publish/vX.Y.Z
+      - uses: DataLabHell/ci-actions/python/publish@python/publish-vX.Y.Z
 ```
 
 Dynamic version, resolved from a `VERSION` file plus the existing tags:
@@ -90,9 +90,9 @@ jobs:
           fetch-depth: 0 # tags, for the patch bump
 
       - id: version
-        uses: DataLabHell/ci-actions/versioning/auto-patch@versioning/auto-patch/vX.Y.Z
+        uses: DataLabHell/ci-actions/versioning/auto-patch@versioning/auto-patch-vX.Y.Z
 
-      - uses: DataLabHell/ci-actions/python/publish@python/publish/vX.Y.Z
+      - uses: DataLabHell/ci-actions/python/publish@python/publish-vX.Y.Z
         with:
           version: ${{ steps.version.outputs.version }}
           publish-other-branches: true # feature branches get X.Y.Z.dev0+<sha>

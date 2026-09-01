@@ -32,7 +32,7 @@ jobs:
         python-version: ["3.12", "3.13", "3.14"]
     steps:
       - uses: actions/checkout@v7
-      - uses: DataLabHell/ci-actions/python/test@python/test/vX.Y.Z
+      - uses: DataLabHell/ci-actions/python/test@python/test-vX.Y.Z
         with:
           python-version: ${{ matrix.python-version }}
 ```

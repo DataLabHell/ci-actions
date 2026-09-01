@@ -32,7 +32,7 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v7
-      - uses: DataLabHell/ci-actions/python/lint@python/lint/vX.Y.Z
+      - uses: DataLabHell/ci-actions/python/lint@python/lint-vX.Y.Z
         with:
           paths: datalabhell scripts tests
           type-check-paths: datalabhell # ruff over everything, ty only on the package
@@ -41,7 +41,7 @@ jobs:
 Make typing block the build once it's clean:
 
 ```yaml
-- uses: DataLabHell/ci-actions/python/lint@python/lint/vX.Y.Z
+- uses: DataLabHell/ci-actions/python/lint@python/lint-vX.Y.Z
   with:
     type-check: error
 ```

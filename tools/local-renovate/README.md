@@ -108,13 +108,13 @@ it to the deps of interest, and put the manifests they reference under `in/`.
 
 ## Installing it in another repo
 
-Releases are cut by release-please under the `local-renovate/vX.Y.Z` tag and
+Releases are cut by release-please under the `local-renovate-vX.Y.Z` tag and
 carry one asset: the script itself, named `local-renovate`. mise's `github`
 backend installs it straight from there.
 
 ```toml
 [tools]
-"github:DataLabHell/ci-actions" = { version = "0.1.0", version_prefix = "local-renovate/v", asset_pattern = "local-renovate" }
+"github:DataLabHell/ci-actions" = { version = "1.0.0", version_prefix = "local-renovate-v", asset_pattern = "local-renovate" }
 ```
 
 Both options are load-bearing. `version_prefix` keeps the other components' tags

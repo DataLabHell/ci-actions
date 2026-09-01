@@ -23,14 +23,14 @@ want a Release page in addition to the tags.
 
 ```yaml
 - id: ver
-  uses: DataLabHell/ci-actions/versioning/auto-patch@versioning/auto-patch/vX.Y.Z
+  uses: DataLabHell/ci-actions/versioning/auto-patch@versioning/auto-patch-vX.Y.Z
 
 - id: rel
-  uses: DataLabHell/ci-actions/release/tag-and-alias@release/tag-and-alias/vX.Y.Z
+  uses: DataLabHell/ci-actions/release/tag-and-alias@release/tag-and-alias-vX.Y.Z
   with:
     tag: ${{ steps.ver.outputs.version }} # bare; tag-and-alias adds the v
 
-- uses: DataLabHell/ci-actions/release/github-release@release/github-release/vX.Y.Z
+- uses: DataLabHell/ci-actions/release/github-release@release/github-release-vX.Y.Z
   with:
     tag: ${{ steps.rel.outputs.tag }} # canonical v1.2.3 from tag-and-alias
     github-token: ${{ secrets.GITHUB_TOKEN }}

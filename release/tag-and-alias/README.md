@@ -50,15 +50,15 @@ jobs:
           fetch-depth: 0
 
       - id: ver
-        uses: DataLabHell/ci-actions/versioning/auto-patch@versioning/auto-patch/vX.Y.Z
+        uses: DataLabHell/ci-actions/versioning/auto-patch@versioning/auto-patch-vX.Y.Z
 
       - id: rel
-        uses: DataLabHell/ci-actions/release/tag-and-alias@release/tag-and-alias/vX.Y.Z
+        uses: DataLabHell/ci-actions/release/tag-and-alias@release/tag-and-alias-vX.Y.Z
         with:
           tag: ${{ steps.ver.outputs.version }} # bare; this action adds the v
 
       # Tag the image with the same rolling set as the git refs (bare form):
-      - uses: DataLabHell/ci-actions/docker/build-push@docker/build-push/vX.Y.Z
+      - uses: DataLabHell/ci-actions/docker/build-push@docker/build-push-vX.Y.Z
         with:
           image: api
           tags: |
