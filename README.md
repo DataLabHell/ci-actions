@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload/vX.Y.Z
+      - uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload-vX.Y.Z
         with:
           source: images
           bucket: reports
@@ -69,12 +69,12 @@ jobs:
         with:
           fetch-depth: 0
       - id: ver
-        uses: DataLabHell/ci-actions/versioning/auto-patch@versioning/auto-patch/vX.Y.Z
+        uses: DataLabHell/ci-actions/versioning/auto-patch@versioning/auto-patch-vX.Y.Z
       - id: rel
-        uses: DataLabHell/ci-actions/release/tag-and-alias@release/tag-and-alias/vX.Y.Z
+        uses: DataLabHell/ci-actions/release/tag-and-alias@release/tag-and-alias-vX.Y.Z
         with:
           tag: ${{ steps.ver.outputs.version }}
-      - uses: DataLabHell/ci-actions/release/github-release@release/github-release/vX.Y.Z
+      - uses: DataLabHell/ci-actions/release/github-release@release/github-release-vX.Y.Z
         with:
           tag: ${{ steps.rel.outputs.tag }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -97,12 +97,12 @@ jobs:
         with:
           fetch-depth: 0
       - id: ver
-        uses: DataLabHell/ci-actions/versioning/auto-patch@versioning/auto-patch/vX.Y.Z
+        uses: DataLabHell/ci-actions/versioning/auto-patch@versioning/auto-patch-vX.Y.Z
       - id: rel
-        uses: DataLabHell/ci-actions/release/tag-and-alias@release/tag-and-alias/vX.Y.Z
+        uses: DataLabHell/ci-actions/release/tag-and-alias@release/tag-and-alias-vX.Y.Z
         with:
           tag: ${{ steps.ver.outputs.version }}
-      - uses: DataLabHell/ci-actions/docker/build-push@docker/build-push/vX.Y.Z
+      - uses: DataLabHell/ci-actions/docker/build-push@docker/build-push-vX.Y.Z
         with:
           image: api
           registry: truenas
@@ -122,7 +122,7 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v7
-      - uses: DataLabHell/ci-actions/python/lint@python/lint/vX.Y.Z
+      - uses: DataLabHell/ci-actions/python/lint@python/lint-vX.Y.Z
         with:
           paths: datalabhell scripts tests
           type-check-paths: datalabhell # ruff over everything, ty only on the package
@@ -135,7 +135,7 @@ jobs:
         python-version: ["3.12", "3.13", "3.14"]
     steps:
       - uses: actions/checkout@v7
-      - uses: DataLabHell/ci-actions/python/test@python/test/vX.Y.Z
+      - uses: DataLabHell/ci-actions/python/test@python/test-vX.Y.Z
         with:
           python-version: ${{ matrix.python-version }}
 ```
@@ -286,7 +286,7 @@ It also ships as a program. Releases carry the script as an asset named
 
 ```toml
 [tools]
-"github:DataLabHell/ci-actions" = { version = "0.1.0", version_prefix = "local-renovate/v", asset_pattern = "local-renovate" }
+"github:DataLabHell/ci-actions" = { version = "1.0.0", version_prefix = "local-renovate-v", asset_pattern = "local-renovate" }
 ```
 
 ## Versioning
@@ -294,7 +294,7 @@ It also ships as a program. Releases carry the script as an asset named
 Each action is released independently with
 [release-please](https://github.com/googleapis/release-please). A git tag is
 repo-wide, so the action name is encoded in it:
-`<action-path>/vMAJOR.MINOR.PATCH`, e.g. `docker/build-push/v0.2.1`.
+`<action-path>-vMAJOR.MINOR.PATCH`, e.g. `docker/build-push-v0.2.1`.
 
 ### Commit messages
 
@@ -334,7 +334,7 @@ single release PR; merging it tags the changed actions and publishes a GitHub
 Release for each.
 
 [`tools/local-renovate`](./tools/local-renovate) is in the same rotation under
-the `local-renovate/vX.Y.Z` tag. Being a program rather than an action, its
+the `local-renovate-vX.Y.Z` tag. Being a program rather than an action, its
 release also gets the script attached as an asset, uploaded by the same
 workflow.
 
@@ -345,7 +345,7 @@ list is in [`release-please-config.json`](./release-please-config.json).
 ### What consumers pin to
 
 ```yaml
-- uses: DataLabHell/ci-actions/docker/build-push@docker/build-push/v0.2.1
+- uses: DataLabHell/ci-actions/docker/build-push@docker/build-push-v0.2.1
 ```
 
 There are no rolling `vX` aliases. Exact tags are immutable, and Renovate opens
@@ -353,22 +353,22 @@ a PR when a new version ships.
 
 ### Keeping pins current with Renovate (consumer setup)
 
-The tags are path-prefixed, so a consumer's Renovate needs an `extractVersion`
-rule to read the version out of them. Anchor it per action: all nine actions
-share one repository, so an unanchored rule would reduce `python/lint/v0.9.0`
-and `docker/build-push/v0.5.1` to bare versions alike and offer one action's
-release as an upgrade for another.
+The tags carry the action name as a prefix, so a consumer's Renovate needs an
+`extractVersion` rule to read the version out of them. Anchor it per action: all
+actions share one repository, so an unanchored rule would reduce
+`python/lint-v0.9.0` and `docker/build-push-v0.5.1` to bare versions alike and
+offer one action's release as an upgrade for another.
 
 ```json
 {
   "packageRules": [
     {
       "matchDepNames": ["DataLabHell/ci-actions/docker/build-push"],
-      "extractVersion": "^docker/build-push/v(?<version>\\d+\\.\\d+\\.\\d+)$"
+      "extractVersion": "^docker/build-push-v(?<version>\\d+\\.\\d+\\.\\d+)$"
     },
     {
       "matchDepNames": ["DataLabHell/ci-actions/python/test"],
-      "extractVersion": "^python/test/v(?<version>\\d+\\.\\d+\\.\\d+)$"
+      "extractVersion": "^python/test-v(?<version>\\d+\\.\\d+\\.\\d+)$"
     }
   ]
 }

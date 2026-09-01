@@ -39,14 +39,14 @@ jobs:
           fetch-depth: 0
 
       - id: ver
-        uses: DataLabHell/ci-actions/versioning/from-pyproject@versioning/from-pyproject/vX.Y.Z
+        uses: DataLabHell/ci-actions/versioning/from-pyproject@versioning/from-pyproject-vX.Y.Z
 
       - id: rel
-        uses: DataLabHell/ci-actions/release/tag-and-alias@release/tag-and-alias/vX.Y.Z
+        uses: DataLabHell/ci-actions/release/tag-and-alias@release/tag-and-alias-vX.Y.Z
         with:
           tag: ${{ steps.ver.outputs.version }} # bare; tag-and-alias adds the v
 
-      - uses: DataLabHell/ci-actions/release/github-release@release/github-release/vX.Y.Z
+      - uses: DataLabHell/ci-actions/release/github-release@release/github-release-vX.Y.Z
         with:
           tag: ${{ steps.rel.outputs.tag }} # canonical v1.2.3 from tag-and-alias
           github-token: ${{ secrets.GITHUB_TOKEN }}

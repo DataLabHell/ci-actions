@@ -24,11 +24,11 @@ This action lives in the shared [`ci-actions`](../README.md) monorepo, so it is
 referenced by its path within the repo plus a tag:
 
 ```yaml
-- uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload/vX.Y.Z
+- uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload-vX.Y.Z
 ```
 
-`@s3-file-upload/vX.Y.Z` is a placeholder. Each action is versioned
-independently and tagged `<action-path>/vMAJOR.MINOR.PATCH` (see
+`@s3-file-upload-vX.Y.Z` is a placeholder. Each action is versioned
+independently and tagged `<action-path>-vMAJOR.MINOR.PATCH` (see
 [Versioning](../README.md#versioning)). Substitute the current version and pin
 an exact tag rather than `@main`; Renovate keeps it current.
 
@@ -55,7 +55,7 @@ role, an instance profile. That composes with
     role-to-assume: arn:aws:iam::123456789012:role/ci-upload
     aws-region: eu-central-1
 
-- uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload/vX.Y.Z
+- uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload-vX.Y.Z
   with:
     bucket: reports
     source: outputs
@@ -71,7 +71,7 @@ Name a profile and it supplies the endpoint, region and credentials, so nothing
 sensitive goes in the workflow. Inside the org that profile is `dlh`:
 
 ```yaml
-- uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload/vX.Y.Z
+- uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload-vX.Y.Z
   with:
     profile: dlh
     source: outputs
@@ -112,7 +112,7 @@ For a store the runner knows nothing about, pass `access-key-id` and
 `secret-access-key`. They take precedence over `profile`:
 
 ```yaml
-- uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload/vX.Y.Z
+- uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload-vX.Y.Z
   with:
     bucket: reports
     source: outputs
@@ -163,7 +163,7 @@ profile, no credentials are needed in the workflow:
 
 ```yaml
 - name: Upload report to S3
-  uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload/vX.Y.Z
+  uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload-vX.Y.Z
   with:
     profile: dlh
     source: report
@@ -187,7 +187,7 @@ jobs:
         run: npm run coverage:html
 
       - name: Upload coverage report
-        uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload/vX.Y.Z
+        uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload-vX.Y.Z
         with:
           profile: dlh
           bucket: coverage
@@ -212,7 +212,7 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Upload docs
-        uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload/vX.Y.Z
+        uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload-vX.Y.Z
         with:
           profile: dlh
           source: docs
@@ -220,7 +220,7 @@ jobs:
           include: "*"
 
       - name: Upload HTML reports
-        uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload/vX.Y.Z
+        uses: DataLabHell/ci-actions/s3-file-upload@s3-file-upload-vX.Y.Z
         with:
           profile: dlh
           source: htmls

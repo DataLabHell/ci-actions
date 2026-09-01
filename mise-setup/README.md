@@ -62,7 +62,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: DataLabHell/ci-actions/mise-setup@mise-setup/vX.Y.Z
+      - uses: DataLabHell/ci-actions/mise-setup@mise-setup-vX.Y.Z
 
       - name: Run a project task
         shell: bash
@@ -72,7 +72,7 @@ jobs:
 To share one tool tree across every repo on the runner instead:
 
 ```yaml
-- uses: DataLabHell/ci-actions/mise-setup@mise-setup/vX.Y.Z
+- uses: DataLabHell/ci-actions/mise-setup@mise-setup-vX.Y.Z
   with:
     global: "true"
 ```
