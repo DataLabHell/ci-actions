@@ -9,5 +9,5 @@
   "python/test": "0.5.1",
   "python/publish": "1.0.0",
   "mise-setup": "0.5.1",
-  "tools/local-renovate": "0.0.0"
+  "tools/local-renovate": "1.0.0"
 }
