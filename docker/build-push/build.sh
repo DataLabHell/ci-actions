@@ -12,6 +12,7 @@ TAGS_IN="${INPUT_TAGS:-}"
 CACHE="${INPUT_CACHE:-gha}"
 PUSH="${INPUT_PUSH:-true}"
 PLATFORMS_IN="${INPUT_PLATFORMS:-}"
+VAULT_REGISTRY="${INPUT_VAULT_REGISTRY:-}"
 
 if [ -z "$IMAGE" ]; then
   echo "::error::'image' is required"
@@ -20,33 +21,33 @@ fi
 
 # Only the two org registries are allowed for now. Each accepts its short alias
 # or its full host; anything else fails clearly instead of building a broken ref.
-# Each registry has a fixed auth model, so we also decide here whether a login
-# step runs — the caller never passes credentials:
-#   ghcr.io  -> log in with the workflow's GITHUB_TOKEN
-#   truenas  -> no login step; use the credentials configured on the runner
+# Each registry has a fixed auth model, so we also decide here which login step
+# runs — the caller never passes credentials:
+#   ghcr.io  -> log in with the workflow's GITHUB_TOKEN     (login=ghcr)
+#   truenas  -> host and credentials come from Vault (kv k8s/oci-registry/
+#               ci-actions), fetched by action.yml before this script runs
+#               (login=vault)
 case "$REGISTRY" in
   ghcr | ghcr.io)
     REGISTRY="ghcr.io"
-    LOGIN="true"
+    LOGIN="ghcr"
     ;;
   truenas | truenas.dlh-k8s.com:5000)
-    REGISTRY="truenas.dlh-k8s.com:5000"
-    LOGIN="false"
+    if [ -z "$VAULT_REGISTRY" ]; then
+      echo "::error::registry 'truenas' resolved no host: the Vault secret k8s/oci-registry/ci-actions returned an empty 'url'. The job needs 'permissions: id-token: write' (see the README)."
+      exit 1
+    fi
+    # The stored url may carry a scheme and/or a trailing slash; docker wants a
+    # bare host[:port].
+    REGISTRY="${VAULT_REGISTRY#*://}"
+    REGISTRY="${REGISTRY%%/}"
+    LOGIN="vault"
     ;;
   *)
-    echo "::error::unsupported registry '$REGISTRY': allowed values are 'ghcr.io' (alias 'ghcr') and 'truenas.dlh-k8s.com:5000' (alias 'truenas')"
+    echo "::error::unsupported registry '$REGISTRY': allowed values are 'ghcr.io' (alias 'ghcr') and 'truenas' (alias 'truenas.dlh-k8s.com:5000')"
     exit 1
     ;;
 esac
-
-# When we rely on the runner's own docker credentials (LOGIN=false, i.e. the
-# local registry), a GitHub-hosted runner won't have them — fail fast with a
-# clear cause instead of a confusing push auth error. RUNNER_ENVIRONMENT is set
-# automatically by the runner (github-hosted | self-hosted).
-if [ "$LOGIN" = "false" ] && [ "${RUNNER_ENVIRONMENT:-}" = "github-hosted" ]; then
-  echo "::error::registry '$REGISTRY' uses the docker credentials configured on the runner, but this is a GitHub-hosted runner. Run this job on a self-hosted runner where 'docker login $REGISTRY' has been set up."
-  exit 1
-fi
 
 # Compose the fully-qualified image ref and lowercase it (registries require
 # lowercase repositories; the repo name often isn't). Collapse any doubled

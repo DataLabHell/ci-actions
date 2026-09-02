@@ -26,8 +26,9 @@ inputs:
     default: "${{ github.repository }}"
   registry:
     description:
-      'Target registry (allowlisted): "ghcr.io" (alias "ghcr") or
-      "truenas.dlh-k8s.com:5000" (alias "truenas").'
+      'Target registry (allowlisted): "ghcr.io" (alias "ghcr") or "truenas",
+      whose host and credentials are read from Vault (kv
+      k8s/oci-registry/ci-actions).'
     required: false
     default: "ghcr.io"
   tags:
@@ -66,7 +67,7 @@ inputs:
 
 # Authentication is decided by the registry. You never pass credentials:
 #   ghcr.io  -> logs in with the workflow's GITHUB_TOKEN
-#   truenas  -> no login step; uses the credentials configured on the runner
+#   truenas  -> host and credentials read from Vault (needs id-token: write)
 outputs:
   ref:
     description:
@@ -76,6 +77,27 @@ outputs:
 runs:
   using: "composite"
   steps:
+    # Optional: only for the truenas registry. Authenticates with the job's OIDC
+    # token, so the caller needs "permissions: id-token: write" (see the
+    # README). exportEnv is off: the secrets stay in this step's outputs
+    # instead of leaking into the environment of every later step in the
+    # caller's job.
+    - name: Get registry credentials
+      id: vault
+      if:
+        ${{ inputs.registry == 'truenas' || inputs.registry ==
+        'truenas.dlh-k8s.com:5000' }}
+      uses: hashicorp/vault-action@892a26828f195e65540a40b4768ae4571f51ebfc # v4.0.0
+      with:
+        url: https://vault1.dlh-k8s.com:8200
+        method: jwt
+        role: ci-actions
+        exportEnv: "false"
+        secrets: |
+          kv/data/k8s/oci-registry/ci-actions user | REGISTRY_USER;
+          kv/data/k8s/oci-registry/ci-actions password | REGISTRY_PASSWORD;
+          kv/data/k8s/oci-registry/ci-actions url | REGISTRY_URL
+
     # Compute the ref, full tag list and cache args in a lint-checked script.
     - id: prep
       shell: bash
@@ -88,6 +110,7 @@ runs:
         INPUT_CACHE: ${{ inputs.cache }}
         INPUT_PUSH: ${{ inputs.push }}
         INPUT_PLATFORMS: ${{ inputs.platforms }}
+        INPUT_VAULT_REGISTRY: ${{ steps.vault.outputs.REGISTRY_URL }}
 
     # Only needed for non-amd64 targets: registers the binfmt handlers that let
     # the x86-64 runner execute foreign-arch build steps.
@@ -96,15 +119,21 @@ runs:
 
     - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
 
-    # Login is decided per registry by build.sh: true for GHCR (uses the
-    # workflow's GITHUB_TOKEN), false for the local registry (uses the runner's
-    # configured credentials, so the push is still authenticated).
-    - if: ${{ steps.prep.outputs.login == 'true' }}
+    # Login is decided per registry by build.sh: "ghcr" (uses the workflow's
+    # GITHUB_TOKEN) or "vault" (uses the credentials read above).
+    - if: ${{ steps.prep.outputs.login == 'ghcr' }}
       uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
       with:
         registry: ${{ steps.prep.outputs.registry }}
         username: ${{ github.actor }}
         password: ${{ github.token }}
+
+    - if: ${{ steps.prep.outputs.login == 'vault' }}
+      uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+      with:
+        registry: ${{ steps.prep.outputs.registry }}
+        username: ${{ steps.vault.outputs.REGISTRY_USER }}
+        password: ${{ steps.vault.outputs.REGISTRY_PASSWORD }}
 
     - uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
       with:
