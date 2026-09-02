@@ -92,6 +92,7 @@ jobs:
     runs-on: self-hosted
     permissions:
       contents: write
+      id-token: write # registry credentials from Vault
     steps:
       - uses: actions/checkout@v7
         with:

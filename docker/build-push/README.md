@@ -9,9 +9,9 @@ official
 removes the boilerplate those three always need: login, buildx setup, lowercased
 ref, cache config, tag assembly.
 
-Works with GHCR out of the box, and with any other registry (including a
-local/on-prem one like the org RustFS/registry) by pointing `registry` at it and
-passing credentials.
+Works with GHCR out of the box, and with the local/on-prem org registry by
+setting `registry: truenas` — its host and credentials come from Vault, so no
+secrets go in the workflow.
 
 > Why Buildx and not `docker build`/`push`? With `push: true`, Buildx pushes
 > straight to the registry and never loads the image into the runner's local
@@ -30,25 +30,25 @@ The caller owns the job. A composite action can't set `runs-on`, `matrix`,
 - You never pass credentials. Authentication is decided by the `registry`:
   - `ghcr.io` → logs in with the workflow's `GITHUB_TOKEN` (needs
     `permissions: packages: write`).
-  - `truenas` (local) → no login step; the push uses the credentials configured
-    on the runner (`~/.docker/config.json`), which Ansible provisions when the
-    runner is set up. Run on a `self-hosted` runner (see
-    [Local registry](#example-3-local-registry)). The action fails fast if it
-    detects a GitHub-hosted runner here, since it won't have those credentials.
+  - `truenas` (local) → host **and** credentials are read from Vault
+    (`kv/data/k8s/oci-registry/ci-actions`, keys `url`, `user`, `password`), the
+    same way [`python/publish`](../../python/publish) gets its devpi
+    credentials. Needs `permissions: { id-token: write }` (see
+    [Local registry](#example-3-local-registry)).
 
 ## Inputs
 
-| Input        | Required | Default                    | Description                                                                                                           |
-| ------------ | -------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `image`      | yes      | n/a                        | Final path segment, e.g. `api` → `<registry>/<namespace>/api`.                                                        |
-| `namespace`  | no       | `${{ github.repository }}` | Path between registry and image. Defaults to `owner/name` (matches GHCR).                                             |
-| `registry`   | no       | `ghcr.io`                  | Allowlisted registry: `ghcr.io` (alias `ghcr`) or `truenas.dlh-k8s.com:5000` (alias `truenas`). Anything else errors. |
-| `tags`       | no       | `latest`                   | Newline-separated tag suffixes (each becomes `<ref>:<suffix>`). Blank lines skipped.                                  |
-| `context`    | no       | `.`                        | Build context directory.                                                                                              |
-| `dockerfile` | no       | `''`                       | Dockerfile path (empty = default `Dockerfile` in the context, e.g. set `Dockerfile.api`).                             |
-| `cache`      | no       | `gha`                      | Layer cache backend: `gha`, `registry`, or `none` (see [Caching](#caching)).                                          |
-| `push`       | no       | `true`                     | Push the image; set `"false"` for PR validation builds.                                                               |
-| `platforms`  | no       | `''`                       | Target platforms, newline- or comma-separated (e.g. `linux/arm64`). Empty = the runner's native platform only.        |
+| Input        | Required | Default                    | Description                                                                                                    |
+| ------------ | -------- | -------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `image`      | yes      | n/a                        | Final path segment, e.g. `api` → `<registry>/<namespace>/api`.                                                 |
+| `namespace`  | no       | `${{ github.repository }}` | Path between registry and image. Defaults to `owner/name` (matches GHCR).                                      |
+| `registry`   | no       | `ghcr.io`                  | Allowlisted registry: `ghcr.io` (alias `ghcr`) or `truenas` (host from Vault). Anything else errors.           |
+| `tags`       | no       | `latest`                   | Newline-separated tag suffixes (each becomes `<ref>:<suffix>`). Blank lines skipped.                           |
+| `context`    | no       | `.`                        | Build context directory.                                                                                       |
+| `dockerfile` | no       | `''`                       | Dockerfile path (empty = default `Dockerfile` in the context, e.g. set `Dockerfile.api`).                      |
+| `cache`      | no       | `gha`                      | Layer cache backend: `gha`, `registry`, or `none` (see [Caching](#caching)).                                   |
+| `push`       | no       | `true`                     | Push the image; set `"false"` for PR validation builds.                                                        |
+| `platforms`  | no       | `''`                       | Target platforms, newline- or comma-separated (e.g. `linux/arm64`). Empty = the runner's native platform only. |
 
 ## Output
 
@@ -153,35 +153,34 @@ steps:
 
 ## Example 3: local registry
 
-Point `registry` at the alias and run on a `self-hosted` runner. No credentials
-go in the workflow; the push uses the docker credentials configured on the
-runner. Use `cache: registry`, since there's no GitHub-hosted cache there:
+With `registry: truenas` the action adds one step before the build that reads
+`kv/data/k8s/oci-registry/ci-actions` from Vault and uses its `url` as the
+registry host and its `user` / `password` for the login. No credentials go in
+the workflow and nothing is configured per repo — the job just needs an OIDC
+token. Use `cache: registry`, since there's no GitHub-hosted cache there:
 
 ```yaml
 jobs:
   build:
     runs-on: self-hosted
+    permissions:
+      contents: read
+      id-token: write # for the Vault login
     steps:
       - uses: actions/checkout@v7
       - uses: DataLabHell/ci-actions/docker/build-push@docker/build-push-vX.Y.Z
         with:
           image: my-service
-          registry: truenas # alias -> truenas.dlh-k8s.com:5000
-          namespace: my-team # -> truenas.dlh-k8s.com:5000/my-team/my-service
+          registry: truenas # host from the secret's "url" key
+          namespace: my-team # -> <host>/my-team/my-service
           cache: registry
           tags: |
             latest
             ${{ github.sha }}
 ```
 
-Ansible provisions the registry credentials as part of runner setup. It runs
-`docker login` for the user the runner service runs as, so the credential is
-already in `~/.docker/config.json` on the node. Nothing to do in the workflow or
-per repo.
-
-> Same trade-off as the S3 action's runner profile: the credential lives once on
-> the runner instead of as a per-repo secret. Convenient, but any job on that
-> runner can push to that registry.
+The credentials stay in that step's outputs (`exportEnv: false`), so they aren't
+exported into the environment of the caller's other steps.
 
 ## Matrix + release (two jobs)
 
@@ -213,6 +212,9 @@ jobs:
   build: # fans out over the images
     needs: release
     runs-on: self-hosted
+    permissions:
+      contents: read
+      id-token: write # registry credentials from Vault
     strategy:
       matrix:
         service: [api, mcp, worker]
