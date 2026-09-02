@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/DataLabHell/ci-actions/compare/docker/build-push-v0.5.0...docker/build-push-v0.6.0) (2026-09-02)
+
+
+### Features
+
+* **docker/build-push:** read truenas oci registry from vault ([22e943e](https://github.com/DataLabHell/ci-actions/commit/22e943ecf7a5756f4da27735c1a690b46569b5f9))
+
 ## [0.5.0](https://github.com/DataLabHell/ci-actions/compare/docker/build-push-v0.4.0...docker/build-push-v0.5.0) (2026-08-17)
 
 

@@ -1,6 +1,6 @@
 {
   "s3-file-upload": "1.0.0",
-  "docker/build-push": "0.5.0",
+  "docker/build-push": "0.6.0",
   "versioning/auto-patch": "0.5.0",
   "versioning/from-pyproject": "0.5.0",
   "release/tag-and-alias": "0.5.0",
