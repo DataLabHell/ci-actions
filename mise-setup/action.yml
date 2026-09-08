@@ -52,5 +52,9 @@ runs:
 
     - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
       with:
+        # mise's version endpoint can be bumped before the matching GitHub
+        # release and its assets are published, and the download then 404s.
+        # Staying a day behind latest skips that window.
+        minimum_release_age: "24h"
         experimental: true
         cache: false
