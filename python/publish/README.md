@@ -7,8 +7,9 @@ Republishing an existing version is a no-op, not a failure
 
 Only `main` publishes, so the same workflow can run on feature branches without
 pushing anything. Set `publish-other-branches: true` to publish from those too —
-they go out as prereleases, `X.Y.Z.dev0+<short-sha>`, so a final version can
-only ever come from `main`.
+they go out as prereleases, `X.Y.Z.dev<pr>+<short-sha>` (branch builds are
+expected to be pull-request triggered; a non-PR ref falls back to `dev0`), so a
+final version can only ever come from `main`.
 
 ## Requirements
 
@@ -28,7 +29,7 @@ only ever come from `main`.
 | ------------------------ | -------- | ------- | --------------------------------------------------------------------------------------------------- |
 | `version`                | no       | `''`    | Bare `X.Y.Z` from a `versioning/` action. Required for dynamic versioning, ignored for a fixed one. |
 | `release-branch`         | no       | `main`  | The only branch that publishes a final version.                                                     |
-| `publish-other-branches` | no       | `false` | Also publish other refs, as `X.Y.Z.dev0+<short-sha>`.                                               |
+| `publish-other-branches` | no       | `false` | Also publish other refs, as `X.Y.Z.dev<pr>+<short-sha>`.                                            |
 | `build`                  | no       | `true`  | Run `uv build` before publishing.                                                                   |
 | `build-args`             | no       | `''`    | Extra args passed to `uv build`.                                                                    |
 
@@ -54,9 +55,9 @@ How the version is determined depends on the project:
   the action exports it as `SETUPTOOLS_SCM_PRETEND_VERSION` for the build.
 
 Off the release branch (with `publish-other-branches: true`) the resolved
-version gets `.dev0+<short-sha>` appended — via `SETUPTOOLS_SCM_PRETEND_VERSION`
-for dynamic projects, and via `uv version` into the throwaway checkout's
-`pyproject.toml` for fixed ones. Nothing is committed.
+version gets `.dev<pr>+<short-sha>` appended — via
+`SETUPTOOLS_SCM_PRETEND_VERSION` for dynamic projects, and via `uv version` into
+the throwaway checkout's `pyproject.toml` for fixed ones. Nothing is committed.
 
 ## Usage
 
@@ -95,7 +96,7 @@ jobs:
       - uses: DataLabHell/ci-actions/python/publish@python/publish-vX.Y.Z
         with:
           version: ${{ steps.version.outputs.version }}
-          publish-other-branches: true # feature branches get X.Y.Z.dev0+<sha>
+          publish-other-branches: true # feature branches get X.Y.Z.dev<pr>+<sha>
 ```
 
 ## Notes

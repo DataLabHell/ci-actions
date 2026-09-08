@@ -52,10 +52,18 @@ else
 fi
 
 # Off the release branch, mark the build as a prerelease so only the release
-# branch ever publishes a final version. .dev0 keeps it sorted below X.Y.Z and
-# the short sha (a PEP 440 local segment) keeps every branch build distinct.
+# branch ever publishes a final version. .devN keeps it sorted below X.Y.Z and
+# the short sha (a PEP 440 local segment) keeps every branch build distinct. N
+# is the pull request number — branch builds are always PR-triggered, so the ref
+# is refs/pull/<n>/merge; anything else falls back to 0.
 if [ "$IS_RELEASE_BRANCH" != "true" ]; then
-  VERSION="${VERSION}.dev0+${GITHUB_SHA:0:7}"
+  DEV_NUMBER=0
+  if [[ "${GITHUB_REF:-}" =~ ^refs/pull/([0-9]+)/ ]]; then
+    DEV_NUMBER="${BASH_REMATCH[1]}"
+  else
+    echo "::warning::ref '${GITHUB_REF:-unknown}' is not a pull request ref — using .dev0"
+  fi
+  VERSION="${VERSION}.dev${DEV_NUMBER}+${GITHUB_SHA:0:7}"
   echo "Not on '$RELEASE_BRANCH' — publishing prerelease $VERSION"
 fi
 
