@@ -31,7 +31,7 @@ inputs:
   publish-other-branches:
     description:
       'Also publish from refs other than release-branch, as
-      "X.Y.Z.dev0+<short-sha>"'
+      "X.Y.Z.dev<pr-number>+<short-sha>"'
     required: false
     default: "false"
   build:
