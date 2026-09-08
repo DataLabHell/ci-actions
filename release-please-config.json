@@ -12,6 +12,7 @@
     "python/lint": { "component": "python/lint" },
     "python/test": { "component": "python/test" },
     "python/publish": { "component": "python/publish" },
+    "python/flyte-deploy": { "component": "python/flyte-deploy" },
     "mise-setup": { "component": "mise-setup" },
     "tools/local-renovate": { "component": "local-renovate" }
   }
