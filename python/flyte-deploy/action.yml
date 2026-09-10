@@ -1,0 +1,129 @@
+name: "Flyte deploy"
+description:
+  "Deploy a Flyte environment with the flyte CLI (via uv), authenticating with a
+  client secret read from Vault; pull requests deploy with --dry-run unless
+  register-on-pr is set."
+author: "DataLabHell"
+
+branding:
+  icon: "send"
+  color: "blue"
+
+# Installs uv (via setup-uv), reads the deploy client secret from Vault and runs
+# the flyte CLI. Everything the CLI needs is passed as a command option rather
+# than a config file, so a repo only has to say what it deploys. The caller owns
+# the job (runner, checkout).
+inputs:
+  environment:
+    description:
+      'What to deploy — the trailing arguments of "flyte deploy", e.g.
+      "my_pkg/workflows.py" or "--all my_pkg/workflows.py".'
+    required: true
+  project:
+    description: "Flyte project to deploy into."
+    required: true
+  domain:
+    description:
+      'Flyte domain(s) to deploy into. Takes a list — comma, space or newline
+      separated (e.g. "development,production") — and deploys the same version
+      to each in order.'
+    required: false
+    default: "development"
+  endpoint:
+    description: "Flyte admin endpoint."
+    required: false
+    default: "dns:///flyte.apps.dlh-k8s.com"
+  org:
+    description: "Flyte organization."
+    required: false
+    default: "flyte"
+  version:
+    description:
+      "Version to deploy. Defaults to the commit sha. Used as passed on main; a
+      pull request registered with register-on-pr always gets the short sha
+      appended."
+    required: false
+    default: ""
+  register-on-pr:
+    description:
+      'Register for real on pull requests instead of dry running them. The
+      version always gets "-<short-sha>" appended, so a PR registration never
+      collides with a main deploy.'
+    required: false
+    default: "false"
+  dry-run:
+    description:
+      '"auto" (dry run on pull_request events unless register-on-pr is true,
+      never otherwise), "true" (always) or "false" (never).'
+    required: false
+    default: "auto"
+  extra-args:
+    description: 'Extra args appended to "flyte deploy" before the environment.'
+    required: false
+    default: ""
+  working-directory:
+    description: "Directory to run the deploy from."
+    required: false
+    default: "."
+  vault-url:
+    description: "Vault address the client secret is read from."
+    required: false
+    default: "https://vault1.dlh-k8s.com:8200"
+  vault-role:
+    description: "Vault JWT role used for the OIDC login."
+    required: false
+    default: "ci-actions"
+  vault-secret:
+    description:
+      'Vault secret holding the deploy client secret, as "<path> <key>".'
+    required: false
+    default: "kv/data/k8s/flyte/oauth deployClientSecret"
+
+outputs:
+  version:
+    description: "The version that was deployed."
+    value: ${{ steps.deploy.outputs.version }}
+  dry-run:
+    description: '"true" if the deploy ran with --dry-run.'
+    value: ${{ steps.deploy.outputs.dry-run }}
+  domains:
+    description: "The domains that were deployed to, space separated."
+    value: ${{ steps.deploy.outputs.domains }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install uv
+      uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+
+    # Authenticates with the job's OIDC token, so the caller needs
+    # "permissions: id-token: write" (see the README). exportEnv is off: the
+    # secret stays in this step's outputs instead of leaking into the
+    # environment of every later step in the caller's job.
+    - name: Get Flyte client secret
+      id: vault
+      uses: hashicorp/vault-action@892a26828f195e65540a40b4768ae4571f51ebfc # v4.0.0
+      with:
+        url: ${{ inputs.vault-url }}
+        method: jwt
+        role: ${{ inputs.vault-role }}
+        exportEnv: "false"
+        secrets: |
+          ${{ inputs.vault-secret }} | FLYTE_CLIENT_SECRET
+
+    - name: Deploy to Flyte
+      id: deploy
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: bash "${{ github.action_path }}/deploy.sh"
+      env:
+        INPUT_ENVIRONMENT: ${{ inputs.environment }}
+        INPUT_PROJECT: ${{ inputs.project }}
+        INPUT_DOMAIN: ${{ inputs.domain }}
+        INPUT_ENDPOINT: ${{ inputs.endpoint }}
+        INPUT_ORG: ${{ inputs.org }}
+        INPUT_VERSION: ${{ inputs.version }}
+        INPUT_REGISTER_ON_PR: ${{ inputs.register-on-pr }}
+        INPUT_DRY_RUN: ${{ inputs.dry-run }}
+        INPUT_EXTRA_ARGS: ${{ inputs.extra-args }}
+        FLYTE_CLIENT_SECRET: ${{ steps.vault.outputs.FLYTE_CLIENT_SECRET }}
