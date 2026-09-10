@@ -71,7 +71,7 @@ fi
 DOMAINS=()
 while read -r domain; do
   [ -n "$domain" ] && DOMAINS+=("$domain")
-done < <(echo "$DOMAIN" | tr ',[:space:]' '\n\n')
+done < <(echo "$DOMAIN" | tr -s ',[:space:]' '\n')
 
 if [ "${#DOMAINS[@]}" -eq 0 ]; then
   echo "::error::input 'domain' is required"
@@ -93,6 +93,8 @@ for domain in "${DOMAINS[@]}"; do
     "${args[@]}" $EXTRA_ARGS $ENVIRONMENT
 done
 
-echo "version=${VERSION}" >>"$GITHUB_OUTPUT"
-echo "dry-run=${DRY_RUN}" >>"$GITHUB_OUTPUT"
-echo "domains=${DOMAINS[*]}" >>"$GITHUB_OUTPUT"
+{
+  echo "version=${VERSION}"
+  echo "dry-run=${DRY_RUN}"
+  echo "domains=${DOMAINS[*]}"
+} >>"$GITHUB_OUTPUT"
