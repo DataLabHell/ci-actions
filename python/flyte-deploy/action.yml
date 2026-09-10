@@ -23,7 +23,10 @@ inputs:
     description: "Flyte project to deploy into."
     required: true
   domain:
-    description: "Flyte domain to deploy into."
+    description:
+      'Flyte domain(s) to deploy into. Takes a list — comma, space or newline
+      separated (e.g. "development,production") — and deploys the same version
+      to each in order.'
     required: false
     default: "development"
   endpoint:
@@ -83,6 +86,9 @@ outputs:
   dry-run:
     description: '"true" if the deploy ran with --dry-run.'
     value: ${{ steps.deploy.outputs.dry-run }}
+  domains:
+    description: "The domains that were deployed to, space separated."
+    value: ${{ steps.deploy.outputs.domains }}
 
 runs:
   using: "composite"

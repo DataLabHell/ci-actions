@@ -66,18 +66,33 @@ elif [ "$IS_PR" = "true" ] && [ "$DRY_RUN" != "true" ]; then
   VERSION="${VERSION}-${SHORT_SHA}"
 fi
 
-args=(--endpoint "$ENDPOINT" --org "$ORG" --no-progress deploy
-  --project "$PROJECT" --domain "$DOMAIN" --version "$VERSION")
-if [ "$DRY_RUN" = "true" ]; then
-  args+=(--dry-run)
+# domain takes a list: comma, whitespace or newline separated, so one call can
+# deploy the same version to several domains.
+DOMAINS=()
+while read -r domain; do
+  [ -n "$domain" ] && DOMAINS+=("$domain")
+done < <(echo "$DOMAIN" | tr ',[:space:]' '\n\n')
+
+if [ "${#DOMAINS[@]}" -eq 0 ]; then
+  echo "::error::input 'domain' is required"
+  exit 1
 fi
 
-echo "deploying $ENVIRONMENT as $VERSION to $PROJECT/$DOMAIN (dry-run=$DRY_RUN)"
-# The ssl.create_default_context() call warms the system trust store before
-# flyte's gRPC client is imported, so the internal CA is picked up.
-# shellcheck disable=SC2086
-uv run python -c "import ssl; ssl.create_default_context(); from flyte.cli.main import main; main()" \
-  "${args[@]}" $EXTRA_ARGS $ENVIRONMENT
+for domain in "${DOMAINS[@]}"; do
+  args=(--endpoint "$ENDPOINT" --org "$ORG" --no-progress deploy
+    --project "$PROJECT" --domain "$domain" --version "$VERSION")
+  if [ "$DRY_RUN" = "true" ]; then
+    args+=(--dry-run)
+  fi
+
+  echo "deploying $ENVIRONMENT as $VERSION to $PROJECT/$domain (dry-run=$DRY_RUN)"
+  # The ssl.create_default_context() call warms the system trust store before
+  # flyte's gRPC client is imported, so the internal CA is picked up.
+  # shellcheck disable=SC2086
+  uv run python -c "import ssl; ssl.create_default_context(); from flyte.cli.main import main; main()" \
+    "${args[@]}" $EXTRA_ARGS $ENVIRONMENT
+done
 
 echo "version=${VERSION}" >>"$GITHUB_OUTPUT"
 echo "dry-run=${DRY_RUN}" >>"$GITHUB_OUTPUT"
+echo "domains=${DOMAINS[*]}" >>"$GITHUB_OUTPUT"

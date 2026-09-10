@@ -3,7 +3,8 @@
 Deploy a Flyte environment with the `flyte` CLI (run through `uv`). The deploy
 client secret comes from Vault, and everything the CLI needs — endpoint, org,
 project, domain, version — is passed as a command option, so a repo needs no
-`flyte` config file in the checkout.
+`flyte` config file in the checkout. `domain` takes a list, so one step can
+deploy the same version to several domains (`development,production`).
 
 On a pull request the deploy runs with `--dry-run` (nothing is registered); on
 any other event it registers for real with the version exactly as given. Set
@@ -28,7 +29,7 @@ always get `-<short-sha>` appended so they never collide with a main deploy.
 | ------------------- | -------- | -------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | `environment`       | yes      | —                                            | Trailing args of `flyte deploy`, e.g. `my_pkg/workflows.py` or `--all my_pkg/workflows.py`. |
 | `project`           | yes      | —                                            | Flyte project to deploy into.                                                               |
-| `domain`            | no       | `development`                                | Flyte domain to deploy into.                                                                |
+| `domain`            | no       | `development`                                | Flyte domain(s), as a comma/space/newline separated list (`development,production`).        |
 | `endpoint`          | no       | `dns:///flyte.apps.dlh-k8s.com`              | Flyte admin endpoint.                                                                       |
 | `org`               | no       | `flyte`                                      | Flyte organization.                                                                         |
 | `version`           | no       | `''`                                         | Version to deploy; empty means the commit sha.                                              |
@@ -46,6 +47,7 @@ always get `-<short-sha>` appended so they never collide with a main deploy.
 | --------- | ----------------------------------------- |
 | `version` | The version that was deployed             |
 | `dry-run` | `true` if the deploy ran with `--dry-run` |
+| `domains` | The domains deployed to, space separated  |
 
 ## Usage
 
@@ -75,6 +77,45 @@ on:
   push:
     branches: [main]
 ```
+
+### Development on pull requests, development + production on main
+
+One workflow that validates against `development` on a pull request and, on
+`main`, registers to both `development` and `production` under a version from
+[`versioning/auto-patch`](../../versioning/auto-patch):
+
+```yaml
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    permissions:
+      id-token: write # Vault JWT auth
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # auto-patch needs the tags
+
+      - id: ver
+        uses: DataLabHell/ci-actions/versioning/auto-patch@versioning/auto-patch-vX.Y.Z
+
+      - uses: DataLabHell/ci-actions/python/flyte-deploy@python/flyte-deploy-vX.Y.Z
+        with:
+          project: flyte-otel-demo
+          environment: --all flyte_otel_demo/hello_otel.py
+          version: ${{ steps.ver.outputs.version }}
+          domain:
+            ${{ github.event_name == 'pull_request' && 'development' ||
+            'development,production' }}
+```
+
+On a pull request that is a `--dry-run` against `development` only; on `main`
+the same version is registered to `development` and then `production`.
 
 ## Notes
 
