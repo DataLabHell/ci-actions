@@ -26,9 +26,10 @@ that set.
 
 ## Inputs
 
-| Input    | Required | Default | Description                                                             |
-| -------- | -------- | ------- | ----------------------------------------------------------------------- |
-| `global` | no       | `false` | Install into the runner-wide mise dirs instead of a per-repository dir. |
+| Input                 | Required | Default | Description                                                             |
+| --------------------- | -------- | ------- | ----------------------------------------------------------------------- |
+| `global`              | no       | `false` | Install into the runner-wide mise dirs instead of a per-repository dir. |
+| `minimum-release-age` | no       | `24h`   | Ignore mise releases younger than this age.                             |
 
 Where things land:
 
@@ -91,6 +92,11 @@ To share one tool tree across every repo on the runner instead:
   written back. A `restore-keys` prefix of `mise-<repo>-<os>-` seeds that new
   key from the most recent previous entry, so a one-tool change installs one
   tool instead of all of them.
+- `minimum-release-age` is forwarded to mise-action's `minimum_release_age`.
+  mise's version endpoint can be bumped before the matching GitHub release and
+  its assets are published, and the download then 404s; the `24h` default stays
+  a day behind latest to skip that window. Set it to `0` to take latest
+  immediately, or raise it to lag further behind.
 - `experimental: true` is passed to mise-action because mise needs it for
   features the org's projects use.
 - Pruning keeps the cache small: `mise prune -y` drops versions the config no

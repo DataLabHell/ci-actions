@@ -17,6 +17,10 @@ inputs:
       you want."
     required: false
     default: "false"
+  minimum-release-age:
+    description: "Ignore mise releases younger than this age."
+    required: false
+    default: "24h"
 
 # Composite wrapper around jdx/mise-action. The caller owns the job (runner,
 # checkout). Third-party actions are pinned to a commit SHA, not a tag.
@@ -52,9 +56,6 @@ runs:
 
     - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
       with:
-        # mise's version endpoint can be bumped before the matching GitHub
-        # release and its assets are published, and the download then 404s.
-        # Staying a day behind latest skips that window.
-        minimum_release_age: "24h"
+        minimum_release_age: ${{ inputs.minimum-release-age }}
         experimental: true
         cache: false
