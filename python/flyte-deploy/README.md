@@ -1,10 +1,13 @@
 # python/flyte-deploy
 
 Deploy a Flyte environment with the `flyte` CLI (run through `uv`). The deploy
-client secret comes from Vault, and everything the CLI needs — endpoint, org,
-project, domain, version — is passed as a command option, so a repo needs no
-`flyte` config file in the checkout. `domain` takes a list, so one step can
-deploy the same version to several domains (`development,production`).
+client id, secret and oauth scope come from Vault and are handed to the CLI as
+the `FLYTE_ADMIN_*` config env vars it actually reads, so it authenticates with
+the client credentials grant instead of falling back to its default browser
+(PKCE) flow. Everything else the CLI needs — endpoint, org, project, domain,
+version — is passed as a command option, so a repo needs no `flyte` config file
+in the checkout. `domain` takes a list, so one step can deploy the same version
+to several domains (`development,production`).
 
 On a pull request the deploy runs with `--dry-run` (nothing is registered); on
 any other event it registers for real with the version exactly as given. Set
@@ -41,6 +44,7 @@ always get `-<short-sha>` appended so they never collide with a main deploy.
 | `vault-role`                | no       | `ci-actions`                                 | Vault JWT role.                                                                             |
 | `vault-secret-clientid`     | no       | `kv/data/k8s/flyte/oauth deployClientId`     | Vault secret holding the client id for oauth, as `<path> <key>`.                            |
 | `vault-secret-clientsecret` | no       | `kv/data/k8s/flyte/oauth deployClientSecret` | Vault secret holding the client secret for oauth, as `<path> <key>`.                        |
+| `vault-secret-clientscope`  | no       | `kv/data/k8s/flyte/oauth deployClientScope`  | Vault secret holding the oauth scope requested for the deploy, as `<path> <key>`.           |
 
 ## Outputs
 

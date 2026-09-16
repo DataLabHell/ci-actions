@@ -82,6 +82,12 @@ inputs:
     description: 'Vault secret holding the deploy client id, as "<path> <key>".'
     required: false
     default: "kv/data/k8s/flyte/oauth deployClientId"
+  vault-secret-clientscope:
+    description:
+      'Vault secret holding the OAuth scope requested for the client credentials
+      grant, as "<path> <key>".'
+    required: false
+    default: "kv/data/k8s/flyte/oauth deployClientScope"
 
 outputs:
   version:
@@ -114,7 +120,8 @@ runs:
         exportEnv: "false"
         secrets: |
           ${{ inputs.vault-secret-clientid }} | FLYTE_CLIENT_ID;
-          ${{ inputs.vault-secret-clientsecret }} | FLYTE_CLIENT_SECRET
+          ${{ inputs.vault-secret-clientsecret }} | FLYTE_CLIENT_SECRET;
+          ${{ inputs.vault-secret-clientscope }} | FLYTE_CLIENT_SCOPE
 
     - name: Deploy to Flyte
       id: deploy
@@ -133,3 +140,4 @@ runs:
         INPUT_EXTRA_ARGS: ${{ inputs.extra-args }}
         FLYTE_CLIENT_ID: ${{ steps.vault.outputs.FLYTE_CLIENT_ID }}
         FLYTE_CLIENT_SECRET: ${{ steps.vault.outputs.FLYTE_CLIENT_SECRET }}
+        FLYTE_CLIENT_SCOPE: ${{ steps.vault.outputs.FLYTE_CLIENT_SCOPE }}
