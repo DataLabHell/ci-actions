@@ -25,21 +25,22 @@ always get `-<short-sha>` appended so they never collide with a main deploy.
 
 ## Inputs
 
-| Input               | Required | Default                                      | Description                                                                                 |
-| ------------------- | -------- | -------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `environment`       | yes      | —                                            | Trailing args of `flyte deploy`, e.g. `my_pkg/workflows.py` or `--all my_pkg/workflows.py`. |
-| `project`           | yes      | —                                            | Flyte project to deploy into.                                                               |
-| `domain`            | no       | `development`                                | Flyte domain(s), as a comma/space/newline separated list (`development,production`).        |
-| `endpoint`          | no       | `dns:///flyte.apps.dlh-k8s.com`              | Flyte admin endpoint.                                                                       |
-| `org`               | no       | `flyte`                                      | Flyte organization.                                                                         |
-| `version`           | no       | `''`                                         | Version to deploy; empty means the commit sha.                                              |
-| `register-on-pr`    | no       | `false`                                      | Register for real on pull requests; the short sha is always appended to the version.        |
-| `dry-run`           | no       | `auto`                                       | `auto` (dry run on pull requests unless `register-on-pr`), `true`, or `false`.              |
-| `extra-args`        | no       | `''`                                         | Extra args appended to `flyte deploy` before the environment.                               |
-| `working-directory` | no       | `.`                                          | Directory to run the deploy from.                                                           |
-| `vault-url`         | no       | `https://vault1.dlh-k8s.com:8200`            | Vault address.                                                                              |
-| `vault-role`        | no       | `ci-actions`                                 | Vault JWT role.                                                                             |
-| `vault-secret`      | no       | `kv/data/k8s/flyte/oauth deployClientSecret` | Vault secret holding the client secret, as `<path> <key>`.                                  |
+| Input                       | Required | Default                                      | Description                                                                                 |
+| --------------------------- | -------- | -------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `environment`               | yes      | —                                            | Trailing args of `flyte deploy`, e.g. `my_pkg/workflows.py` or `--all my_pkg/workflows.py`. |
+| `project`                   | yes      | —                                            | Flyte project to deploy into.                                                               |
+| `domain`                    | no       | `development`                                | Flyte domain(s), as a comma/space/newline separated list (`development,production`).        |
+| `endpoint`                  | no       | `dns:///flyte.apps.dlh-k8s.com`              | Flyte admin endpoint.                                                                       |
+| `org`                       | no       | `flyte`                                      | Flyte organization.                                                                         |
+| `version`                   | no       | `''`                                         | Version to deploy; empty means the commit sha.                                              |
+| `register-on-pr`            | no       | `false`                                      | Register for real on pull requests; the short sha is always appended to the version.        |
+| `dry-run`                   | no       | `auto`                                       | `auto` (dry run on pull requests unless `register-on-pr`), `true`, or `false`.              |
+| `extra-args`                | no       | `''`                                         | Extra args appended to `flyte deploy` before the environment.                               |
+| `working-directory`         | no       | `.`                                          | Directory to run the deploy from.                                                           |
+| `vault-url`                 | no       | `https://vault1.dlh-k8s.com:8200`            | Vault address.                                                                              |
+| `vault-role`                | no       | `ci-actions`                                 | Vault JWT role.                                                                             |
+| `vault-secret-clientid`     | no       | `kv/data/k8s/flyte/oauth deployClientId`     | Vault secret holding the client id for oauth, as `<path> <key>`.                            |
+| `vault-secret-clientsecret` | no       | `kv/data/k8s/flyte/oauth deployClientSecret` | Vault secret holding the client secret for oauth, as `<path> <key>`.                        |
 
 ## Outputs
 
