@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/DataLabHell/ci-actions/compare/python/publish-v1.0.0...python/publish-v1.1.0) (2026-09-16)
+
+
+### Features
+
+* **python/publish:** use PR number for devN ([e21d143](https://github.com/DataLabHell/ci-actions/commit/e21d143964b25b9a433955b6985629feeedb3279))
+
 ## 1.0.0 (2026-08-25)
 
 
