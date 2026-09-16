@@ -73,11 +73,15 @@ inputs:
     description: "Vault JWT role used for the OIDC login."
     required: false
     default: "ci-actions"
-  vault-secret:
+  vault-secret-clientsecret:
     description:
       'Vault secret holding the deploy client secret, as "<path> <key>".'
     required: false
     default: "kv/data/k8s/flyte/oauth deployClientSecret"
+  vault-secret-clientid:
+    description: 'Vault secret holding the deploy client id, as "<path> <key>".'
+    required: false
+    default: "kv/data/k8s/flyte/oauth deployClientId"
 
 outputs:
   version:
@@ -109,7 +113,8 @@ runs:
         role: ${{ inputs.vault-role }}
         exportEnv: "false"
         secrets: |
-          ${{ inputs.vault-secret }} | FLYTE_CLIENT_SECRET
+          ${{ inputs.vault-secret-clientid }} | FLYTE_CLIENT_ID
+          ${{ inputs.vault-secret-clientsecret }} | FLYTE_CLIENT_SECRET
 
     - name: Deploy to Flyte
       id: deploy
@@ -126,4 +131,5 @@ runs:
         INPUT_REGISTER_ON_PR: ${{ inputs.register-on-pr }}
         INPUT_DRY_RUN: ${{ inputs.dry-run }}
         INPUT_EXTRA_ARGS: ${{ inputs.extra-args }}
+        FLYTE_CLIENT_ID: ${{ steps.vault.outputs.FLYTE_CLIENT_ID }}
         FLYTE_CLIENT_SECRET: ${{ steps.vault.outputs.FLYTE_CLIENT_SECRET }}
