@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Deploy for python/flyte-deploy. Inputs come in as INPUT_* env vars; the client
-# secret is already in FLYTE_CLIENT_SECRET, which the flyte CLI picks up itself.
+# id and secret are in FLYTE_CLIENT_ID / FLYTE_CLIENT_SECRET.
 ENVIRONMENT="${INPUT_ENVIRONMENT:-}"
 PROJECT="${INPUT_PROJECT:-}"
 DOMAIN="${INPUT_DOMAIN:-development}"
@@ -23,6 +23,30 @@ done
 if [ -z "${FLYTE_CLIENT_SECRET:-}" ]; then
   echo "::error::FLYTE_CLIENT_SECRET is empty — the Vault step returned nothing for vault-secret" >&2
   exit 1
+fi
+
+if [ -z "${FLYTE_CLIENT_ID:-}" ]; then
+  echo "::error::FLYTE_CLIENT_ID is empty — the Vault step returned nothing for vault-secret-clientid" >&2
+  exit 1
+fi
+
+# The flyte CLI does not read FLYTE_CLIENT_ID/FLYTE_CLIENT_SECRET: its config
+# entries are derived from the flytectl config keys, so the client id comes from
+# FLYTE_ADMIN_CLIENTID and the secret from whichever env var
+# FLYTE_ADMIN_CLIENTSECRETENVVAR names. Without these the CLI keeps the default
+# Pkce auth and tries to open a browser, which on a runner just prints a login
+# URL and hangs. Reading the secret via *_ENVVAR also flips auth to
+# ClientSecret; FLYTE_AUTH_TYPE says so explicitly. The runner has no keyring,
+# so token caching is turned off as well.
+export FLYTE_ADMIN_CLIENTID="$FLYTE_CLIENT_ID"
+export FLYTE_ADMIN_CLIENTSECRETENVVAR="FLYTE_CLIENT_SECRET"
+export FLYTE_AUTH_TYPE="ClientSecret"
+export FLYTE_ADMIN_DISABLEKEYRING="true"
+
+# Entra ID hands out a token for the Flyte API only when the grant asks for that
+# API's scope, so it is kept in Vault next to the id and secret.
+if [ -n "${FLYTE_CLIENT_SCOPE:-}" ]; then
+  export FLYTE_ADMIN_SCOPES="$FLYTE_CLIENT_SCOPE"
 fi
 
 case "$REGISTER_ON_PR" in
