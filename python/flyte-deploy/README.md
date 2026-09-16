@@ -1,13 +1,13 @@
 # python/flyte-deploy
 
 Deploy a Flyte environment with the `flyte` CLI (run through `uv`). The deploy
-client id, secret and oauth scope come from Vault and are handed to the CLI as
-the `FLYTE_ADMIN_*` config env vars it actually reads, so it authenticates with
-the client credentials grant instead of falling back to its default browser
-(PKCE) flow. Everything else the CLI needs — endpoint, org, project, domain,
-version — is passed as a command option, so a repo needs no `flyte` config file
-in the checkout. `domain` takes a list, so one step can deploy the same version
-to several domains (`development,production`).
+client id, oauth scope and secret come from Vault; the action writes them into a
+throwaway config file (merged on top of the repo's own, if it has one) so the
+CLI authenticates with the client credentials grant instead of falling back to
+its default browser (PKCE) flow. Everything else the CLI needs — endpoint, org,
+project, domain, version — is passed as a command option, so a repo needs no
+`flyte` config file in the checkout. `domain` takes a list, so one step can
+deploy the same version to several domains (`development,production`).
 
 On a pull request the deploy runs with `--dry-run` (nothing is registered); on
 any other event it registers for real with the version exactly as given. Set
@@ -127,6 +127,11 @@ the same version is registered to `development` and then `production`.
 - The CLI is invoked as
   `uv run python -c "import ssl; ssl.create_default_context(); from flyte.cli.main import main; main()"`.
   Currently needed due to bug in cpython openssl.
+- The generated config is passed with `--config` and deleted when the step ends.
+  It carries `admin.clientId`, `admin.authType`, `admin.scopes` and
+  `admin.clientSecretEnvVar`; the secret itself stays in the environment and is
+  never written to disk. Env vars alone are not enough here — `Config.auto()`
+  only reads the environment once it has found a config file.
 - The secret is fetched with `exportEnv: false` and handed only to the deploy
   step, so it does not end up in the environment of the caller's later steps.
 - Point a repo at different credentials by changing `vault-secret` (or the value
