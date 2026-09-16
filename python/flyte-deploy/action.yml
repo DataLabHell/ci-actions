@@ -113,7 +113,7 @@ runs:
         role: ${{ inputs.vault-role }}
         exportEnv: "false"
         secrets: |
-          ${{ inputs.vault-secret-clientid }} | FLYTE_CLIENT_ID
+          ${{ inputs.vault-secret-clientid }} | FLYTE_CLIENT_ID;
           ${{ inputs.vault-secret-clientsecret }} | FLYTE_CLIENT_SECRET
 
     - name: Deploy to Flyte
