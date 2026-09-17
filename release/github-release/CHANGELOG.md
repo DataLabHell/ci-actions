@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/DataLabHell/ci-actions/compare/release/github-release-v0.5.0...release/github-release-v0.6.0) (2026-09-17)
+
+
+### Features
+
+* **local-renovate:** release it as an installable tool ([e095fec](https://github.com/DataLabHell/ci-actions/commit/e095fec7ee2e1d479014914a15d6ac33bc04f04a))
+
 ## [0.5.0](https://github.com/DataLabHell/ci-actions/compare/release/github-release-v0.4.0...release/github-release-v0.5.0) (2026-08-17)
 
 

@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.6.0](https://github.com/DataLabHell/ci-actions/compare/mise-setup-v0.5.1...mise-setup-v0.6.0) (2026-09-17)
+
+
+### Features
+
+* **local-renovate:** release it as an installable tool ([e095fec](https://github.com/DataLabHell/ci-actions/commit/e095fec7ee2e1d479014914a15d6ac33bc04f04a))
+* **mise-setup:** minimum_release_age configurable ([f630df0](https://github.com/DataLabHell/ci-actions/commit/f630df0a633d6521abac3808c3ee1678284d262c))
+
+
+### Bug Fixes
+
+* **mise-setup:** set min release age to 24h otherwise release might be to new and missing binaries ([148c90f](https://github.com/DataLabHell/ci-actions/commit/148c90f08753ed5761d26b22ec49a89ee4d91134))
+
 ## [0.5.1](https://github.com/DataLabHell/ci-actions/compare/mise-setup-v0.5.0...mise-setup-v0.5.1) (2026-08-28)
 
 
