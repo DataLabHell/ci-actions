@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/DataLabHell/ci-actions/compare/local-renovate-v1.0.0...local-renovate-v1.0.1) (2026-09-22)
+
+
+### Bug Fixes
+
+* **local-renovate:** fix key substition rule regex ([41b0e6f](https://github.com/DataLabHell/ci-actions/commit/41b0e6f7c315fbed7b20a3e80244436c3e67e20a))
+
 ## 1.0.0 (2026-09-01)
 
 
