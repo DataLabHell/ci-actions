@@ -214,7 +214,7 @@ if [ "$mode" = apply ]; then
         ;;
       key)
         KEY="$f1" OLD="$f2" NEW="$f3" perl -i -pe \
-          's/(^\s*"?\Q$ENV{KEY}\E"?\s*=\s*"[^"]*?)\Q$ENV{OLD}\E/$1$ENV{NEW}/' "$file"
+          's/(^\s*"?\Q$ENV{KEY}\E"?\s*=\s*(?:\{[^}]*?version\s*=\s*)?"[^"]*?)\Q$ENV{OLD}\E/$1$ENV{NEW}/' "$file"
         ;;
       pep)
         DEP="$f1" OP="$f2" OLD="$f3" NEW="$f4" perl -i -pe \
