@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/DataLabHell/ci-actions/compare/mise-setup-v0.6.0...mise-setup-v0.7.0) (2026-09-23)
+
+
+### Features
+
+* **mise-setup:** add option to bypass cache ([5be6f09](https://github.com/DataLabHell/ci-actions/commit/5be6f09c10060dca784508a7516901b7253f306b))
+
 ## [0.6.0](https://github.com/DataLabHell/ci-actions/compare/mise-setup-v0.5.1...mise-setup-v0.6.0) (2026-09-22)
 
 
