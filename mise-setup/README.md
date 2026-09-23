@@ -29,7 +29,7 @@ that set.
 | Input                 | Required | Default | Description                                                             |
 | --------------------- | -------- | ------- | ----------------------------------------------------------------------- |
 | `global`              | no       | `false` | Install into the runner-wide mise dirs instead of a per-repository dir. |
-| `cache`               | no       | `true`  | Cache the install dirs. `false` installs fresh into a throwaway dir.    |
+| `cache`               | no       | `false` | Cache the install dirs. `false` installs fresh into a throwaway dir.    |
 | `minimum-release-age` | no       | `24h`   | Ignore mise releases younger than this age.                             |
 
 Where things land:
