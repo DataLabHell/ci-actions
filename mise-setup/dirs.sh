@@ -4,7 +4,16 @@
 # prune step and whatever the caller runs - agrees with what was cached.
 set -euo pipefail
 
-if [ "${INPUT_GLOBAL:-false}" = "true" ]; then
+if [ "${INPUT_CACHE:-true}" != "true" ]; then
+  # Throwaway dir wiped up front, so nothing is reused from an earlier job on
+  # this runner and every tool downloads fresh. Overrides `global`.
+  base="${RUNNER_TEMP:?RUNNER_TEMP is not set}/mise"
+  rm -rf "$base"
+  data_dir="$base/data"
+  cache_dir="$base/cache"
+  state_dir="$base/state"
+  scope="isolated (uncached)"
+elif [ "${INPUT_GLOBAL:-false}" = "true" ]; then
   # Runner-wide dirs: every repo on this runner shares one set of tool versions.
   data_dir="$HOME/.local/share/mise"
   cache_dir="$HOME/.cache/mise"

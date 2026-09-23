@@ -17,6 +17,13 @@ inputs:
       you want."
     required: false
     default: "false"
+  cache:
+    description:
+      "Cache the mise install dirs with actions/cache. Set to false to install
+      into a throwaway dir under RUNNER_TEMP with no cache and no reuse of
+      earlier installs, so every tool downloads fresh. false overrides global."
+    required: false
+    default: "true"
   minimum-release-age:
     description: "Ignore mise releases younger than this age."
     required: false
@@ -34,6 +41,7 @@ runs:
       run: bash "${{ github.action_path }}/dirs.sh"
       env:
         INPUT_GLOBAL: ${{ inputs.global }}
+        INPUT_CACHE: ${{ inputs.cache }}
 
     # mise-action's built-in caching is turned off below and replaced by this
     # step, which caches the install dirs directly.
@@ -43,7 +51,8 @@ runs:
     # new key and the updated tool set gets written back. restore-keys then seeds
     # that fresh key from the previous entry, leaving only the changed tools to
     # install rather than the whole set.
-    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+    - if: inputs.cache == 'true'
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: |
           ${{ steps.dirs.outputs.data-dir }}/installs
