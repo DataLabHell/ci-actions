@@ -23,7 +23,7 @@ inputs:
       into a throwaway dir under RUNNER_TEMP with no cache and no reuse of
       earlier installs, so every tool downloads fresh. false overrides global."
     required: false
-    default: "true"
+    default: "false"
   minimum-release-age:
     description: "Ignore mise releases younger than this age."
     required: false
