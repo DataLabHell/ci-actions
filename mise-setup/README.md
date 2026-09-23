@@ -29,14 +29,16 @@ that set.
 | Input                 | Required | Default | Description                                                             |
 | --------------------- | -------- | ------- | ----------------------------------------------------------------------- |
 | `global`              | no       | `false` | Install into the runner-wide mise dirs instead of a per-repository dir. |
+| `cache`               | no       | `true`  | Cache the install dirs. `false` installs fresh into a throwaway dir.    |
 | `minimum-release-age` | no       | `24h`   | Ignore mise releases younger than this age.                             |
 
 Where things land:
 
-| `global` | Data dir                       | Cache dir                       |
-| -------- | ------------------------------ | ------------------------------- |
-| `false`  | `$RUNNER_WORKSPACE/.mise/data` | `$RUNNER_WORKSPACE/.mise/cache` |
-| `true`   | `~/.local/share/mise`          | `~/.cache/mise`                 |
+| `cache` | `global` | Data dir                       | Cache dir                       |
+| ------- | -------- | ------------------------------ | ------------------------------- |
+| `true`  | `false`  | `$RUNNER_WORKSPACE/.mise/data` | `$RUNNER_WORKSPACE/.mise/cache` |
+| `true`  | `true`   | `~/.local/share/mise`          | `~/.cache/mise`                 |
+| `false` | any      | `$RUNNER_TEMP/mise/data`       | `$RUNNER_TEMP/mise/cache`       |
 
 `$RUNNER_WORKSPACE` is the runner's per-repository work dir, one level above the
 checkout, so nothing lands in the git tree and no `.gitignore` entry is needed.
@@ -48,6 +50,11 @@ Use `global: true` only when the goal is to share one set of tool versions
 across every repo on the runner, for example a runner dedicated to a single
 project family, where per-repository isolation isn't worth the extra downloads
 it causes.
+
+With `cache: false` the `actions/cache` step is skipped and `$RUNNER_TEMP/mise`
+is wiped before install, so the job reuses nothing from the cache or from
+earlier jobs on the runner and every tool downloads fresh. It overrides
+`global`: the shared runner-wide tree is left untouched.
 
 ## Outputs
 
@@ -68,6 +75,14 @@ jobs:
       - name: Run a project task
         shell: bash
         run: mise run build
+```
+
+To install every tool fresh with no cache:
+
+```yaml
+- uses: DataLabHell/ci-actions/mise-setup@mise-setup-vX.Y.Z
+  with:
+    cache: "false"
 ```
 
 To share one tool tree across every repo on the runner instead:
