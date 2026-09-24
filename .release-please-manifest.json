@@ -9,6 +9,6 @@
   "python/test": "0.5.2",
   "python/publish": "1.1.0",
   "python/flyte-deploy": "1.0.0",
-  "mise-setup": "0.7.0",
+  "mise-setup": "0.7.1",
   "tools/local-renovate": "1.0.1"
 }
