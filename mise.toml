@@ -141,10 +141,8 @@ fi
 # Dependencies #
 ################
 
-[tasks.renovate]
+[tasks."dependencies:renovate"]
 description = "Preview, gate, or apply dependency updates with renovate"
-# `depends` would swallow the mode and flags; an alias forwards them
-alias = "dependencies"
 usage = '''
 arg "[mode]" help="`check` exits non-zero when updates exist; `apply` rewrites the manifests renovate.json would automerge"
 flag "--force" help="with apply, also rewrite manual/major bumps"

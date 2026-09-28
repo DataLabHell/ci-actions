@@ -35,9 +35,9 @@ cannot render.
 
 `apply` only touches the manifests. Run the repo's own refresh afterwards
 (`mise install`, `cargo update`, `uv sync`, `dbt deps`) to bring locks and
-installed tools in line. Here that is `mise run renovate` (aliased as
-`dependencies`), which passes the mode through and then reinstalls, prunes and
-relocks after an `apply`.
+installed tools in line. Here that is `mise run dependencies:renovate`, which
+passes the mode through and then reinstalls, prunes and relocks after an
+`apply`.
 
 Set `RENOVATE_REPORT=<path>` to replay a report that was captured earlier
 instead of running renovate. The tests use this.
@@ -130,7 +130,7 @@ read access, because `DataLabHell/ci-actions` is private.
 Wire it into a task the same way this repo does:
 
 ```toml
-[tasks.renovate]
+[tasks."dependencies:renovate"]
 description = "Preview, gate, or apply dependency updates with renovate"
 usage = 'arg "[mode]" help="`check` or `apply`"'
 run = "local-renovate $usage_mode"

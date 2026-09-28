@@ -200,7 +200,7 @@ mise install        # get the linters, jq and renovate
 mise run check      # the full gate: format check + lint + test (what CI runs)
 mise run format     # apply shfmt, prettier and taplo formatting
 mise run test       # the local-renovate fixture tests on their own
-mise run renovate   # list pending dependency bumps (alias: `dependencies`)
+mise run dependencies:renovate  # list pending dependency bumps
 mise tasks          # list everything, including the per-language tasks
 ```
 
