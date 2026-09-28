@@ -31,6 +31,7 @@ that set.
 | `global`              | no       | `false` | Install into the runner-wide mise dirs instead of a per-repository dir. |
 | `cache`               | no       | `false` | Cache the install dirs. `false` installs fresh into a throwaway dir.    |
 | `minimum-release-age` | no       | `24h`   | Ignore mise releases younger than this age.                             |
+| `task-state`          | no       | `true`  | Cache mise task freshness state so unchanged tasks skip.                |
 
 Where things land:
 
@@ -107,6 +108,18 @@ To share one tool tree across every repo on the runner instead:
   written back. A `restore-keys` prefix of `mise-<repo>-<os>-` seeds that new
   key from the most recent previous entry, so a one-tool change installs one
   tool instead of all of them.
+- `task-state` caches `<state-dir>/task-sources`, so a task whose `sources` are
+  unchanged since its last green run skips on a fresh checkout. It applies only
+  when the project sets `task.source_freshness_hash_contents = true` (mise
+  2026.7.15 or later); otherwise the step logs a notice and every task runs.
+  Under mtime freshness, restored state would skip a commit created before the
+  last green run but pushed after it. The key is
+  `mise-tasks-<repo>-<os>-<arch>-<job>-<run_id>-<attempt>`, restored by the
+  `mise-tasks-<repo>-<os>-<arch>-<job>-` prefix: the newest entry the ref can
+  see. mise keys the state by checkout path, so the path must be stable, which
+  the default `$GITHUB_WORKSPACE` is. It also caches file hashes by size and
+  mtime, so don't put sources in place with preserved mtimes (`cp -p`,
+  `rsync -a`) before running tasks.
 - `minimum-release-age` is forwarded to mise-action's `minimum_release_age`.
   mise's version endpoint can be bumped before the matching GitHub release and
   its assets are published, and the download then 404s; the `24h` default stays

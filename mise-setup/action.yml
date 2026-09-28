@@ -24,6 +24,13 @@ inputs:
       earlier installs, so every tool downloads fresh. false overrides global."
     required: false
     default: "false"
+  task-state:
+    description:
+      "Cache mise's task freshness state so tasks whose sources are unchanged
+      since their last green run skip. Applies only when the project sets
+      task.source_freshness_hash_contents = true."
+    required: false
+    default: "true"
   minimum-release-age:
     description: "Ignore mise releases younger than this age."
     required: false
@@ -68,3 +75,24 @@ runs:
         minimum_release_age: ${{ inputs.minimum-release-age }}
         experimental: true
         cache: false
+
+    - id: freshness
+      if: inputs.task-state == 'true'
+      shell: bash
+      run: |
+        hash=$(mise settings get task.source_freshness_hash_contents 2>/dev/null || echo false)
+        echo "hash=$hash" >>"$GITHUB_OUTPUT"
+        if [ "$hash" != "true" ]; then
+          echo "::notice::task-state skipped: restored state is only safe with task.source_freshness_hash_contents = true"
+        fi
+
+    # Keyed per run and job: GitHub never overwrites a key, and parallel jobs
+    # would collide on a shared one.
+    - if: steps.freshness.outputs.hash == 'true'
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ steps.dirs.outputs.state-dir }}/task-sources
+        key: |-
+          mise-tasks-${{ github.event.repository.name }}-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
+        restore-keys: |
+          mise-tasks-${{ github.event.repository.name }}-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
