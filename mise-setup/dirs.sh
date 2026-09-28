@@ -39,8 +39,10 @@ fi
 {
   echo "data-dir=$data_dir"
   echo "cache-dir=$cache_dir"
+  echo "state-dir=$state_dir"
 } >>"$GITHUB_OUTPUT"
 
 echo "mise scope: $scope"
 echo "  data:  $data_dir"
 echo "  cache: $cache_dir"
+echo "  state: $state_dir"
