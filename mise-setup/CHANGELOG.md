@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.8.0](https://github.com/DataLabHell/ci-actions/compare/mise-setup-v0.7.0...mise-setup-v0.8.0) (2026-09-28)
+
+
+### Features
+
+* **misesetup:** use hash based freshness to leverage mise sources/output gates ([e0f7020](https://github.com/DataLabHell/ci-actions/commit/e0f7020cd8e56ec97441fc8bc735a6315a6cbddf))
+
+
+### Performance Improvements
+
+* **mise-setup:** skip cache by default ([1e64372](https://github.com/DataLabHell/ci-actions/commit/1e643725c03bbf9f39eae7d9a4f3c881a7528bab))
+
 ## [0.7.0](https://github.com/DataLabHell/ci-actions/compare/mise-setup-v0.6.0...mise-setup-v0.7.0) (2026-09-23)
 
 
