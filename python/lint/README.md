@@ -52,5 +52,10 @@ Make typing block the build once it's clean:
   `ty` follows `type-check`: `warn` prints a `::warning` and continues, `error`
   fails the job, `off` skips the ty step entirely (no `uv` install, no
   `uv sync`).
+- The `uv sync` before ty runs locked (`UV_LOCKED=1`), so a `uv.lock` out of
+  date with `pyproject.toml` fails the job instead of being re-locked. This also
+  catches a lock broken by a tool editing it by hand, such as release-please
+  bumping the project version via `extra-files`. With `type-check: off` there is
+  no sync; [`python/test`](../test) runs locked too and still catches it.
 - `type-check-paths` is separate from `paths` because you often want ruff to
   cover tests and scripts while ty checks only the package.

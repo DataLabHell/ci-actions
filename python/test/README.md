@@ -41,5 +41,8 @@ jobs:
 
 - When `python-version` is set, it's passed to both `uv sync` and `uv run` so
   the environment and the test run use the same interpreter.
+- `uv sync` and `uv run` run locked (`UV_LOCKED=1`), so a `uv.lock` out of date
+  with `pyproject.toml` fails the job instead of being re-locked, and tests
+  always run against the committed lock.
 - The matrix (and its `fail-fast`) belongs to the caller, because a composite
   action can't fan one out itself.

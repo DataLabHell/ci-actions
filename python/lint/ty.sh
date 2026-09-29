@@ -10,9 +10,10 @@ TYPE_CHECK_PATHS="${INPUT_TYPE_CHECK_PATHS:-.}"
 SYNC_ARGS="${INPUT_SYNC_ARGS:-}"
 
 # ty resolves imports against the project environment, so sync it first.
+# UV_LOCKED fails the sync if uv.lock is out of date.
 echo "::group::uv sync (for ty)"
 # shellcheck disable=SC2086
-uv sync $SYNC_ARGS
+UV_LOCKED=1 uv sync $SYNC_ARGS
 echo "::endgroup::"
 
 echo "::group::ty check"
