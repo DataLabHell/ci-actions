@@ -8,6 +8,9 @@ PYTHON_VERSION="${INPUT_PYTHON_VERSION:-}"
 SYNC_ARGS="${INPUT_SYNC_ARGS:-}"
 PYTEST_ARGS="${INPUT_PYTEST_ARGS:-}"
 
+# UV_LOCKED fails sync and run if uv.lock is out of date.
+export UV_LOCKED=1
+
 # Pin the Python version for both sync and run when one is given.
 PY_FLAG=()
 if [ -n "$PYTHON_VERSION" ]; then
