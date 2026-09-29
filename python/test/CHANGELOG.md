@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/DataLabHell/ci-actions/compare/python/test-v0.5.2...python/test-v0.6.0) (2026-09-29)
+
+
+### Features
+
+* **python:** fail on a stale uv.lock ([43a6964](https://github.com/DataLabHell/ci-actions/commit/43a6964a306039326cc85d9ba6174d92a4c50ee9)), closes [#47](https://github.com/DataLabHell/ci-actions/issues/47)
+
 ## [0.5.2](https://github.com/DataLabHell/ci-actions/compare/python/test-v0.5.1...python/test-v0.5.2) (2026-09-01)
 
 
