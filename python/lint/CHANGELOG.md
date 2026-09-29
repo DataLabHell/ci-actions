@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/DataLabHell/ci-actions/compare/python/lint-v0.6.0...python/lint-v0.7.0) (2026-09-29)
+
+
+### Features
+
+* **python:** fail on a stale uv.lock ([43a6964](https://github.com/DataLabHell/ci-actions/commit/43a6964a306039326cc85d9ba6174d92a4c50ee9)), closes [#47](https://github.com/DataLabHell/ci-actions/issues/47)
+
 ## [0.6.0](https://github.com/DataLabHell/ci-actions/compare/python/lint-v0.5.0...python/lint-v0.6.0) (2026-09-28)
 
 
