@@ -284,6 +284,6 @@ backend = "npm:prettier"
 specifiers = ["3.9.9"]
 
 [[tools."npm:renovate"]]
-version = "44.118.1"
+version = "44.119.1"
 backend = "npm:renovate"
-specifiers = ["44.118.1"]
+specifiers = ["44.119.1"]
