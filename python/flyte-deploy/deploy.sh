@@ -106,10 +106,13 @@ case "$DRY_RUN" in
     ;;
 esac
 
-SHORT_SHA="${GITHUB_SHA:0:7}"
+# The PR head commit on pull requests (GITHUB_SHA is the merge commit there),
+# GITHUB_SHA otherwise.
+COMMIT_SHA="${COMMIT_SHA:-${GITHUB_SHA:-}}"
+SHORT_SHA="${COMMIT_SHA:0:7}"
 if [ -z "$VERSION" ]; then
   # No version given: the commit is the version.
-  VERSION="${GITHUB_SHA:-$SHORT_SHA}"
+  VERSION="$COMMIT_SHA"
 elif [ "$IS_PR" = "true" ] && [ "$DRY_RUN" != "true" ]; then
   # A PR that really registers must not collide with the version main deploys,
   # so it is always made distinct per commit. Off a PR the version is used as

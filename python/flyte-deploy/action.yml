@@ -138,6 +138,9 @@ runs:
         INPUT_REGISTER_ON_PR: ${{ inputs.register-on-pr }}
         INPUT_DRY_RUN: ${{ inputs.dry-run }}
         INPUT_EXTRA_ARGS: ${{ inputs.extra-args }}
+        # On pull requests GITHUB_SHA is the temporary merge commit of
+        # refs/pull/<n>/merge, not the commit that was pushed.
+        COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         FLYTE_CLIENT_ID: ${{ steps.vault.outputs.FLYTE_CLIENT_ID }}
         FLYTE_CLIENT_SECRET: ${{ steps.vault.outputs.FLYTE_CLIENT_SECRET }}
         FLYTE_CLIENT_SCOPE: ${{ steps.vault.outputs.FLYTE_CLIENT_SCOPE }}
