@@ -8,7 +8,7 @@
   "python/lint": "0.7.0",
   "python/test": "0.6.0",
   "python/publish": "1.1.0",
-  "python/flyte-deploy": "1.0.0",
+  "python/flyte-deploy": "1.0.1",
   "mise-setup": "0.8.0",
   "tools/local-renovate": "1.0.1"
 }
