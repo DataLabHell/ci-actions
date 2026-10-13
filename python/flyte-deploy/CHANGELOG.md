@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/DataLabHell/ci-actions/compare/python/flyte-deploy-v1.0.0...python/flyte-deploy-v1.0.1) (2026-10-13)
+
+
+### Bug Fixes
+
+* **python/flyte-deploy:** use correct commit sha for pr not pr temp one ([5953256](https://github.com/DataLabHell/ci-actions/commit/5953256159fb30d6ee03fe3a34b9af1a430a3808))
+
 ## 1.0.0 (2026-09-16)
 
 
