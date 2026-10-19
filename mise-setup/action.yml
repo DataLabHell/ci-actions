@@ -31,10 +31,11 @@ inputs:
       task.source_freshness_hash_contents = true."
     required: false
     default: "true"
-  minimum-release-age:
-    description: "Ignore mise releases younger than this age."
+  version:
+    description: "mise version to install."
     required: false
-    default: "24h"
+    # renovate: datasource=github-releases depName=jdx/mise extractVersion=^v(?<version>.+)$
+    default: "2026.10.14"
 
 # Composite wrapper around jdx/mise-action. The caller owns the job (runner,
 # checkout). Third-party actions are pinned to a commit SHA, not a tag.
@@ -72,7 +73,7 @@ runs:
 
     - uses: jdx/mise-action@9b200bcecbfd6303e69a4a261b2e09e3757440a7 # v5.2.0
       with:
-        minimum_release_age: ${{ inputs.minimum-release-age }}
+        version: ${{ inputs.version }}
         experimental: true
         cache: false
 
