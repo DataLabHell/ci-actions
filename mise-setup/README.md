@@ -26,12 +26,12 @@ that set.
 
 ## Inputs
 
-| Input                 | Required | Default | Description                                                             |
-| --------------------- | -------- | ------- | ----------------------------------------------------------------------- |
-| `global`              | no       | `false` | Install into the runner-wide mise dirs instead of a per-repository dir. |
-| `cache`               | no       | `false` | Cache the install dirs. `false` installs fresh into a throwaway dir.    |
-| `minimum-release-age` | no       | `24h`   | Ignore mise releases younger than this age.                             |
-| `task-state`          | no       | `true`  | Cache mise task freshness state so unchanged tasks skip.                |
+| Input        | Required | Default | Description                                                             |
+| ------------ | -------- | ------- | ----------------------------------------------------------------------- |
+| `global`     | no       | `false` | Install into the runner-wide mise dirs instead of a per-repository dir. |
+| `cache`      | no       | `false` | Cache the install dirs. `false` installs fresh into a throwaway dir.    |
+| `version`    | no       | pinned  | mise version to install. Renovate keeps the default current.            |
+| `task-state` | no       | `true`  | Cache mise task freshness state so unchanged tasks skip.                |
 
 Where things land:
 
@@ -120,11 +120,11 @@ To share one tool tree across every repo on the runner instead:
   the default `$GITHUB_WORKSPACE` is. It also caches file hashes by size and
   mtime, so don't put sources in place with preserved mtimes (`cp -p`,
   `rsync -a`) before running tasks.
-- `minimum-release-age` is forwarded to mise-action's `minimum_release_age`.
-  mise's version endpoint can be bumped before the matching GitHub release and
-  its assets are published, and the download then 404s; the `24h` default stays
-  a day behind latest to skip that window. Set it to `0` to take latest
-  immediately, or raise it to lag further behind.
+- `version` defaults to a pinned mise release, bumped by Renovate in this repo,
+  so callers pick up a new mise with the next `mise-setup` release. Renovate's
+  release-age delay keeps the pin clear of releases whose assets are not
+  published yet. The release age of tools in the caller's config is mise's own
+  `minimum_release_age` setting.
 - `experimental: true` is passed to mise-action because mise needs it for
   features the org's projects use.
 - Pruning keeps the cache small: `mise prune -y` drops versions the config no
