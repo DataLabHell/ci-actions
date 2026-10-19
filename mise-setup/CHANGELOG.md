@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/DataLabHell/ci-actions/compare/mise-setup-v0.8.0...mise-setup-v0.8.1) (2026-10-19)
+
+
+### Bug Fixes
+
+* bump mise action to 5.2 to support lockfile 3 ([6fb1372](https://github.com/DataLabHell/ci-actions/commit/6fb1372c2a9e7c3ae82075f64b22d397c63d6952))
+
 ## [0.8.0](https://github.com/DataLabHell/ci-actions/compare/mise-setup-v0.7.0...mise-setup-v0.8.0) (2026-09-28)
 
 
