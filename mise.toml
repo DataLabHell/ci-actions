@@ -16,7 +16,7 @@ node = "24.22.1"
 "aqua:rhysd/actionlint" = "1.7.12"
 "aqua:tamasfe/taplo" = "0.10.0"
 "npm:prettier" = "3.9.10"
-"npm:renovate" = "44.171.1"
+"npm:renovate" = "44.171.3"
 
 ###########
 # Linting #
