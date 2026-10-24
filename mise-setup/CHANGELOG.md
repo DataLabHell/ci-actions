@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.0.0](https://github.com/DataLabHell/ci-actions/compare/mise-setup-v0.8.1...mise-setup-v1.0.0) (2026-10-24)
+
+
+### ⚠ BREAKING CHANGES
+
+* **mise-setup:** the minimum-release-age input is removed. mise-action ignores it once a version is set; the default version is now pinned and bumped by Renovate.
+
+### Features
+
+* **mise-setup:** pin mise with an explicit version input ([a3b92e1](https://github.com/DataLabHell/ci-actions/commit/a3b92e1dceeb19e547bcd42aab3bd99d01b0c723))
+
+
+### Bug Fixes
+
+* **deps:** update dependency jdx/mise to v2026.10.15 ([836ac55](https://github.com/DataLabHell/ci-actions/commit/836ac55c7722b0e3c470022caecda18522d45381))
+
 ## [0.8.1](https://github.com/DataLabHell/ci-actions/compare/mise-setup-v0.8.0...mise-setup-v0.8.1) (2026-10-19)
 
 
