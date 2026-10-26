@@ -35,7 +35,7 @@ inputs:
     description: "mise version to install."
     required: false
     # renovate: datasource=github-releases depName=jdx/mise extractVersion=^v(?<version>.+)$
-    default: "2026.10.15"
+    default: "2026.10.18"
 
 # Composite wrapper around jdx/mise-action. The caller owns the job (runner,
 # checkout). Third-party actions are pinned to a commit SHA, not a tag.
