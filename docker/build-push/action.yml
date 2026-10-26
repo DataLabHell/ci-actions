@@ -122,14 +122,14 @@ runs:
     # Login is decided per registry by build.sh: "ghcr" (uses the workflow's
     # GITHUB_TOKEN) or "vault" (uses the credentials read above).
     - if: ${{ steps.prep.outputs.login == 'ghcr' }}
-      uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+      uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
       with:
         registry: ${{ steps.prep.outputs.registry }}
         username: ${{ github.actor }}
         password: ${{ github.token }}
 
     - if: ${{ steps.prep.outputs.login == 'vault' }}
-      uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+      uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
       with:
         registry: ${{ steps.prep.outputs.registry }}
         username: ${{ steps.vault.outputs.REGISTRY_USER }}
