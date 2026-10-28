@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.1](https://github.com/DataLabHell/ci-actions/compare/mise-setup-v1.0.0...mise-setup-v1.0.1) (2026-10-28)
+
+
+### Bug Fixes
+
+* **deps:** update dependency jdx/mise to v2026.10.18 ([2dd40e9](https://github.com/DataLabHell/ci-actions/commit/2dd40e9075b37fe3a4929e8adbd0f4d3ca4fceb8))
+* **deps:** update dependency jdx/mise to v2026.10.19 ([69840b1](https://github.com/DataLabHell/ci-actions/commit/69840b134a45a39747a354999138a33ad981b4d5))
+
 ## [1.0.0](https://github.com/DataLabHell/ci-actions/compare/mise-setup-v0.8.1...mise-setup-v1.0.0) (2026-10-27)
 
 
