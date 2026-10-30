@@ -45,9 +45,10 @@
       "automerge": false
     },
     {
-      "description": "A mise bump changes what every mise-setup caller installs, so it needs a release. release-please only releases fix and feat commits.",
-      "matchPackageNames": ["jdx/mise"],
-      "semanticCommitType": "fix"
+      "description": "Action input default pins: patch and minor bumps automerge.",
+      "matchManagers": ["custom.regex"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true
     }
   ]
 }
