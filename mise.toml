@@ -5,7 +5,7 @@ npm.package_manager = "npm"
 [tools]
 # dependencies
 ## lts, provides npm
-node = "24.22.1"
+node = "24.22.2"
 ## required by renovate scripts
 "aqua:jqlang/jq" = "1.8.2"
 
@@ -16,7 +16,7 @@ node = "24.22.1"
 "aqua:rhysd/actionlint" = "1.7.12"
 "aqua:tamasfe/taplo" = "0.10.0"
 "npm:prettier" = "3.9.10"
-"npm:renovate" = "44.186.2"
+"npm:renovate" = "44.186.4"
 
 ###########
 # Linting #
