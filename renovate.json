@@ -25,6 +25,12 @@
       "commitMessageTopic": "{{depName}} (mise)"
     },
     {
+      "description": "npm:renovate's engines field pins node to ^24; lift once it allows a newer major.",
+      "matchManagers": ["mise"],
+      "matchPackageNames": ["node"],
+      "allowedVersions": "<25"
+    },
+    {
       "description": "Action refs are SHA-pinned, so any bump is reviewable as a diff and safe to automerge once CI is green.",
       "groupName": "github actions",
       "matchManagers": ["github-actions"],
