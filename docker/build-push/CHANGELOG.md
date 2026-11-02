@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/DataLabHell/ci-actions/compare/docker/build-push-v0.6.0...docker/build-push-v0.7.0) (2026-11-02)
+
+
+### Features
+
+* **docker/build-push:** pass additional build contexts to BuildKit ([2dfeb87](https://github.com/DataLabHell/ci-actions/commit/2dfeb872afab8ce80c2edc69c57fc7746bf295ea))
+
 ## [0.6.0](https://github.com/DataLabHell/ci-actions/compare/docker/build-push-v0.5.0...docker/build-push-v0.6.0) (2026-09-02)
 
 
