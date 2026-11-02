@@ -64,6 +64,14 @@ inputs:
       emulation and take noticeably longer.'
     required: false
     default: ""
+  build-contexts:
+    description:
+      'Additional named build contexts, one "name=source" per line, passed to
+      docker/build-push-action unchanged (e.g.
+      "base=docker-image://ghcr.io/org/repo/base:<sha>"). A Dockerfile refers to
+      a context by name in FROM or COPY --from. Empty = none.'
+    required: false
+    default: ""
 
 # Authentication is decided by the registry. You never pass credentials:
 #   ghcr.io  -> logs in with the workflow's GITHUB_TOKEN
@@ -141,6 +149,7 @@ runs:
         file: ${{ inputs.dockerfile }}
         push: ${{ inputs.push }}
         platforms: ${{ steps.prep.outputs.platforms }}
+        build-contexts: ${{ inputs.build-contexts }}
         tags: ${{ steps.prep.outputs.tags }}
         cache-from: ${{ steps.prep.outputs.cache-from }}
         cache-to: ${{ steps.prep.outputs.cache-to }}

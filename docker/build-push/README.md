@@ -38,17 +38,18 @@ The caller owns the job. A composite action can't set `runs-on`, `matrix`,
 
 ## Inputs
 
-| Input        | Required | Default                    | Description                                                                                                    |
-| ------------ | -------- | -------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `image`      | yes      | n/a                        | Final path segment, e.g. `api` → `<registry>/<namespace>/api`.                                                 |
-| `namespace`  | no       | `${{ github.repository }}` | Path between registry and image. Defaults to `owner/name` (matches GHCR).                                      |
-| `registry`   | no       | `ghcr.io`                  | Allowlisted registry: `ghcr.io` (alias `ghcr`) or `truenas` (host from Vault). Anything else errors.           |
-| `tags`       | no       | `latest`                   | Newline-separated tag suffixes (each becomes `<ref>:<suffix>`). Blank lines skipped.                           |
-| `context`    | no       | `.`                        | Build context directory.                                                                                       |
-| `dockerfile` | no       | `''`                       | Dockerfile path (empty = default `Dockerfile` in the context, e.g. set `Dockerfile.api`).                      |
-| `cache`      | no       | `gha`                      | Layer cache backend: `gha`, `registry`, or `none` (see [Caching](#caching)).                                   |
-| `push`       | no       | `true`                     | Push the image; set `"false"` for PR validation builds.                                                        |
-| `platforms`  | no       | `''`                       | Target platforms, newline- or comma-separated (e.g. `linux/arm64`). Empty = the runner's native platform only. |
+| Input            | Required | Default                    | Description                                                                                                    |
+| ---------------- | -------- | -------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `image`          | yes      | n/a                        | Final path segment, e.g. `api` → `<registry>/<namespace>/api`.                                                 |
+| `namespace`      | no       | `${{ github.repository }}` | Path between registry and image. Defaults to `owner/name` (matches GHCR).                                      |
+| `registry`       | no       | `ghcr.io`                  | Allowlisted registry: `ghcr.io` (alias `ghcr`) or `truenas` (host from Vault). Anything else errors.           |
+| `tags`           | no       | `latest`                   | Newline-separated tag suffixes (each becomes `<ref>:<suffix>`). Blank lines skipped.                           |
+| `context`        | no       | `.`                        | Build context directory.                                                                                       |
+| `dockerfile`     | no       | `''`                       | Dockerfile path (empty = default `Dockerfile` in the context, e.g. set `Dockerfile.api`).                      |
+| `cache`          | no       | `gha`                      | Layer cache backend: `gha`, `registry`, or `none` (see [Caching](#caching)).                                   |
+| `push`           | no       | `true`                     | Push the image; set `"false"` for PR validation builds.                                                        |
+| `platforms`      | no       | `''`                       | Target platforms, newline- or comma-separated (e.g. `linux/arm64`). Empty = the runner's native platform only. |
+| `build-contexts` | no       | `''`                       | Additional named build contexts, one `name=source` per line (see [Build contexts](#build-contexts)).           |
 
 ## Output
 
@@ -101,6 +102,30 @@ How it works and what to watch out for:
 - With `push: false` a multi-platform build is validated but produces no local
   image (buildx can't load a manifest list into the daemon). That's exactly what
   you want for PR validation.
+
+## Build contexts
+
+`build-contexts` passes extra named contexts to BuildKit, one `name=source` per
+line. A Dockerfile refers to one by name in `FROM` or `COPY --from`, and the
+source can be an image (`docker-image://`), a directory, a Git URL or an HTTP
+URL. The input is passed to `docker/build-push-action` unchanged.
+
+Use it when an image depends on something outside its own context. A common case
+is a base image the repo builds itself. Locally, the Dockerfile starts
+`FROM my-base:local` and the developer builds that image first. The Buildx
+container driver used here cannot see local images, so a CI job pushes the base
+and maps the name to it:
+
+```yaml
+- uses: DataLabHell/ci-actions/docker/build-push@docker/build-push-vX.Y.Z
+  with:
+    image: api
+    build-contexts: |
+      my-base:local=docker-image://ghcr.io/org/repo/base:${{ github.sha }}
+```
+
+The Dockerfile stays free of registry and CI details, and the same file builds
+locally and in CI.
 
 ## Example 1: GHCR, matrix build (sha + latest)
 
