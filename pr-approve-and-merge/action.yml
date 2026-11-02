@@ -28,8 +28,7 @@ inputs:
     required: false
     default: "rebase"
   app-id:
-    description:
-      "App ID or Client ID of the GitHub App that merges. Needed for `merge`."
+    description: "App ID of the GitHub App that merges. Needed for `merge`."
     required: false
     default: ""
   app-private-key:
@@ -116,7 +115,7 @@ runs:
       if: inputs.merge == 'true' && steps.approve.outputs.numbers != '[]'
       uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
       with:
-        client-id: ${{ inputs.app-id }}
+        app-id: ${{ inputs.app-id }}
         private-key: ${{ inputs.app-private-key }}
 
     - name: Merge

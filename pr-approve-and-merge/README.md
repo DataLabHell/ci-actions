@@ -12,8 +12,8 @@ workflows, such as the release after a release-please PR merges.
 - The repo setting "Allow GitHub Actions to create and approve pull requests" is
   on.
 - For `merge`: a GitHub App installed on the repo with Contents and Pull
-  requests write, plus its App ID (or Client ID) and private key. Auto-merge
-  must be allowed in the repo settings.
+  requests write, plus its App ID and private key. Auto-merge must be allowed in
+  the repo settings.
 
 ## Inputs
 
@@ -23,7 +23,7 @@ workflows, such as the release after a release-please PR merges.
 | `search`          | no       | `head:release-please--branches--main label:"autorelease: pending"` | GitHub search qualifiers selecting open PRs in the calling repo. The default selects the pending release-please PR for `main`. |
 | `merge`           | no       | `false`                                                            | Merge the approved PRs as the app, once required checks pass.                                                                  |
 | `merge-method`    | no       | `rebase`                                                           | `merge`, `squash` or `rebase`.                                                                                                 |
-| `app-id`          | no       | `""`                                                               | App ID or Client ID of the merging GitHub App. Needed for `merge`.                                                             |
+| `app-id`          | no       | `""`                                                               | App ID of the merging GitHub App. Needed for `merge`.                                                                          |
 | `app-private-key` | no       | `""`                                                               | Private key of the merging GitHub App. Needed for `merge`.                                                                     |
 
 ## Outputs
