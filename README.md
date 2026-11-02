@@ -23,6 +23,7 @@ aren't shipped as actions; they stay copy-paste
 | [`python/publish`](./python/publish)                       | Build with `uv` and publish to a package index (devpi by default), gated to `main` by default.                                                |
 | [`python/flyte-deploy`](./python/flyte-deploy)             | Deploy a Flyte environment with the `flyte` CLI (secret from Vault); `--dry-run` on pull requests.                                            |
 | [`mise-setup`](./mise-setup)                               | Provision a repo's tools with mise into a per-repository dir (cached installs, prune of unreferenced versions), so later steps can call them. |
+| [`pr-approve`](./pr-approve)                               | Approve PRs as github-actions[bot] and optionally merge them as a GitHub App, so the merge triggers push workflows.                           |
 
 ## Using an action
 
@@ -160,6 +161,7 @@ ci-actions/
 │   # single actions, each in its own root folder:
 ├── s3-file-upload/           #   action.yml + upload.sh + README
 ├── mise-setup/               #   provision project tools with mise
+├── pr-approve/               #   approve PRs, optionally merge as an app
 ├── docker/build-push/        #   build + push an image (Buildx)
 ├── versioning/               #   resolvers: produce the next bare version X.Y.Z
 │   ├── auto-patch/           #     MAJOR.MINOR file + auto patch

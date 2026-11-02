@@ -1,0 +1,158 @@
+name: "PR approve"
+description:
+  "Approve pull requests as github-actions[bot] and optionally merge them as a
+  GitHub App, so the merge triggers push workflows."
+author: "DataLabHell"
+
+branding:
+  icon: "check-circle"
+  color: "green"
+
+inputs:
+  number:
+    description: "The PR to approve. Set this or `search`."
+    required: false
+    default: ""
+  search:
+    description:
+      'GitHub search qualifiers selecting open PRs in the calling repo, e.g.
+      `head:release-please--branches--main label:"autorelease: pending"`. Set
+      this or `number`.'
+    required: false
+    default: ""
+  merge:
+    description: "Merge the approved PRs as the app, once required checks pass."
+    required: false
+    default: "false"
+  merge-method:
+    description: "merge, squash or rebase."
+    required: false
+    default: "rebase"
+  app-id:
+    description:
+      "App ID or Client ID of the GitHub App that merges. Needed for `merge`."
+    required: false
+    default: ""
+  app-private-key:
+    description: "Private key of the merging GitHub App. Needed for `merge`."
+    required: false
+    default: ""
+
+outputs:
+  numbers:
+    description: "JSON array of the selected PR numbers."
+    value: ${{ steps.approve.outputs.numbers }}
+
+# Approves with the job's GITHUB_TOKEN, so a bot or app that cannot approve its
+# own PR still satisfies a required review. The merge uses the app token because
+# a push made with GITHUB_TOKEN does not trigger the caller's push workflows.
+runs:
+  using: "composite"
+  steps:
+    - name: Approve
+      id: approve
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      env:
+        NUMBER: ${{ inputs.number }}
+        SEARCH: ${{ inputs.search }}
+        MERGE: ${{ inputs.merge == 'true' }}
+        METHOD: ${{ inputs.merge-method }}
+        HAS_APP: ${{ inputs.app-id != '' && inputs.app-private-key != '' }}
+      with:
+        script: |
+          const { NUMBER, SEARCH, MERGE, METHOD, HAS_APP } = process.env;
+          if (!NUMBER === !SEARCH) {
+            core.setFailed("set exactly one of `number` and `search`");
+            return;
+          }
+          if (MERGE === "true" && HAS_APP !== "true") {
+            core.setFailed("`merge` needs `app-id` and `app-private-key`");
+            return;
+          }
+          if (MERGE === "true" && !["merge", "squash", "rebase"].includes(METHOD)) {
+            core.setFailed("`merge-method` must be merge, squash or rebase");
+            return;
+          }
+          const { owner, repo } = context.repo;
+          const fields =
+            "number id reviews(states: APPROVED, first: 100) { nodes { author { login } } }";
+          let prs;
+          if (NUMBER) {
+            const res = await github.graphql(
+              `query($owner: String!, $repo: String!, $number: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  pullRequest(number: $number) { ${fields} }
+                }
+              }`,
+              { owner, repo, number: Number(NUMBER) },
+            );
+            prs = [res.repository.pullRequest];
+          } else {
+            const res = await github.graphql(
+              `query($q: String!) {
+                search(type: ISSUE, query: $q, first: 50) {
+                  nodes { ... on PullRequest { ${fields} } }
+                }
+              }`,
+              { q: `repo:${owner}/${repo} is:pr is:open ${SEARCH}` },
+            );
+            prs = res.search.nodes;
+          }
+          for (const pr of prs) {
+            // GraphQL reports the bot's login without the [bot] suffix.
+            const approved = pr.reviews.nodes.some(
+              (r) => r.author?.login === "github-actions",
+            );
+            if (approved) continue;
+            await github.rest.pulls.createReview({
+              owner, repo, pull_number: pr.number, event: "APPROVE",
+            });
+            core.info(`approved #${pr.number}`);
+          }
+          core.setOutput("numbers", JSON.stringify(prs.map((pr) => pr.number)));
+          core.setOutput("ids", JSON.stringify(prs.map((pr) => pr.id)));
+
+    - name: Generate a token
+      id: app-token
+      if: inputs.merge == 'true' && steps.approve.outputs.numbers != '[]'
+      uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+      with:
+        client-id: ${{ inputs.app-id }}
+        private-key: ${{ inputs.app-private-key }}
+
+    - name: Merge
+      if: steps.app-token.outcome == 'success'
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+      env:
+        IDS: ${{ steps.approve.outputs.ids }}
+        METHOD: ${{ inputs.merge-method }}
+      with:
+        github-token: ${{ steps.app-token.outputs.token }}
+        script: |
+          const { owner, repo } = context.repo;
+          const { METHOD } = process.env;
+          for (const id of JSON.parse(process.env.IDS)) {
+            const { node: pr } = await github.graphql(
+              `query($id: ID!) {
+                node(id: $id) { ... on PullRequest { number mergeStateStatus } }
+              }`,
+              { id },
+            );
+            // Auto-merge refuses a PR that is already mergeable.
+            if (pr.mergeStateStatus === "CLEAN") {
+              await github.rest.pulls.merge({
+                owner, repo, pull_number: pr.number, merge_method: METHOD,
+              });
+              core.info(`merged #${pr.number}`);
+              continue;
+            }
+            await github.graphql(
+              `mutation($id: ID!, $method: PullRequestMergeMethod!) {
+                enablePullRequestAutoMerge(input: {pullRequestId: $id, mergeMethod: $method}) {
+                  clientMutationId
+                }
+              }`,
+              { id, method: METHOD.toUpperCase() },
+            );
+            core.info(`auto-merge enabled on #${pr.number}`);
+          }
