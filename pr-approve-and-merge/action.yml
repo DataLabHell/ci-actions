@@ -1,4 +1,4 @@
-name: "PR approve"
+name: "PR approve and merge"
 description:
   "Approve pull requests as github-actions[bot] and optionally merge them as a
   GitHub App, so the merge triggers push workflows."
@@ -10,16 +10,15 @@ branding:
 
 inputs:
   number:
-    description: "The PR to approve. Set this or `search`."
+    description: "The PR to approve. Takes precedence over `search`."
     required: false
     default: ""
   search:
     description:
-      'GitHub search qualifiers selecting open PRs in the calling repo, e.g.
-      `head:release-please--branches--main label:"autorelease: pending"`. Set
-      this or `number`.'
+      "GitHub search qualifiers selecting open PRs in the calling repo. The
+      default selects the pending release-please PR for `main`."
     required: false
-    default: ""
+    default: 'head:release-please--branches--main label:"autorelease: pending"'
   merge:
     description: "Merge the approved PRs as the app, once required checks pass."
     required: false
@@ -61,8 +60,8 @@ runs:
       with:
         script: |
           const { NUMBER, SEARCH, MERGE, METHOD, HAS_APP } = process.env;
-          if (!NUMBER === !SEARCH) {
-            core.setFailed("set exactly one of `number` and `search`");
+          if (!NUMBER && !SEARCH) {
+            core.setFailed("set `number` or `search`");
             return;
           }
           if (MERGE === "true" && HAS_APP !== "true") {

@@ -14,7 +14,7 @@
     "python/publish": { "component": "python/publish" },
     "python/flyte-deploy": { "component": "python/flyte-deploy" },
     "mise-setup": { "component": "mise-setup" },
-    "pr-approve": { "component": "pr-approve" },
+    "pr-approve-and-merge": { "component": "pr-approve-and-merge" },
     "tools/local-renovate": { "component": "local-renovate" }
   }
 }

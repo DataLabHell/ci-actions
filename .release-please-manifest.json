@@ -10,6 +10,6 @@
   "python/publish": "1.1.0",
   "python/flyte-deploy": "1.0.1",
   "mise-setup": "1.0.1",
-  "pr-approve": "0.0.0",
+  "pr-approve-and-merge": "0.0.0",
   "tools/local-renovate": "1.0.1"
 }
