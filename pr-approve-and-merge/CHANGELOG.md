@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/DataLabHell/ci-actions/compare/pr-approve-and-merge-v1.0.1...pr-approve-and-merge-v1.0.2) (2026-11-03)
+
+
+### Bug Fixes
+
+* **pr-approve-and-merge:** rename the auto-merge graphql variable ([06af1cb](https://github.com/DataLabHell/ci-actions/commit/06af1cbca4a0d8d1ee2860cb669779eaad252928))
+
 ## [1.0.1](https://github.com/DataLabHell/ci-actions/compare/pr-approve-and-merge-v1.0.0...pr-approve-and-merge-v1.0.1) (2026-11-03)
 
 
