@@ -146,12 +146,12 @@ runs:
               continue;
             }
             await github.graphql(
-              `mutation($id: ID!, $method: PullRequestMergeMethod!) {
-                enablePullRequestAutoMerge(input: {pullRequestId: $id, mergeMethod: $method}) {
+              `mutation($id: ID!, $mergeMethod: PullRequestMergeMethod!) {
+                enablePullRequestAutoMerge(input: {pullRequestId: $id, mergeMethod: $mergeMethod}) {
                   clientMutationId
                 }
               }`,
-              { id, method: METHOD.toUpperCase() },
+              { id, mergeMethod: METHOD.toUpperCase() },
             );
             core.info(`auto-merge enabled on #${pr.number}`);
           }
