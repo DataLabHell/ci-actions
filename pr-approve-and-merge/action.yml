@@ -125,15 +125,17 @@ runs:
       env:
         IDS: ${{ steps.approve.outputs.ids }}
         METHOD: ${{ inputs.merge-method }}
+        APPROVE_TOKEN: ${{ github.token }}
       with:
         github-token: ${{ steps.app-token.outputs.token }}
         script: |
           const { owner, repo } = context.repo;
           const { METHOD } = process.env;
+          const approver = getOctokit(process.env.APPROVE_TOKEN);
           for (const id of JSON.parse(process.env.IDS)) {
             const { node: pr } = await github.graphql(
               `query($id: ID!) {
-                node(id: $id) { ... on PullRequest { number mergeStateStatus } }
+                node(id: $id) { ... on PullRequest { number mergeStateStatus headRefOid } }
               }`,
               { id },
             );
@@ -144,6 +146,30 @@ runs:
               });
               core.info(`merged #${pr.number}`);
               continue;
+            }
+            if (pr.mergeStateStatus === "BEHIND") {
+              await github.graphql(
+                `mutation($id: ID!) {
+                  updatePullRequestBranch(input: {pullRequestId: $id, updateMethod: REBASE}) {
+                    clientMutationId
+                  }
+                }`,
+                { id },
+              );
+              // The rebase lands asynchronously and drops the approval if stale
+              // approvals are dismissed, so approve again once the head moved.
+              for (let i = 0; ; i++) {
+                const { data } = await github.rest.pulls.get({
+                  owner, repo, pull_number: pr.number,
+                });
+                if (data.head.sha !== pr.headRefOid) break;
+                if (i === 30) throw new Error(`rebase of #${pr.number} did not land`);
+                await new Promise((r) => setTimeout(r, 2000));
+              }
+              core.info(`rebased #${pr.number}`);
+              await approver.rest.pulls.createReview({
+                owner, repo, pull_number: pr.number, event: "APPROVE",
+              });
             }
             await github.graphql(
               `mutation($id: ID!, $mergeMethod: PullRequestMergeMethod!) {

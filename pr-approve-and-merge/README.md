@@ -89,7 +89,8 @@ jobs:
 
 - A PR github-actions[bot] has already approved is not approved again.
 - With `merge`, a PR that is already mergeable is merged directly; any other
-  gets auto-merge enabled and merges once its required checks pass.
+  gets auto-merge enabled and merges once its required checks pass. A PR behind
+  its base is first rebased as the app and approved again.
 - `search` returns at most 50 PRs.
 - For a release branch other than `main`, set `search` with that branch in the
   `head:release-please--branches--<branch>` qualifier.
