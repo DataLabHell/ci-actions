@@ -9,9 +9,8 @@ official
 removes the boilerplate those three always need: login, buildx setup, lowercased
 ref, cache config, tag assembly.
 
-Works with GHCR out of the box, and with the local/on-prem org registry by
-setting `registry: truenas` — its host and credentials come from Vault, so no
-secrets go in the workflow.
+Works with GHCR out of the box, and with any other registry when you pass its
+host and credentials.
 
 > Why Buildx and not `docker build`/`push`? With `push: true`, Buildx pushes
 > straight to the registry and never loads the image into the runner's local
@@ -27,13 +26,10 @@ The caller owns the job. A composite action can't set `runs-on`, `matrix`,
 - For GHCR: `permissions: { packages: write }`. The default `GITHUB_TOKEN` is
   enough, with no extra secret.
 - `actions/checkout@v7` before this step.
-- You never pass credentials. Authentication is decided by the `registry`:
+- Authentication is decided by the `registry`:
   - `ghcr.io` → logs in with the workflow's `GITHUB_TOKEN` (needs
     `permissions: packages: write`).
-  - `truenas` (local) → host **and** credentials are read from Vault
-    (`kv/data/k8s/oci-registry/ci-actions`, keys `url`, `user`, `password`), the
-    same way [`python/publish`](../../python/publish) gets its devpi
-    credentials. Needs `permissions: { id-token: write }` (see
+  - Any other host → logs in with the `username` and `password` inputs (see
     [Local registry](#example-3-local-registry)).
 
 ## Inputs
@@ -42,7 +38,7 @@ The caller owns the job. A composite action can't set `runs-on`, `matrix`,
 | ---------------- | -------- | -------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | `image`          | yes      | n/a                        | Final path segment, e.g. `api` → `<registry>/<namespace>/api`.                                                 |
 | `namespace`      | no       | `${{ github.repository }}` | Path between registry and image. Defaults to `owner/name` (matches GHCR).                                      |
-| `registry`       | no       | `ghcr.io`                  | Allowlisted registry: `ghcr.io` (alias `ghcr`) or `truenas` (host from Vault). Anything else errors.           |
+| `registry`       | no       | `ghcr.io`                  | Registry host: `ghcr.io` (alias `ghcr`) or any other host.                                                     |
 | `tags`           | no       | `latest`                   | Newline-separated tag suffixes (each becomes `<ref>:<suffix>`). Blank lines skipped.                           |
 | `context`        | no       | `.`                        | Build context directory.                                                                                       |
 | `dockerfile`     | no       | `''`                       | Dockerfile path (empty = default `Dockerfile` in the context, e.g. set `Dockerfile.api`).                      |
@@ -50,6 +46,8 @@ The caller owns the job. A composite action can't set `runs-on`, `matrix`,
 | `push`           | no       | `true`                     | Push the image; set `"false"` for PR validation builds.                                                        |
 | `platforms`      | no       | `''`                       | Target platforms, newline- or comma-separated (e.g. `linux/arm64`). Empty = the runner's native platform only. |
 | `build-contexts` | no       | `''`                       | Additional named build contexts, one `name=source` per line (see [Build contexts](#build-contexts)).           |
+| `username`       | no       | `''`                       | Registry username. Required unless the registry is `ghcr.io`.                                                  |
+| `password`       | no       | `''`                       | Registry password. Required unless the registry is `ghcr.io`.                                                  |
 
 ## Output
 
@@ -178,11 +176,9 @@ steps:
 
 ## Example 3: local registry
 
-With `registry: truenas` the action adds one step before the build that reads
-`kv/data/k8s/oci-registry/ci-actions` from Vault and uses its `url` as the
-registry host and its `user` / `password` for the login. No credentials go in
-the workflow and nothing is configured per repo — the job just needs an OIDC
-token. Use `cache: registry`, since there's no GitHub-hosted cache there:
+For a self-hosted registry, keep its host and a push account in the org's
+variables and secrets and pass them in. Use `cache: registry`, since there's no
+GitHub-hosted cache there:
 
 ```yaml
 jobs:
@@ -190,22 +186,20 @@ jobs:
     runs-on: self-hosted
     permissions:
       contents: read
-      id-token: write # for the Vault login
     steps:
       - uses: actions/checkout@v7
       - uses: DataLabHell/ci-actions/docker/build-push@docker/build-push-vX.Y.Z
         with:
           image: my-service
-          registry: truenas # host from the secret's "url" key
+          registry: ${{ vars.TRUENAS_ZOT_REGISTRY_HOST }}
+          username: ${{ vars.TRUENAS_ZOT_READWRITE_USERNAME }}
+          password: ${{ secrets.TRUENAS_ZOT_READWRITE_PASSWORD }}
           namespace: my-team # -> <host>/my-team/my-service
           cache: registry
           tags: |
             latest
             ${{ github.sha }}
 ```
-
-The credentials stay in that step's outputs (`exportEnv: false`), so they aren't
-exported into the environment of the caller's other steps.
 
 ## Matrix + release (two jobs)
 
@@ -239,7 +233,6 @@ jobs:
     runs-on: self-hosted
     permissions:
       contents: read
-      id-token: write # registry credentials from Vault
     strategy:
       matrix:
         service: [api, mcp, worker]
@@ -248,7 +241,9 @@ jobs:
       - uses: DataLabHell/ci-actions/docker/build-push@docker/build-push-vX.Y.Z
         with:
           image: ${{ matrix.service }}
-          registry: truenas
+          registry: ${{ vars.TRUENAS_ZOT_REGISTRY_HOST }}
+          username: ${{ vars.TRUENAS_ZOT_READWRITE_USERNAME }}
+          password: ${{ secrets.TRUENAS_ZOT_READWRITE_PASSWORD }}
           cache: registry
           tags: |
             ${{ needs.release.outputs.tags }}

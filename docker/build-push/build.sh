@@ -3,8 +3,7 @@ set -euo pipefail
 
 # Inputs are passed in as INPUT_* environment variables by action.yml. This
 # script only *computes* values (image ref, tag list, cache args) for the
-# docker/* actions that follow — it does not build or push anything itself, so
-# there is no credential handling here.
+# docker/* actions that follow. It does not build, push or log in itself.
 REGISTRY="${INPUT_REGISTRY:-}"
 NAMESPACE="${INPUT_NAMESPACE:-}"
 IMAGE="${INPUT_IMAGE:-}"
@@ -12,40 +11,32 @@ TAGS_IN="${INPUT_TAGS:-}"
 CACHE="${INPUT_CACHE:-gha}"
 PUSH="${INPUT_PUSH:-true}"
 PLATFORMS_IN="${INPUT_PLATFORMS:-}"
-VAULT_REGISTRY="${INPUT_VAULT_REGISTRY:-}"
+USERNAME="${INPUT_USERNAME:-}"
+PASSWORD="${INPUT_PASSWORD:-}"
 
 if [ -z "$IMAGE" ]; then
   echo "::error::'image' is required"
   exit 1
 fi
 
-# Only the two org registries are allowed for now. Each accepts its short alias
-# or its full host; anything else fails clearly instead of building a broken ref.
-# Each registry has a fixed auth model, so we also decide here which login step
-# runs — the caller never passes credentials:
-#   ghcr.io  -> log in with the workflow's GITHUB_TOKEN     (login=ghcr)
-#   truenas  -> host and credentials come from Vault (kv k8s/oci-registry/
-#               ci-actions), fetched by action.yml before this script runs
-#               (login=vault)
+# Decide which login step runs:
+#   ghcr.io     -> log in with the workflow's GITHUB_TOKEN    (login=ghcr)
+#   other host  -> log in with the username/password inputs  (login=password)
 case "$REGISTRY" in
   ghcr | ghcr.io)
     REGISTRY="ghcr.io"
     LOGIN="ghcr"
     ;;
-  truenas | truenas.dlh-k8s.com:5000)
-    if [ -z "$VAULT_REGISTRY" ]; then
-      echo "::error::registry 'truenas' resolved no host: the Vault secret k8s/oci-registry/ci-actions returned an empty 'url'. The job needs 'permissions: id-token: write' (see the README)."
-      exit 1
-    fi
-    # The stored url may carry a scheme and/or a trailing slash; docker wants a
-    # bare host[:port].
-    REGISTRY="${VAULT_REGISTRY#*://}"
-    REGISTRY="${REGISTRY%%/}"
-    LOGIN="vault"
+  "")
+    echo "::error::'registry' is empty"
+    exit 1
     ;;
   *)
-    echo "::error::unsupported registry '$REGISTRY': allowed values are 'ghcr.io' (alias 'ghcr') and 'truenas' (alias 'truenas.dlh-k8s.com:5000')"
-    exit 1
+    if [ -z "$USERNAME" ] || [ -z "$PASSWORD" ]; then
+      echo "::error::registry '$REGISTRY' needs the 'username' and 'password' inputs"
+      exit 1
+    fi
+    LOGIN="password"
     ;;
 esac
 
