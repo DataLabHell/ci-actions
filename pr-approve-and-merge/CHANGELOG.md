@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/DataLabHell/ci-actions/compare/pr-approve-and-merge-v1.0.2...pr-approve-and-merge-v1.1.0) (2026-11-07)
+
+
+### Features
+
+* **pr-approve-and-merge:** rebase branch if not up-to-date ([4d0ae67](https://github.com/DataLabHell/ci-actions/commit/4d0ae67ea28f5455c34417cfeed27928afe79d97))
+
 ## [1.0.2](https://github.com/DataLabHell/ci-actions/compare/pr-approve-and-merge-v1.0.1...pr-approve-and-merge-v1.0.2) (2026-11-03)
 
 
