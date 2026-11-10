@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0](https://github.com/DataLabHell/ci-actions/compare/docker/build-push-v0.7.0...docker/build-push-v1.0.0) (2026-11-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* **docker/build-push:** `registry: truenas` is removed. Pass the host and credentials from the org secrets:
+
+### Features
+
+* **docker/build-push:** log in with username and password instead of vault ([a0e4f26](https://github.com/DataLabHell/ci-actions/commit/a0e4f26380ea38db7377e4f4807506121bbba4c9))
+
 ## [0.7.0](https://github.com/DataLabHell/ci-actions/compare/docker/build-push-v0.6.0...docker/build-push-v0.7.0) (2026-11-02)
 
 
