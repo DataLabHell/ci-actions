@@ -10,9 +10,7 @@ branding:
 
 # Composite wrapper around docker/setup-buildx-action, docker/login-action and
 # docker/build-push-action. The caller owns the job (runner, matrix,
-# `permissions: packages: write` for GHCR, checkout). Because a composite action
-# cannot read `secrets.*`, credentials for non-GHCR registries are passed in as
-# the `username` / `password` inputs (the caller wires them from its secrets).
+# `permissions: packages: write` for GHCR, checkout).
 inputs:
   image:
     description:
@@ -26,9 +24,8 @@ inputs:
     default: "${{ github.repository }}"
   registry:
     description:
-      'Target registry (allowlisted): "ghcr.io" (alias "ghcr") or "truenas",
-      whose host and credentials are read from Vault (kv
-      k8s/oci-registry/ci-actions).'
+      'Registry host. "ghcr.io" (alias "ghcr") logs in with GITHUB_TOKEN, any
+      other host with `username` and `password`.'
     required: false
     default: "ghcr.io"
   tags:
@@ -72,10 +69,17 @@ inputs:
       a context by name in FROM or COPY --from. Empty = none.'
     required: false
     default: ""
+  username:
+    description: "Registry username. Required unless the registry is ghcr.io."
+    required: false
+    default: ""
+  password:
+    description: "Registry password. Required unless the registry is ghcr.io."
+    required: false
+    default: ""
 
-# Authentication is decided by the registry. You never pass credentials:
-#   ghcr.io  -> logs in with the workflow's GITHUB_TOKEN
-#   truenas  -> host and credentials read from Vault (needs id-token: write)
+# ghcr.io logs in with the workflow's GITHUB_TOKEN, any other registry with
+# username and password.
 outputs:
   ref:
     description:
@@ -85,27 +89,6 @@ outputs:
 runs:
   using: "composite"
   steps:
-    # Optional: only for the truenas registry. Authenticates with the job's OIDC
-    # token, so the caller needs "permissions: id-token: write" (see the
-    # README). exportEnv is off: the secrets stay in this step's outputs
-    # instead of leaking into the environment of every later step in the
-    # caller's job.
-    - name: Get registry credentials
-      id: vault
-      if:
-        ${{ inputs.registry == 'truenas' || inputs.registry ==
-        'truenas.dlh-k8s.com:5000' }}
-      uses: hashicorp/vault-action@892a26828f195e65540a40b4768ae4571f51ebfc # v4.0.0
-      with:
-        url: https://vault1.dlh-k8s.com:8200
-        method: jwt
-        role: ci-actions
-        exportEnv: "false"
-        secrets: |
-          kv/data/k8s/oci-registry/ci-actions user | REGISTRY_USER;
-          kv/data/k8s/oci-registry/ci-actions password | REGISTRY_PASSWORD;
-          kv/data/k8s/oci-registry/ci-actions url | REGISTRY_URL
-
     # Compute the ref, full tag list and cache args in a lint-checked script.
     - id: prep
       shell: bash
@@ -118,7 +101,8 @@ runs:
         INPUT_CACHE: ${{ inputs.cache }}
         INPUT_PUSH: ${{ inputs.push }}
         INPUT_PLATFORMS: ${{ inputs.platforms }}
-        INPUT_VAULT_REGISTRY: ${{ steps.vault.outputs.REGISTRY_URL }}
+        INPUT_USERNAME: ${{ inputs.username }}
+        INPUT_PASSWORD: ${{ inputs.password }}
 
     # Only needed for non-amd64 targets: registers the binfmt handlers that let
     # the x86-64 runner execute foreign-arch build steps.
@@ -127,8 +111,8 @@ runs:
 
     - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
-    # Login is decided per registry by build.sh: "ghcr" (uses the workflow's
-    # GITHUB_TOKEN) or "vault" (uses the credentials read above).
+    # build.sh picks the login: "ghcr" (the workflow's GITHUB_TOKEN) or
+    # "password" (the username and password inputs).
     - if: ${{ steps.prep.outputs.login == 'ghcr' }}
       uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
       with:
@@ -136,12 +120,12 @@ runs:
         username: ${{ github.actor }}
         password: ${{ github.token }}
 
-    - if: ${{ steps.prep.outputs.login == 'vault' }}
+    - if: ${{ steps.prep.outputs.login == 'password' }}
       uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
       with:
         registry: ${{ steps.prep.outputs.registry }}
-        username: ${{ steps.vault.outputs.REGISTRY_USER }}
-        password: ${{ steps.vault.outputs.REGISTRY_PASSWORD }}
+        username: ${{ inputs.username }}
+        password: ${{ inputs.password }}
 
     - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
       with:

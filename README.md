@@ -94,7 +94,6 @@ jobs:
     runs-on: self-hosted
     permissions:
       contents: write
-      id-token: write # registry credentials from Vault
     steps:
       - uses: actions/checkout@v7
         with:
@@ -108,7 +107,9 @@ jobs:
       - uses: DataLabHell/ci-actions/docker/build-push@docker/build-push-vX.Y.Z
         with:
           image: api
-          registry: truenas
+          registry: ${{ secrets.INTERNAL_OCI_REGISTRY_HOST }}
+          username: ${{ secrets.INTERNAL_OCI_REGISTRY_READWRITE_USERNAME }}
+          password: ${{ secrets.INTERNAL_OCI_REGISTRY_READWRITE_PASSWORD }}
           cache: registry
           tags: |
             ${{ steps.rel.outputs.versions }}
