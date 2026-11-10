@@ -86,8 +86,8 @@ fi
 # Publishes only when this version is not yet on the index; --check-url makes an
 # already-published version a no-op instead of a failure.
 DEVPI_URL="${DEVPI_URL:-}"
-if [ -z "$DEVPI_URL" ]; then
-  echo "::error::DEVPI_URL is empty — the Vault step did not return kv/data/k8s/devpi/config:url" >&2
+if [ -z "$DEVPI_URL" ] || [ -z "${UV_PUBLISH_USERNAME:-}" ] || [ -z "${UV_PUBLISH_PASSWORD:-}" ]; then
+  echo "::error::'url', 'username' and 'password' must not be empty" >&2
   exit 1
 fi
 base="${DEVPI_URL%/}"

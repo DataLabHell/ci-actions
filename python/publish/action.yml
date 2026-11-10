@@ -1,7 +1,7 @@
 name: "Python publish"
 description:
-  "Build a Python project with uv and publish it to the internal devpi index
-  (credentials and URL from Vault); already-published versions are a no-op."
+  "Build a Python project with uv and publish it to a devpi index;
+  already-published versions are a no-op."
 author: "DataLabHell"
 
 branding:
@@ -42,6 +42,15 @@ inputs:
     description: 'Extra args passed to "uv build"'
     required: false
     default: ""
+  url:
+    description: "Base URL of the devpi index to publish to."
+    required: true
+  username:
+    description: "devpi user to publish as."
+    required: true
+  password:
+    description: "Password of the devpi user."
+    required: true
 
 outputs:
   published:
@@ -57,22 +66,6 @@ runs:
     - name: Install uv
       uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
 
-    # Authenticates with the job's OIDC token, so the caller needs
-    # "permissions: id-token: write" (see the README). exportEnv is off: the
-    # secrets stay in this step's outputs instead of leaking into the
-    # environment of every later step in the caller's job.
-    - name: Get devpi credentials
-      id: vault
-      uses: hashicorp/vault-action@892a26828f195e65540a40b4768ae4571f51ebfc # v4.0.0
-      with:
-        url: https://vault1.dlh-k8s.com:8200
-        method: jwt
-        role: ci-actions
-        exportEnv: "false"
-        secrets: |
-          kv/data/k8s/devpi/users ci-actions | UV_PUBLISH_PASSWORD;
-          kv/data/k8s/devpi/config url | DEVPI_URL
-
     - name: Publish
       id: publish
       shell: bash
@@ -83,6 +76,6 @@ runs:
         INPUT_PUBLISH_OTHER_BRANCHES: ${{ inputs.publish-other-branches }}
         INPUT_BUILD: ${{ inputs.build }}
         INPUT_BUILD_ARGS: ${{ inputs.build-args }}
-        UV_PUBLISH_USERNAME: ci-actions
-        UV_PUBLISH_PASSWORD: ${{ steps.vault.outputs.UV_PUBLISH_PASSWORD }}
-        DEVPI_URL: ${{ steps.vault.outputs.DEVPI_URL }}
+        UV_PUBLISH_USERNAME: ${{ inputs.username }}
+        UV_PUBLISH_PASSWORD: ${{ inputs.password }}
+        DEVPI_URL: ${{ inputs.url }}
