@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.0.0](https://github.com/DataLabHell/ci-actions/compare/python/publish-v1.1.0...python/publish-v2.0.0) (2026-11-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* **python/publish:** `url`, `username` and `password` are now required. Pass them from the org secrets:
+
+### Features
+
+* **python/publish:** take the devpi url and credentials as inputs instead of vault ([011b339](https://github.com/DataLabHell/ci-actions/commit/011b339863cbe2f28f2bf4557f84a044307bdd1e))
+
 ## [1.1.0](https://github.com/DataLabHell/ci-actions/compare/python/publish-v1.0.0...python/publish-v1.1.0) (2026-09-16)
 
 

@@ -1,15 +1,15 @@
 {
   "s3-file-upload": "1.0.0",
-  "docker/build-push": "0.7.0",
+  "docker/build-push": "1.0.0",
   "versioning/auto-patch": "0.5.0",
   "versioning/from-pyproject": "0.5.0",
   "release/tag-and-alias": "0.5.0",
   "release/github-release": "0.6.0",
   "python/lint": "0.7.0",
   "python/test": "0.6.0",
-  "python/publish": "1.1.0",
+  "python/publish": "2.0.0",
   "python/flyte-deploy": "1.0.1",
   "mise-setup": "1.0.1",
-  "pr-approve-and-merge": "1.0.2",
+  "pr-approve-and-merge": "1.1.0",
   "tools/local-renovate": "1.0.1"
 }
