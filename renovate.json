@@ -55,6 +55,11 @@
       "matchManagers": ["custom.regex"],
       "matchUpdateTypes": ["patch", "minor"],
       "automerge": true
+    },
+    {
+      "description": "An action input default ships to callers, so its bump is a `fix` that release-please releases.",
+      "matchManagers": ["custom.regex"],
+      "semanticCommitType": "fix"
     }
   ]
 }
