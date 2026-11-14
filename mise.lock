@@ -285,11 +285,11 @@ checksum = "sha256:e612af99f626ab415ea225af6bce5c971feb448cb5cae250bb1c3fa50c5f7
 url = "https://nodejs.org/dist/v24.22.3/node-v24.22.3-win-x64.zip"
 
 [[tools."npm:prettier"]]
-version = "3.9.10"
+version = "3.10.0"
 backend = "npm:prettier"
-specifiers = ["3.9.10"]
+specifiers = ["3.10.0"]
 
 [[tools."npm:renovate"]]
-version = "44.227.4"
+version = "44.232.0"
 backend = "npm:renovate"
-specifiers = ["44.227.4"]
+specifiers = ["44.232.0"]
