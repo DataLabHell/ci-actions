@@ -1,12 +1,12 @@
 # python/flyte-deploy
 
 Deploy a Flyte environment with the `flyte` CLI (run through `uv`). The deploy
-client id, oauth scope and secret come from Vault; the action writes them into a
-throwaway config file (merged on top of the repo's own, if it has one) so the
-CLI authenticates with the client credentials grant instead of falling back to
-its default browser (PKCE) flow. Everything else the CLI needs — endpoint, org,
-project, domain, version — is passed as a command option, so a repo needs no
-`flyte` config file in the checkout. `domain` takes a list, so one step can
+client id, oauth scope and secret come from the inputs; the action writes them
+into a throwaway config file (merged on top of the repo's own, if it has one) so
+the CLI authenticates with the client credentials grant instead of falling back
+to its default browser (PKCE) flow. Everything else the CLI needs — endpoint,
+org, project, domain, version — is passed as a command option, so a repo needs
+no `flyte` config file in the checkout. `domain` takes a list, so one step can
 deploy the same version to several domains (`development,production`).
 
 On a pull request the deploy runs with `--dry-run` (nothing is registered); on
@@ -21,30 +21,27 @@ always get `-<short-sha>` appended so they never collide with a main deploy.
 - `actions/checkout@v7` before this step.
 - The project's environment must provide the `flyte` package (`uv run` resolves
   it from the checkout's `pyproject.toml`/lockfile).
-- `permissions: id-token: write` on the calling job. The action fetches the
-  client secret from Vault (`vault1.dlh-k8s.com:8200`, JWT auth, role
-  `ci-actions`), which needs the job's OIDC token. A composite action cannot
-  declare permissions, so this is on the caller.
+- The deploy client's credentials, passed from the org secrets
+  `FLYTE_DEPLOY_CLIENT_ID`, `FLYTE_DEPLOY_CLIENT_SECRET` and
+  `FLYTE_DEPLOY_CLIENT_SCOPE`.
 
 ## Inputs
 
-| Input                       | Required | Default                                      | Description                                                                                 |
-| --------------------------- | -------- | -------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `environment`               | yes      | —                                            | Trailing args of `flyte deploy`, e.g. `my_pkg/workflows.py` or `--all my_pkg/workflows.py`. |
-| `project`                   | yes      | —                                            | Flyte project to deploy into.                                                               |
-| `domain`                    | no       | `development`                                | Flyte domain(s), as a comma/space/newline separated list (`development,production`).        |
-| `endpoint`                  | no       | `dns:///flyte.apps.dlh-k8s.com`              | Flyte admin endpoint.                                                                       |
-| `org`                       | no       | `flyte`                                      | Flyte organization.                                                                         |
-| `version`                   | no       | `''`                                         | Version to deploy; empty means the commit sha.                                              |
-| `register-on-pr`            | no       | `false`                                      | Register for real on pull requests; the short sha is always appended to the version.        |
-| `dry-run`                   | no       | `auto`                                       | `auto` (dry run on pull requests unless `register-on-pr`), `true`, or `false`.              |
-| `extra-args`                | no       | `''`                                         | Extra args appended to `flyte deploy` before the environment.                               |
-| `working-directory`         | no       | `.`                                          | Directory to run the deploy from.                                                           |
-| `vault-url`                 | no       | `https://vault1.dlh-k8s.com:8200`            | Vault address.                                                                              |
-| `vault-role`                | no       | `ci-actions`                                 | Vault JWT role.                                                                             |
-| `vault-secret-clientid`     | no       | `kv/data/k8s/flyte/oauth deployClientId`     | Vault secret holding the client id for oauth, as `<path> <key>`.                            |
-| `vault-secret-clientsecret` | no       | `kv/data/k8s/flyte/oauth deployClientSecret` | Vault secret holding the client secret for oauth, as `<path> <key>`.                        |
-| `vault-secret-clientscope`  | no       | `kv/data/k8s/flyte/oauth deployClientScope`  | Vault secret holding the oauth scope requested for the deploy, as `<path> <key>`.           |
+| Input               | Required | Default                         | Description                                                                                 |
+| ------------------- | -------- | ------------------------------- | ------------------------------------------------------------------------------------------- |
+| `environment`       | yes      | —                               | Trailing args of `flyte deploy`, e.g. `my_pkg/workflows.py` or `--all my_pkg/workflows.py`. |
+| `project`           | yes      | —                               | Flyte project to deploy into.                                                               |
+| `domain`            | no       | `development`                   | Flyte domain(s), as a comma/space/newline separated list (`development,production`).        |
+| `endpoint`          | no       | `dns:///flyte.apps.dlh-k8s.com` | Flyte admin endpoint.                                                                       |
+| `org`               | no       | `flyte`                         | Flyte organization.                                                                         |
+| `version`           | no       | `''`                            | Version to deploy; empty means the commit sha.                                              |
+| `register-on-pr`    | no       | `false`                         | Register for real on pull requests; the short sha is always appended to the version.        |
+| `dry-run`           | no       | `auto`                          | `auto` (dry run on pull requests unless `register-on-pr`), `true`, or `false`.              |
+| `extra-args`        | no       | `''`                            | Extra args appended to `flyte deploy` before the environment.                               |
+| `working-directory` | no       | `.`                             | Directory to run the deploy from.                                                           |
+| `client-id`         | yes      | —                               | OAuth client id of the deploy client.                                                       |
+| `client-secret`     | yes      | —                               | OAuth client secret of the deploy client.                                                   |
+| `client-scope`      | no       | `''`                            | OAuth scope for the client credentials grant; empty uses what the endpoint advertises.      |
 
 ## Outputs
 
@@ -61,7 +58,6 @@ jobs:
   deploy:
     runs-on: self-hosted
     permissions:
-      id-token: write # Vault JWT auth
       contents: read
     steps:
       - uses: actions/checkout@v7
@@ -71,6 +67,9 @@ jobs:
           project: flyte-otel-demo
           domain: production
           environment: --all flyte_otel_demo/hello_otel.py
+          client-id: ${{ secrets.FLYTE_DEPLOY_CLIENT_ID }}
+          client-secret: ${{ secrets.FLYTE_DEPLOY_CLIENT_SECRET }}
+          client-scope: ${{ secrets.FLYTE_DEPLOY_CLIENT_SCOPE }}
 ```
 
 Run the same workflow on pull requests to get a `--dry-run` validation of the
@@ -99,7 +98,6 @@ jobs:
   deploy:
     runs-on: self-hosted
     permissions:
-      id-token: write # Vault JWT auth
       contents: read
     steps:
       - uses: actions/checkout@v7
@@ -117,6 +115,9 @@ jobs:
           domain:
             ${{ github.event_name == 'pull_request' && 'development' ||
             'development,production' }}
+          client-id: ${{ secrets.FLYTE_DEPLOY_CLIENT_ID }}
+          client-secret: ${{ secrets.FLYTE_DEPLOY_CLIENT_SECRET }}
+          client-scope: ${{ secrets.FLYTE_DEPLOY_CLIENT_SCOPE }}
 ```
 
 On a pull request that is a `--dry-run` against `development` only; on `main`
@@ -132,7 +133,5 @@ the same version is registered to `development` and then `production`.
   `admin.clientSecretEnvVar`; the secret itself stays in the environment and is
   never written to disk. Env vars alone are not enough here — `Config.auto()`
   only reads the environment once it has found a config file.
-- The secret is fetched with `exportEnv: false` and handed only to the deploy
-  step, so it does not end up in the environment of the caller's later steps.
-- Point a repo at different credentials by changing `vault-secret` (or the value
-  behind that Vault key), not by adding a repo secret.
+- The credentials are handed only to the deploy step, so they do not end up in
+  the environment of the caller's later steps.

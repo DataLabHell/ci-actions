@@ -1,16 +1,16 @@
 name: "Flyte deploy"
 description:
   "Deploy a Flyte environment with the flyte CLI (via uv), authenticating with a
-  client secret read from Vault; pull requests deploy with --dry-run unless
-  register-on-pr is set."
+  client id and secret passed as inputs; pull requests deploy with --dry-run
+  unless register-on-pr is set."
 author: "DataLabHell"
 
 branding:
   icon: "send"
   color: "blue"
 
-# Installs uv (via setup-uv), reads the deploy client secret from Vault and runs
-# the flyte CLI. Everything the CLI needs is passed as a command option rather
+# Installs uv (via setup-uv) and runs the flyte CLI with the client credentials
+# from the inputs. Everything the CLI needs is passed as a command option rather
 # than a config file, so a repo only has to say what it deploys. The caller owns
 # the job (runner, checkout).
 inputs:
@@ -65,29 +65,18 @@ inputs:
     description: "Directory to run the deploy from."
     required: false
     default: "."
-  vault-url:
-    description: "Vault address the client secret is read from."
-    required: false
-    default: "https://vault1.dlh-k8s.com:8200"
-  vault-role:
-    description: "Vault JWT role used for the OIDC login."
-    required: false
-    default: "ci-actions"
-  vault-secret-clientsecret:
+  client-id:
+    description: "OAuth client id of the deploy client."
+    required: true
+  client-secret:
+    description: "OAuth client secret of the deploy client."
+    required: true
+  client-scope:
     description:
-      'Vault secret holding the deploy client secret, as "<path> <key>".'
+      "OAuth scope requested for the client credentials grant. Empty = whatever
+      the admin endpoint advertises."
     required: false
-    default: "kv/data/k8s/flyte/oauth deployClientSecret"
-  vault-secret-clientid:
-    description: 'Vault secret holding the deploy client id, as "<path> <key>".'
-    required: false
-    default: "kv/data/k8s/flyte/oauth deployClientId"
-  vault-secret-clientscope:
-    description:
-      'Vault secret holding the OAuth scope requested for the client credentials
-      grant, as "<path> <key>".'
-    required: false
-    default: "kv/data/k8s/flyte/oauth deployClientScope"
+    default: ""
 
 outputs:
   version:
@@ -105,23 +94,6 @@ runs:
   steps:
     - name: Install uv
       uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
-
-    # Authenticates with the job's OIDC token, so the caller needs
-    # "permissions: id-token: write" (see the README). exportEnv is off: the
-    # secret stays in this step's outputs instead of leaking into the
-    # environment of every later step in the caller's job.
-    - name: Get Flyte client secret
-      id: vault
-      uses: hashicorp/vault-action@892a26828f195e65540a40b4768ae4571f51ebfc # v4.0.0
-      with:
-        url: ${{ inputs.vault-url }}
-        method: jwt
-        role: ${{ inputs.vault-role }}
-        exportEnv: "false"
-        secrets: |
-          ${{ inputs.vault-secret-clientid }} | FLYTE_CLIENT_ID;
-          ${{ inputs.vault-secret-clientsecret }} | FLYTE_CLIENT_SECRET;
-          ${{ inputs.vault-secret-clientscope }} | FLYTE_CLIENT_SCOPE
 
     - name: Deploy to Flyte
       id: deploy
@@ -141,6 +113,6 @@ runs:
         # On pull requests GITHUB_SHA is the temporary merge commit of
         # refs/pull/<n>/merge, not the commit that was pushed.
         COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-        FLYTE_CLIENT_ID: ${{ steps.vault.outputs.FLYTE_CLIENT_ID }}
-        FLYTE_CLIENT_SECRET: ${{ steps.vault.outputs.FLYTE_CLIENT_SECRET }}
-        FLYTE_CLIENT_SCOPE: ${{ steps.vault.outputs.FLYTE_CLIENT_SCOPE }}
+        FLYTE_CLIENT_ID: ${{ inputs.client-id }}
+        FLYTE_CLIENT_SECRET: ${{ inputs.client-secret }}
+        FLYTE_CLIENT_SCOPE: ${{ inputs.client-scope }}
