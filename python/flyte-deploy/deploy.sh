@@ -21,12 +21,12 @@ for required in ENVIRONMENT PROJECT DOMAIN ENDPOINT ORG; do
 done
 
 if [ -z "${FLYTE_CLIENT_SECRET:-}" ]; then
-  echo "::error::FLYTE_CLIENT_SECRET is empty — the Vault step returned nothing for vault-secret" >&2
+  echo "::error::input 'client-secret' is required" >&2
   exit 1
 fi
 
 if [ -z "${FLYTE_CLIENT_ID:-}" ]; then
-  echo "::error::FLYTE_CLIENT_ID is empty — the Vault step returned nothing for vault-secret-clientid" >&2
+  echo "::error::input 'client-id' is required" >&2
   exit 1
 fi
 
@@ -64,8 +64,7 @@ config = config if isinstance(config, dict) else {}
 admin = config.setdefault("admin", {})
 admin["clientId"] = os.environ["FLYTE_CLIENT_ID"]
 # Entra ID only issues a token for the Flyte API when the grant asks for that
-# API's scope, so the scope is kept in Vault next to the id and secret. Empty
-# means "use whatever the admin endpoint advertises".
+# API's scope. Empty means "use whatever the admin endpoint advertises".
 admin["clientSecretEnvVar"] = "FLYTE_CLIENT_SECRET"
 admin["authType"] = "ClientSecret"
 if os.environ["FLYTE_CLIENT_SCOPE"]:
