@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.0.0](https://github.com/DataLabHell/ci-actions/compare/python/flyte-deploy-v1.0.1...python/flyte-deploy-v2.0.0) (2026-11-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* **python/flyte-deploy:** `client-id` and `client-secret` are now required and the `vault-*` inputs are removed. Pass them from the org secrets:
+
+### Features
+
+* **python/flyte-deploy:** take the client credentials as inputs instead of vault ([0ad94a4](https://github.com/DataLabHell/ci-actions/commit/0ad94a49dd2c3db9030a7854b711b3c7626eedcf))
+
 ## [1.0.1](https://github.com/DataLabHell/ci-actions/compare/python/flyte-deploy-v1.0.0...python/flyte-deploy-v1.0.1) (2026-10-13)
 
 
