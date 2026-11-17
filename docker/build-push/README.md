@@ -46,6 +46,8 @@ The caller owns the job. A composite action can't set `runs-on`, `matrix`,
 | `push`           | no       | `true`                     | Push the image; set `"false"` for PR validation builds.                                                        |
 | `platforms`      | no       | `''`                       | Target platforms, newline- or comma-separated (e.g. `linux/arm64`). Empty = the runner's native platform only. |
 | `build-contexts` | no       | `''`                       | Additional named build contexts, one `name=source` per line (see [Build contexts](#build-contexts)).           |
+| `target`         | no       | `''`                       | Dockerfile stage to build. Empty = the last stage.                                                             |
+| `build-args`     | no       | `''`                       | Build arguments, one `KEY=VALUE` per line.                                                                     |
 | `username`       | no       | `''`                       | Registry username. Required unless the registry is `ghcr.io`.                                                  |
 | `password`       | no       | `''`                       | Registry password. Required unless the registry is `ghcr.io`.                                                  |
 
