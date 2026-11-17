@@ -69,6 +69,16 @@ inputs:
       a context by name in FROM or COPY --from. Empty = none.'
     required: false
     default: ""
+  target:
+    description: "Dockerfile stage to build. Empty = the last stage."
+    required: false
+    default: ""
+  build-args:
+    description:
+      'Build arguments, one "KEY=VALUE" per line, passed to
+      docker/build-push-action unchanged. Empty = none.'
+    required: false
+    default: ""
   username:
     description: "Registry username. Required unless the registry is ghcr.io."
     required: false
@@ -134,6 +144,8 @@ runs:
         push: ${{ inputs.push }}
         platforms: ${{ steps.prep.outputs.platforms }}
         build-contexts: ${{ inputs.build-contexts }}
+        target: ${{ inputs.target }}
+        build-args: ${{ inputs.build-args }}
         tags: ${{ steps.prep.outputs.tags }}
         cache-from: ${{ steps.prep.outputs.cache-from }}
         cache-to: ${{ steps.prep.outputs.cache-to }}
