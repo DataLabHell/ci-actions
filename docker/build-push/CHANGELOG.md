@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/DataLabHell/ci-actions/compare/docker/build-push-v1.0.0...docker/build-push-v1.1.0) (2026-11-17)
+
+
+### Features
+
+* **docker/build-push:** add target and build-args inputs ([1e3376c](https://github.com/DataLabHell/ci-actions/commit/1e3376cfc6048ce7e4cb54bdfa178dfb27375bcd))
+
 ## [1.0.0](https://github.com/DataLabHell/ci-actions/compare/docker/build-push-v0.7.0...docker/build-push-v1.0.0) (2026-11-10)
 
 
