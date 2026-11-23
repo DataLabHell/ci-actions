@@ -16,7 +16,10 @@ node = "24.22.3"
 "aqua:rhysd/actionlint" = "1.7.12"
 "aqua:tamasfe/taplo" = "0.10.0"
 "npm:prettier" = "3.10.1"
-"npm:renovate" = "44.255.2"
+## @yarnpkg/libzip 3.2.2 ships without provenance (3.2.1 had it); reviewed, benign
+"npm:renovate" = { version = "44.255.2", trust_policy_excludes = [
+  "@yarnpkg/libzip@3.2.2",
+] }
 
 ###########
 # Linting #

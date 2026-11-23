@@ -293,3 +293,6 @@ specifiers = ["3.10.1"]
 version = "44.255.2"
 backend = "npm:renovate"
 specifiers = ["44.255.2"]
+
+[tools."npm:renovate".options]
+trust_policy_excludes = '["@yarnpkg/libzip@3.2.2"]'
