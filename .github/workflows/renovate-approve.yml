@@ -1,0 +1,27 @@
+name: Renovate approve
+
+# Renovate cannot approve its own PR; github-actions[bot] can. This only
+# satisfies the review rule, the required checks still gate the merge.
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  approve:
+    name: Approve Renovate PRs
+    runs-on: ubuntu-latest
+    # github.actor is the pusher, so a human push to a Renovate branch is not
+    # approved again.
+    if: >-
+      github.event.pull_request.user.login == 'datalabhell-renovate[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor == 'datalabhell-renovate[bot]'
+    steps:
+      - name: Approve
+        uses: DataLabHell/ci-actions/pr-approve-and-merge@aca5ee89e035e86935ba821c38fc6eea8e61df3d # pr-approve-and-merge-v1.1.0
+        with:
+          number: ${{ github.event.pull_request.number }}
