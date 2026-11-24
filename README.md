@@ -262,13 +262,8 @@ review while the rest flows through. Grouping the majors rather than leaving
 them unmatched gives them an explicit `automerge: false`, which is also what
 makes [`local-renovate`](./tools/local-renovate) report them as `manual`.
 
-Two caveats:
-
-- Automerge needs a `RENOVATE_TOKEN` secret. Without one the workflow falls back
-  to `GITHUB_TOKEN`, whose PRs don't trigger `_ci.yml`, so there are no checks
-  to wait on.
-- The checks are lint-only. A green check on an action major means the YAML is
-  well-formed, not that the action still behaves the same.
+The checks are lint-only. A green check on an action major means the YAML is
+well-formed, not that the action still behaves the same.
 
 Editing `renovate.json` has no effect on a local run until it's committed:
 Renovate's `local` platform reads the config through git, and an uncommitted
