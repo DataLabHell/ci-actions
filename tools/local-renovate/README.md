@@ -7,9 +7,9 @@ branches and never opens a pull request. CI still does that.
 
 ## Requirements
 
-- `docker`. Renovate runs from its container image
-  `ghcr.io/renovatebot/renovate`, so a repo needs no node or npm. The first run
-  pulls the image.
+- `docker`, or `podman` when docker is absent. Renovate runs from its container
+  image `ghcr.io/renovatebot/renovate`, so a repo needs no node or npm. The
+  first run pulls the image.
 - `jq` and `perl`.
 - A `renovate.json` in the working directory. The script reads the automerge
   verdicts from it.

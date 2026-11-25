@@ -15,7 +15,7 @@
 # a groupName, matched by slug against the branch group renovate assigned each
 # update. Ungrouped updates show "default".
 #
-# Requires: docker, jq, perl. Renovate runs from its container image. Set
+# Requires: docker or podman, jq, perl. Renovate runs from its container image. Set
 # RENOVATE_REPORT to replay an existing report instead of running renovate.
 #
 # Exit codes: 1 = `check` found updates, 2 = renovate extracted nothing,
@@ -68,8 +68,17 @@ else
   trap 'rm -rf "$out"' EXIT
   report=$out/report.json
   echo "Fetching report..."
-  # the host user runs it, so git accepts the repo and the report stays readable
-  docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -e GITHUB_COM_TOKEN -e LOG_LEVEL \
+  # the host user runs it, so git accepts the repo and the report stays readable.
+  # Rootless podman maps the host user to root unless told to keep its id.
+  if command -v docker >/dev/null; then
+    engine=docker user=(--user "$(id -u):$(id -g)")
+  elif command -v podman >/dev/null; then
+    engine=podman user=(--userns=keep-id)
+  else
+    echo "local-renovate needs docker or podman" >&2
+    exit 127
+  fi
+  "$engine" run --rm "${user[@]}" -e HOME=/tmp -e GITHUB_COM_TOKEN -e LOG_LEVEL \
     -v "$PWD:/repo:ro" -w /repo -v "$out:/out" \
     "$image" renovate --platform=local --report-type=file --report-path=/out/report.json >/dev/null 2>&1
 fi
