@@ -10,18 +10,13 @@
 #             rewrite the version pins in place. Without --force only updates
 #             renovate.json would automerge (verdict "auto") are applied; --force
 #             also applies the "manual"/"default" ones, including major bumps.
-#   validate [args]
-#             run renovate-config-validator, with --strict when no args are given
 #
 # The verdict is derived from renovate.json: each automerging packageRule carries
 # a groupName, matched by slug against the branch group renovate assigned each
 # update. Ungrouped updates show "default".
 #
-# Requires: jq, perl, and either renovate on PATH or docker/podman. Without
-# renovate on PATH, or with LOCAL_RENOVATE_CONTAINER=1, renovate runs from its
-# container image: LOCAL_RENOVATE_IMAGE (default below) with
-# LOCAL_RENOVATE_ENGINE (default docker, else podman). Set RENOVATE_REPORT to
-# replay an existing report instead of running renovate.
+# Requires: docker, jq, perl. Renovate runs from its container image. Set
+# RENOVATE_REPORT to replay an existing report instead of running renovate.
 #
 # Exit codes: 1 = `check` found updates, 2 = renovate extracted nothing,
 # 3 = a dep's replacement template uses a helper this script cannot render.
@@ -29,58 +24,7 @@
 set -euo pipefail
 
 # renovate: datasource=docker depName=ghcr.io/renovatebot/renovate
-image_default=ghcr.io/renovatebot/renovate:44.255.2
-
-# Runs a renovate CLI ($1: renovate or renovate-config-validator) from PATH, or
-# from the container image when it is not installed.
-run_renovate() {
-  if [ "${LOCAL_RENOVATE_CONTAINER:-}" != 1 ] && command -v "$1" >/dev/null; then
-    "$@"
-  else
-    run_in_container "$@"
-  fi
-}
-
-# The repo and the temp dir are mounted at their host paths, so the paths
-# renovate is given (cwd, --report-path) resolve inside the container. The host
-# user runs it, so git accepts the repo and the report stays readable.
-run_in_container() {
-  local engine=${LOCAL_RENOVATE_ENGINE:-}
-  if [ -z "$engine" ]; then
-    if command -v docker >/dev/null; then
-      engine=docker
-    elif command -v podman >/dev/null; then
-      engine=podman
-    else
-      echo "renovate is not installed and neither docker nor podman is available" >&2
-      return 127
-    fi
-  fi
-
-  local tmp=${TMPDIR:-/tmp}
-  tmp=${tmp%/}
-  local args=(run --rm -v "$PWD:$PWD" -w "$PWD" -e HOME=/tmp)
-  [ "$tmp" != "$PWD" ] && args+=(-v "$tmp:$tmp")
-  # rootless podman maps the host user itself; docker needs it spelled out
-  if [ "$(basename "$engine")" = podman ]; then
-    args+=(--userns=keep-id)
-  else
-    args+=(--user "$(id -u):$(id -g)")
-  fi
-  local var
-  while IFS= read -r var; do
-    args+=(-e "$var")
-  done < <(compgen -e | grep -E '^(RENOVATE_|GITHUB_COM_TOKEN$|LOG_LEVEL$)' | grep -vx RENOVATE_REPORT)
-
-  "$engine" "${args[@]}" "${LOCAL_RENOVATE_IMAGE:-$image_default}" "$@"
-}
-
-if [ "${1:-}" = validate ]; then
-  shift
-  [ $# -eq 0 ] && set -- --strict
-  run_renovate renovate-config-validator "$@"
-  exit
-fi
+image=ghcr.io/renovatebot/renovate:44.255.2
 
 mode=""
 force=false
@@ -120,10 +64,14 @@ align() {
 if [ -n "${RENOVATE_REPORT:-}" ]; then
   report=$RENOVATE_REPORT
 else
-  report=$(mktemp)
-  trap 'rm -f "$report"' EXIT
+  out=$(mktemp -d)
+  trap 'rm -rf "$out"' EXIT
+  report=$out/report.json
   echo "Fetching report..."
-  run_renovate renovate --platform=local --report-type=file --report-path="$report" >/dev/null 2>&1
+  # the host user runs it, so git accepts the repo and the report stays readable
+  docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -e GITHUB_COM_TOKEN -e LOG_LEVEL \
+    -v "$PWD:/repo:ro" -w /repo -v "$out:/out" \
+    "$image" renovate --platform=local --report-type=file --report-path=/out/report.json >/dev/null 2>&1
 fi
 
 if [ ! -s "$report" ] || [ "$(jq -r '.repositories.local.packageFiles | length // 0' "$report" 2>/dev/null)" = 0 ]; then

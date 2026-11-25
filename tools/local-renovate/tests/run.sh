@@ -85,60 +85,6 @@ run_case() {
   pass=$((pass + 1))
 }
 
-# Runs the script in container mode with a fake engine that records its argv and
-# writes the replayed report where renovate was told to put it.
-# $1 case name, $2 fixture case whose in/, renovate.json and report.json are
-# used, $3 expected start of the argv after the image, rest: script argv.
-container_case() {
-  local name=$1 fixture=$cases_dir/$2 want_tail=$3
-  shift 3
-
-  local work
-  work=$(mktemp -d)
-  # shellcheck disable=SC2064 # expand $work now, it is gone by trap time otherwise
-  trap "rm -rf '$work' '$work.engine' '$work.argv'" RETURN
-  cp -R "$fixture/in/." "$work/"
-  cp "$fixture/renovate.json" "$work/renovate.json"
-
-  local engine=$work.engine argv=$work.argv
-  cat >"$engine" <<'EOF'
-#!/usr/bin/env bash
-printf '%s\n' "$@" >"$FAKE_ARGV"
-for a in "$@"; do
-  case "$a" in --report-path=*) cp "$FAKE_REPORT" "${a#--report-path=}" ;; esac
-done
-EOF
-  chmod +x "$engine"
-
-  local status=0
-  (cd "$work" && FAKE_ARGV=$argv FAKE_REPORT=$fixture/report.json \
-    GITHUB_COM_TOKEN=test-token LOCAL_RENOVATE_CONTAINER=1 \
-    LOCAL_RENOVATE_ENGINE=$engine LOCAL_RENOVATE_IMAGE=img:test \
-    "$script" "$@" >/dev/null 2>&1) || status=$?
-  if [ "$status" != 0 ]; then
-    fail_case "$name" "exit $status, want 0"
-    return
-  fi
-
-  local got want
-  got=$(cat "$argv")
-  for want in run --rm "$work:$work" --user GITHUB_COM_TOKEN; do
-    if ! grep -qxF -- "$want" <<<"$got"; then
-      fail_case "$name" "engine argv lacks '$want'" "$got"
-      return
-    fi
-  done
-  local tail
-  tail=$(sed -n '/^img:test$/,$p' <<<"$got" | tr '\n' ' ')
-  if [[ "$tail" != "img:test $want_tail"* ]]; then
-    fail_case "$name" "argv after the image: '$tail', want it to start with 'img:test $want_tail'"
-    return
-  fi
-
-  echo "ok   $name"
-  pass=$((pass + 1))
-}
-
 if [ ! -d "$cases_dir" ]; then
   echo "no cases directory at $cases_dir" >&2
   exit 1
@@ -148,9 +94,6 @@ for dir in "$cases_dir"/*/; do
   [ -d "$dir" ] || continue
   run_case "${dir%/}"
 done
-
-container_case container-list up-to-date "renovate --platform=local --report-type=file --report-path="
-container_case container-validate up-to-date "renovate-config-validator --strict " validate
 
 echo
 echo "$pass passed, $fail failed"

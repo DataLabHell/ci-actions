@@ -17,11 +17,11 @@
       ]
     },
     {
-      "description": "local-renovate's default Renovate image, marked with a `# renovate:` comment on the line above.",
+      "description": "local-renovate's Renovate image, marked with a `# renovate:` comment on the line above.",
       "customType": "regex",
       "managerFilePatterns": ["/^tools/local-renovate/local-renovate\\.sh$/"],
       "matchStrings": [
-        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\s+image_default=\\S+?:(?<currentValue>\\S+)"
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\s+image=\\S+?:(?<currentValue>\\S+)"
       ]
     }
   ],
