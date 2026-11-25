@@ -10,8 +10,7 @@ branding:
 
 inputs:
   global:
-    description:
-      "Install into the runner-wide mise dirs (~/.local/share/mise,
+    description: "Install into the runner-wide mise dirs (~/.local/share/mise,
       ~/.cache/mise) instead of a per-repository dir. Set this only where
       sharing one set of tool versions across every repo on the runner is what
       you want."

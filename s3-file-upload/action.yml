@@ -44,8 +44,7 @@ inputs:
     required: false
     default: ""
   region:
-    description:
-      "AWS region. Overrides the profile's region when both are given."
+    description: "AWS region. Overrides the profile's region when both are given."
     required: false
     default: ""
   source:

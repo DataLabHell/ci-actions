@@ -112,8 +112,7 @@ jobs:
           project: flyte-otel-demo
           environment: --all flyte_otel_demo/hello_otel.py
           version: ${{ steps.ver.outputs.version }}
-          domain:
-            ${{ github.event_name == 'pull_request' && 'development' ||
+          domain: ${{ github.event_name == 'pull_request' && 'development' ||
             'development,production' }}
           client-id: ${{ secrets.FLYTE_DEPLOY_CLIENT_ID }}
           client-secret: ${{ secrets.FLYTE_DEPLOY_CLIENT_SECRET }}
