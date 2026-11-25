@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/DataLabHell/ci-actions/compare/local-renovate-v1.0.1...local-renovate-v1.1.0) (2026-11-25)
+
+
+### Features
+
+* **local-renovate:** run renovate from its container image ([0175e5c](https://github.com/DataLabHell/ci-actions/commit/0175e5c2c8c802fa2bf2f5cdf30a93e08abdc778))
+
 ## [1.0.1](https://github.com/DataLabHell/ci-actions/compare/local-renovate-v1.0.0...local-renovate-v1.0.1) (2026-09-22)
 
 

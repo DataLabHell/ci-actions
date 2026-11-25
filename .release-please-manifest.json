@@ -9,7 +9,7 @@
   "python/test": "0.6.0",
   "python/publish": "2.0.0",
   "python/flyte-deploy": "2.0.0",
-  "mise-setup": "1.0.4",
+  "mise-setup": "1.0.5",
   "pr-approve-and-merge": "1.1.0",
-  "tools/local-renovate": "1.0.1"
+  "tools/local-renovate": "1.1.0"
 }
