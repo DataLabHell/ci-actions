@@ -13,8 +13,7 @@ branding:
 # `permissions: packages: write` for GHCR, checkout).
 inputs:
   image:
-    description:
-      'Final path segment of the image, e.g. "api" -> <registry>/<namespace>/api'
+    description: 'Final path segment of the image, e.g. "api" -> <registry>/<namespace>/api'
     required: true
   namespace:
     description:
@@ -39,8 +38,7 @@ inputs:
     required: false
     default: "."
   dockerfile:
-    description:
-      "Path to the Dockerfile (empty = the default Dockerfile in the context)"
+    description: "Path to the Dockerfile (empty = the default Dockerfile in the context)"
     required: false
     default: ""
   cache:
@@ -74,8 +72,7 @@ inputs:
     required: false
     default: ""
   build-args:
-    description:
-      'Build arguments, one "KEY=VALUE" per line, passed to
+    description: 'Build arguments, one "KEY=VALUE" per line, passed to
       docker/build-push-action unchanged. Empty = none.'
     required: false
     default: ""
@@ -92,8 +89,7 @@ inputs:
 # username and password.
 outputs:
   ref:
-    description:
-      "The fully-qualified image ref (without tag), e.g. ghcr.io/org/repo/api"
+    description: "The fully-qualified image ref (without tag), e.g. ghcr.io/org/repo/api"
     value: ${{ steps.prep.outputs.ref }}
 
 runs:

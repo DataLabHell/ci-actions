@@ -16,8 +16,7 @@ inputs:
 
 outputs:
   version:
-    description:
-      "The bare version string, e.g. 1.2.3 (feed into release/tag-and-alias)"
+    description: "The bare version string, e.g. 1.2.3 (feed into release/tag-and-alias)"
     value: ${{ steps.read.outputs.version }}
 
 runs:

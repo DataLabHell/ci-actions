@@ -1,6 +1,5 @@
 name: "Python publish"
-description:
-  "Build a Python project with uv and publish it to a devpi index;
+description: "Build a Python project with uv and publish it to a devpi index;
   already-published versions are a no-op."
 author: "DataLabHell"
 
@@ -16,8 +15,7 @@ branding:
 # uses dynamic versioning.
 inputs:
   version:
-    description:
-      "Version to publish, bare X.Y.Z (from versioning/auto-patch or
+    description: "Version to publish, bare X.Y.Z (from versioning/auto-patch or
       versioning/from-pyproject). Required for projects with dynamic versioning;
       ignored for projects with a fixed [project].version."
     required: false
@@ -29,8 +27,7 @@ inputs:
     required: false
     default: "main"
   publish-other-branches:
-    description:
-      'Also publish from refs other than release-branch, as
+    description: 'Also publish from refs other than release-branch, as
       "X.Y.Z.dev<pr-number>+<short-sha>"'
     required: false
     default: "false"

@@ -28,8 +28,7 @@ inputs:
     required: false
     default: "rebase"
   app-id:
-    description:
-      "App ID or Client ID of the GitHub App that merges. Needed for `merge`."
+    description: "App ID or Client ID of the GitHub App that merges. Needed for `merge`."
     required: false
     default: ""
   app-private-key:
