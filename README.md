@@ -199,9 +199,9 @@ isn't meant to be referenced.
 commands run locally and in CI:
 
 ```bash
-mise install        # get the linters, jq and renovate
+mise install        # get the linters and jq
 mise run check      # the full gate: format check + lint + test (what CI runs)
-mise run format     # apply shfmt, prettier and taplo formatting
+mise run format     # apply shfmt, biome and taplo formatting
 mise run test       # the local-renovate fixture tests on their own
 mise run dependencies:renovate  # list pending dependency bumps
 mise tasks          # list everything, including the per-language tasks
@@ -212,8 +212,8 @@ mise tasks          # list everything, including the per-language tasks
 | `action-validator`          | every `action.yml` and workflow, by schema  |
 | `actionlint`                | `.github/workflows/`                        |
 | `shellcheck`, `shfmt`       | `*.sh`                                      |
-| `renovate-config-validator` | `renovate.json` (strict)                    |
-| `prettier`                  | YAML, Markdown, JSON                        |
+| `renovate-config-validator` | `renovate.json` (strict), from its image    |
+| `biome`                     | YAML, Markdown, JSON                        |
 | `taplo`                     | TOML                                        |
 | `tools/local-renovate`      | the rewrite methods, against canned reports |
 
@@ -236,13 +236,6 @@ Two things are tracked, both kept as exact pins:
 
 - **mise tool versions** in [`mise.toml`](./mise.toml), never `latest` or `lts`,
   so the version CI installs is the version the file records.
-
-  Node stays on LTS without a rule: the `node-version` datasource counts a
-  release as unstable until its major reaches the LTS date in
-  [nodejs/Release](https://github.com/nodejs/Release), and `ignoreUnstable`
-  defaults to true. To lock to one line instead, `allowedVersions` accepts an
-  LTS [codename](https://github.com/nodejs/Release/blob/main/CODENAMES.md), so
-  `krypton` means `^24`.
 
 - **Third-party action refs**, pinned to a commit SHA with the exact tag in a
   trailing comment (`@<sha> # v4.4.0`). The SHA is what runs; the comment is how
