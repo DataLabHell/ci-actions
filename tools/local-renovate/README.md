@@ -7,11 +7,32 @@ branches and never opens a pull request. CI still does that.
 
 ## Requirements
 
-- `renovate` on `PATH`, most simply pinned as `npm:renovate` in the repo's mise
-  config.
+- `renovate` on `PATH`, e.g. pinned as `npm:renovate` in the repo's mise config,
+  or `docker` or `podman` to run renovate from its container image instead.
 - `jq` and `perl`.
 - A `renovate.json` in the working directory. The script reads the automerge
   verdicts from it.
+
+## Renovate from its container image
+
+Without `renovate` on `PATH`, the script runs renovate from
+`ghcr.io/renovatebot/renovate`, so a repo needs no node or npm. The same applies
+to `validate`. The first run pulls the image.
+
+| Variable                   | Effect                                                                                    |
+| -------------------------- | ----------------------------------------------------------------------------------------- |
+| `LOCAL_RENOVATE_CONTAINER` | `1` uses the image even when `renovate` is on `PATH`.                                     |
+| `LOCAL_RENOVATE_IMAGE`     | The image to run. Defaults to the tag pinned in the script, which Renovate keeps current. |
+| `LOCAL_RENOVATE_ENGINE`    | The container engine. Defaults to `docker`, else `podman`.                                |
+
+The working directory and the temp directory are mounted at their host paths,
+and renovate runs as the host user (rootless podman maps it with
+`--userns=keep-id`). `RENOVATE_*`, `GITHUB_COM_TOKEN` and `LOG_LEVEL` are passed
+into the container.
+
+With mise shims, a `renovate` shim exists as soon as any project installed
+`npm:renovate`, and it fails in a repo that does not pin it. Set
+`LOCAL_RENOVATE_CONTAINER=1` there.
 
 ## Modes
 
@@ -21,6 +42,7 @@ branches and never opens a pull request. CI still does that.
 | `check`         | Same listing, but exits 1 when any update is pending. For CI gating.    |
 | `apply`         | Rewrite the manifests to the highest `auto` target of each dependency.  |
 | `apply --force` | Also rewrite the `manual` and `default` ones, including majors.         |
+| `validate`      | Run `renovate-config-validator`, with `--strict` when no args follow.   |
 
 `separateMinorPatch` reports a patch and a minor entry for the same dependency.
 `apply` takes the highest target it is allowed to, so a dependency whose patch
