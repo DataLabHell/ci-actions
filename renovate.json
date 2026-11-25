@@ -71,19 +71,12 @@
       "semanticCommitType": "fix"
     },
     {
-      "description": "Renovate ships patch releases almost daily, and each image bump releases local-renovate. Follow only its minor releases. ghcr.io returns no release timestamps, so the release age cannot apply.",
-      "matchManagers": ["custom.regex"],
+      "description": "ghcr.io returns no release timestamps, so the release age cannot apply.",
       "matchDepNames": ["ghcr.io/renovatebot/renovate"],
       "minimumReleaseAgeBehaviour": "timestamp-optional"
     },
     {
-      "matchManagers": ["custom.regex"],
-      "matchDepNames": ["ghcr.io/renovatebot/renovate"],
-      "matchUpdateTypes": ["patch"],
-      "enabled": false
-    },
-    {
-      "description": "Renovate releases several minors a week. Bump the CLI and local-renovate's image at most once a week, on Monday nights (UTC).",
+      "description": "Each image bump releases local-renovate. Bump the CLI and local-renovate's image at most once a week, on Monday nights (UTC).",
       "matchDepNames": ["npm:renovate", "ghcr.io/renovatebot/renovate"],
       "schedule": ["* 0-3 * * 1"]
     }
