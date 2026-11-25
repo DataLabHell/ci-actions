@@ -29,13 +29,11 @@ jobs:
       # local-renovate is a program, not an action, so consumers install it from
       # the release asset (mise github backend) instead of referencing the tag.
       - name: Attach local-renovate to its release
-        if:
-          steps.release.outputs['tools/local-renovate--release_created'] ==
+        if: steps.release.outputs['tools/local-renovate--release_created'] ==
           'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          UPLOAD_URL:
-            ${{ steps.release.outputs['tools/local-renovate--upload_url'] }}
+          UPLOAD_URL: ${{ steps.release.outputs['tools/local-renovate--upload_url'] }}
         run: |
           install -m 755 tools/local-renovate/local-renovate.sh local-renovate
           curl --fail --silent --show-error \
