@@ -10,6 +10,8 @@
 #             rewrite the version pins in place. Without --force only updates
 #             renovate.json would automerge (verdict "auto") are applied; --force
 #             also applies the "manual"/"default" ones, including major bumps.
+#   validate [args]
+#             run renovate-config-validator, with --strict when no args are given
 #
 # The verdict is derived from renovate.json: each automerging packageRule carries
 # a groupName, matched by slug against the branch group renovate assigned each
@@ -25,6 +27,31 @@ set -euo pipefail
 
 # renovate: datasource=docker depName=ghcr.io/renovatebot/renovate
 image=ghcr.io/renovatebot/renovate:44.255.2
+
+# `<engine> run` as the host user, so git accepts the repo and written files stay
+# readable, with the working directory mounted read-only at /repo. Takes the
+# remaining run options, the image and the command.
+container_run() {
+  local engine user
+  if command -v docker >/dev/null; then
+    engine=docker user=(--user "$(id -u):$(id -g)")
+  elif command -v podman >/dev/null; then
+    # rootless podman maps the host user to root unless told to keep its id
+    engine=podman user=(--userns=keep-id)
+  else
+    echo "local-renovate needs docker or podman" >&2
+    exit 127
+  fi
+  "$engine" run --rm "${user[@]}" -e HOME=/tmp -e GITHUB_COM_TOKEN -e LOG_LEVEL \
+    -v "$PWD:/repo:ro" -w /repo "$@"
+}
+
+if [ "${1:-}" = validate ]; then
+  shift
+  [ $# -eq 0 ] && set -- --strict
+  container_run "$image" renovate-config-validator "$@"
+  exit
+fi
 
 mode=""
 force=false
@@ -68,18 +95,7 @@ else
   trap 'rm -rf "$out"' EXIT
   report=$out/report.json
   echo "Fetching report..."
-  # the host user runs it, so git accepts the repo and the report stays readable.
-  # Rootless podman maps the host user to root unless told to keep its id.
-  if command -v docker >/dev/null; then
-    engine=docker user=(--user "$(id -u):$(id -g)")
-  elif command -v podman >/dev/null; then
-    engine=podman user=(--userns=keep-id)
-  else
-    echo "local-renovate needs docker or podman" >&2
-    exit 127
-  fi
-  "$engine" run --rm "${user[@]}" -e HOME=/tmp -e GITHUB_COM_TOKEN -e LOG_LEVEL \
-    -v "$PWD:/repo:ro" -w /repo -v "$out:/out" \
+  container_run -v "$out:/out" \
     "$image" renovate --platform=local --report-type=file --report-path=/out/report.json >/dev/null 2>&1
 fi
 

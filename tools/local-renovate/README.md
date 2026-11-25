@@ -25,6 +25,7 @@ are passed into the container.
 | `check`         | Same listing, but exits 1 when any update is pending. For CI gating.    |
 | `apply`         | Rewrite the manifests to the highest `auto` target of each dependency.  |
 | `apply --force` | Also rewrite the `manual` and `default` ones, including majors.         |
+| `validate`      | Run `renovate-config-validator`, with `--strict` when no args follow.   |
 
 `separateMinorPatch` reports a patch and a minor entry for the same dependency.
 `apply` takes the highest target it is allowed to, so a dependency whose patch
