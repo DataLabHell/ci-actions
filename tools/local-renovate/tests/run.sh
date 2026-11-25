@@ -95,6 +95,27 @@ for dir in "$cases_dir"/*/; do
   run_case "${dir%/}"
 done
 
+# validate runs the validator in the image; a fake docker prints its argv.
+validate_case() {
+  local name=$1 want=$2
+  shift 2
+  local bin got
+  bin=$(mktemp -d)
+  printf '#!/bin/sh\necho "$@"\n' >"$bin/docker"
+  chmod +x "$bin/docker"
+  got=$(PATH="$bin:$PATH" "$script" validate "$@" 2>&1) || true
+  rm -rf "$bin"
+  if [[ "$got" != *" renovate-config-validator $want" ]]; then
+    fail_case "$name" "docker argv: '$got', want it to end in 'renovate-config-validator $want'"
+    return
+  fi
+  echo "ok   $name"
+  pass=$((pass + 1))
+}
+
+validate_case validate-strict "--strict"
+validate_case validate-args "--no-global renovate.json" --no-global renovate.json
+
 echo
 echo "$pass passed, $fail failed"
 [ "$fail" -eq 0 ]

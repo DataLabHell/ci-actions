@@ -15,6 +15,14 @@
       "matchStrings": [
         "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)(?: extractVersion=(?<extractVersion>\\S+))?\\s+default: \"(?<currentValue>[^\"]+)\""
       ]
+    },
+    {
+      "description": "local-renovate's Renovate image, marked with a `# renovate:` comment on the line above.",
+      "customType": "regex",
+      "managerFilePatterns": ["/^tools/local-renovate/local-renovate\\.sh$/"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\s+image=\\S+?:(?<currentValue>\\S+)"
+      ]
     }
   ],
   "packageRules": [
@@ -61,6 +69,16 @@
       "description": "An action input default ships to callers, so its bump is a `fix` that release-please releases.",
       "matchManagers": ["custom.regex"],
       "semanticCommitType": "fix"
+    },
+    {
+      "description": "ghcr.io returns no release timestamps, so the release age cannot apply.",
+      "matchDepNames": ["ghcr.io/renovatebot/renovate"],
+      "minimumReleaseAgeBehaviour": "timestamp-optional"
+    },
+    {
+      "description": "Each image bump releases local-renovate. Bump the CLI and local-renovate's image at most once a week, on Monday nights (UTC).",
+      "matchDepNames": ["npm:renovate", "ghcr.io/renovatebot/renovate"],
+      "schedule": ["* 0-3 * * 1"]
     }
   ]
 }
