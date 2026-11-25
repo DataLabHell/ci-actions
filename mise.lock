@@ -2,6 +2,53 @@
 
 lockfile_version = 2
 
+[[tools."aqua:biome"]]
+version = "2.6.8"
+backend = "aqua:biome"
+specifiers = ["2.6.8"]
+
+[tools."aqua:biome"."platforms.linux-arm64"]
+checksum = "sha256:3e5b3bf3ff21c4beecfef424fd429d6937c5e04fe5d332ad69d45806349ce20c"
+url = "https://github.com/biomejs/biome/releases/download/%40biomejs/biome%402.6.8/biome-linux-arm64"
+url_api = "https://api.github.com/repos/biomejs/biome/releases/assets/751278596"
+provenance = "github-attestations"
+
+[tools."aqua:biome"."platforms.linux-arm64-musl"]
+checksum = "sha256:3e5b3bf3ff21c4beecfef424fd429d6937c5e04fe5d332ad69d45806349ce20c"
+url = "https://github.com/biomejs/biome/releases/download/%40biomejs/biome%402.6.8/biome-linux-arm64"
+url_api = "https://api.github.com/repos/biomejs/biome/releases/assets/751278596"
+provenance = "github-attestations"
+
+[tools."aqua:biome"."platforms.linux-x64"]
+checksum = "sha256:fc1cb7c6664d6fa315144f58bd03096ee5d035e641538840a80262d59203d5dd"
+url = "https://github.com/biomejs/biome/releases/download/%40biomejs/biome%402.6.8/biome-linux-x64"
+url_api = "https://api.github.com/repos/biomejs/biome/releases/assets/751278589"
+provenance = "github-attestations"
+
+[tools."aqua:biome"."platforms.linux-x64-musl"]
+checksum = "sha256:fc1cb7c6664d6fa315144f58bd03096ee5d035e641538840a80262d59203d5dd"
+url = "https://github.com/biomejs/biome/releases/download/%40biomejs/biome%402.6.8/biome-linux-x64"
+url_api = "https://api.github.com/repos/biomejs/biome/releases/assets/751278589"
+provenance = "github-attestations"
+
+[tools."aqua:biome"."platforms.macos-arm64"]
+checksum = "sha256:16c2a522889a679768bafe463523aded030c51f17004cf5c579750422443fcc4"
+url = "https://github.com/biomejs/biome/releases/download/%40biomejs/biome%402.6.8/biome-darwin-arm64"
+url_api = "https://api.github.com/repos/biomejs/biome/releases/assets/751278580"
+provenance = "github-attestations"
+
+[tools."aqua:biome"."platforms.macos-x64"]
+checksum = "sha256:81fe7e521e010117fe6ef85f96ec4609e316059e630850084ac49a2e5a7b665a"
+url = "https://github.com/biomejs/biome/releases/download/%40biomejs/biome%402.6.8/biome-darwin-x64"
+url_api = "https://api.github.com/repos/biomejs/biome/releases/assets/751278581"
+provenance = "github-attestations"
+
+[tools."aqua:biome"."platforms.windows-x64"]
+checksum = "sha256:4328e7468693a259474b8d6810899fafa4af3ef7ceec446d1b98553c8f7b3ace"
+url = "https://github.com/biomejs/biome/releases/download/%40biomejs/biome%402.6.8/biome-win32-x64.exe"
+url_api = "https://api.github.com/repos/biomejs/biome/releases/assets/751278595"
+provenance = "github-attestations"
+
 [[tools."aqua:jqlang/jq"]]
 version = "1.8.2"
 backend = "aqua:jqlang/jq"
@@ -93,6 +140,7 @@ url_api = "https://api.github.com/repos/koalaman/shellcheck/releases/assets/2790
 version = "0.9.0"
 backend = "aqua:mpalmer/action-validator"
 specifiers = ["0.9.0"]
+unsupported_platforms = ["windows-x64"]
 
 [tools."aqua:mpalmer/action-validator"."platforms.linux-arm64"]
 checksum = "sha256:0fe137986e838c68f760d9a60569cf6749192fa6315915f19ba0c7d11d8e3d9a"
@@ -250,46 +298,3 @@ url_api = "https://api.github.com/repos/tamasfe/taplo/releases/assets/257323116"
 checksum = "sha256:1615eed140039bd58e7089109883b1c434de5d6de8f64a993e6e8c80ca57bdf9"
 url = "https://github.com/tamasfe/taplo/releases/download/0.10.0/taplo-windows-x86_64.zip"
 url_api = "https://api.github.com/repos/tamasfe/taplo/releases/assets/257323062"
-
-[[tools.node]]
-version = "24.22.3"
-backend = "core:node"
-specifiers = ["24.22.3"]
-
-[tools.node."platforms.linux-arm64"]
-checksum = "sha256:261af2af250dfd7e9f25cf151d1b2713a0adf8f10a9ad116c4947f68627affe8"
-url = "https://nodejs.org/dist/v24.22.3/node-v24.22.3-linux-arm64.tar.gz"
-
-[tools.node."platforms.linux-arm64-musl"]
-checksum = "sha256:248c96a84f6c8338646b9fd73bf125124678f8fb08db5f23023f462055e0eedc"
-url = "https://unofficial-builds.nodejs.org/download/release/v24.22.3/node-v24.22.3-linux-arm64-musl.tar.gz"
-
-[tools.node."platforms.linux-x64"]
-checksum = "sha256:061ec3e3062115705b56b51fa9cc330ab50d34b6969387d4e4b1a50c6809acc2"
-url = "https://nodejs.org/dist/v24.22.3/node-v24.22.3-linux-x64.tar.gz"
-
-[tools.node."platforms.linux-x64-musl"]
-checksum = "sha256:2db4f8a40abe5f5b5d119964223fedc9c4c7c5e7c632901ae860af522c7844b2"
-url = "https://unofficial-builds.nodejs.org/download/release/v24.22.3/node-v24.22.3-linux-x64-musl.tar.gz"
-
-[tools.node."platforms.macos-arm64"]
-checksum = "sha256:ff6e17d4874b76d272212b908cc020d6e815fba5a6c7eaaa06add725840307fd"
-url = "https://nodejs.org/dist/v24.22.3/node-v24.22.3-darwin-arm64.tar.gz"
-
-[tools.node."platforms.macos-x64"]
-checksum = "sha256:977614af0504c81045e7fd85596dbca0e5f951b96681516dadafedcca8c447f7"
-url = "https://nodejs.org/dist/v24.22.3/node-v24.22.3-darwin-x64.tar.gz"
-
-[tools.node."platforms.windows-x64"]
-checksum = "sha256:e612af99f626ab415ea225af6bce5c971feb448cb5cae250bb1c3fa50c5f7d9f"
-url = "https://nodejs.org/dist/v24.22.3/node-v24.22.3-win-x64.zip"
-
-[[tools."npm:prettier"]]
-version = "3.10.1"
-backend = "npm:prettier"
-specifiers = ["3.10.1"]
-
-[[tools."npm:renovate"]]
-version = "44.255.2"
-backend = "npm:renovate"
-specifiers = ["44.255.2"]

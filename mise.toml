@@ -1,22 +1,19 @@
 [settings]
-# safer in ci workloads than the default
-npm.package_manager = "npm"
+# install only what mise.lock records
+locked = true
 
 [tools]
 # dependencies
-## lts, provides npm
-node = "24.22.3"
 ## required by renovate scripts
 "aqua:jqlang/jq" = "1.8.2"
 
 # linters
 "aqua:koalaman/shellcheck" = "0.11.0"
 "aqua:mpalmer/action-validator" = "0.9.0"
+"aqua:biome" = "2.6.8"
 "aqua:mvdan/sh" = "3.14.1"
 "aqua:rhysd/actionlint" = "1.7.12"
 "aqua:tamasfe/taplo" = "0.10.0"
-"npm:prettier" = "3.10.1"
-"npm:renovate" = "44.255.2"
 
 ###########
 # Linting #
@@ -55,7 +52,7 @@ if [ -n "$files" ]; then shellcheck $files; else echo "no shell scripts found"; 
 
 [tasks."lint:renovate"]
 description = "Validate renovate.json against its schema (strict)"
-run = "renovate-config-validator --strict"
+run = "tools/local-renovate/local-renovate.sh validate"
 
 [tasks."lint:toml"]
 description = "Lint TOML files with taplo"
@@ -79,11 +76,11 @@ fi
 
 [tasks."format:_write"]
 hide = true
-depends = ["format:bash", "format:prettier", "format:toml"]
+depends = ["format:bash", "format:biome", "format:toml"]
 
 [tasks."format:_check"]
 hide = true
-depends = ["format:bash check", "format:prettier check", "format:toml check"]
+depends = ["format:bash check", "format:biome check", "format:toml check"]
 
 [tasks."format:bash"]
 description = "Format shell scripts with shfmt (pass `check` to verify only, `--file` for a single file)"
@@ -106,19 +103,19 @@ else
 fi
 '''
 
-[tasks."format:prettier"]
-description = "Format YAML/Markdown/JSON with prettier (pass `check` to verify only, `--file` for a single file)"
+[tasks."format:biome"]
+description = "Format YAML/Markdown/JSON with biome (pass `check` to verify only, `--file` for a single file)"
 usage = '''
 arg "[mode]" help="pass `check` to verify without modifying"
 flag "--file <path>" help="format only this file"
 '''
 run = '''
-# Running prettier (skips extensions it has no parser for, e.g. .sh and .toml)
+# Running biome
 target="${usage_file:-.}"
 if [ "$usage_mode" = check ]; then
-  prettier --check "$target"
+  biome format "$target"
 else
-  prettier --write "$target"
+  biome format --write "$target"
 fi
 '''
 
