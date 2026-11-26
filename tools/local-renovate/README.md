@@ -34,9 +34,9 @@ same choice: one row per dependency and verdict, carrying the target that row
 would apply.
 
 Exit codes beyond those: `2` when renovate extracted no dependencies at all
-(usually a network or rate-limit problem, check `RENOVATE_GITHUB_COM_TOKEN`),
-and `3` when a dependency's replacement template uses a helper this script
-cannot render.
+(usually a network or rate-limit problem, check `GITHUB_COM_TOKEN`), and `3`
+when a dependency's replacement template uses a helper this script cannot
+render.
 
 `apply` only touches the manifests. Run the repo's own refresh afterwards
 (`mise install`, `cargo update`, `uv sync`, `dbt deps`) to bring locks and
